@@ -1,0 +1,11 @@
+{
+  "name": "tareaje_backend",
+  "version": "1.0.0",
+  "description": "backend para el tareaje de la muni sjl",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "erick pajares",
+  "license": "ISC"
+}
