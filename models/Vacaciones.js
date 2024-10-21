@@ -1,0 +1,24 @@
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
+    const Vacacion = sequelize.define('Vacacion', {
+        id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        f_inicio: {
+            type: DataTypes.DATEONLY,
+            allowNull: false
+        },
+        f_fin:{
+            type: DataTypes.DATEONLY,
+            allowNull: false
+        }
+    }, {
+        tableName: 'Vacaciones',
+        timestamps: true
+    });
+
+    return Vacacion;
+};

@@ -1,9 +1,11 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
     const Empleado = sequelize.define('Empleado', {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
-            primaryKey: true
+            unique: true
         },
         nombres: {
             type: DataTypes.STRING,
@@ -16,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         dni: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true
+            primaryKey: true
         },
         ruc: {
             type: DataTypes.STRING,
@@ -32,10 +34,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         f_nacimiento: {
             type: DataTypes.DATEONLY,
-            allowNull: true
-        },
-        lugar_trabajo: {
-            type: DataTypes.STRING,
             allowNull: true
         },
         correo: {
@@ -61,7 +59,12 @@ module.exports = (sequelize, DataTypes) => {
         observaciones: {
             type: DataTypes.TEXT,
             allowNull: true
-        }
+        },
+        state: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
     }, {
         tableName: 'Empleados',
         timestamps: true

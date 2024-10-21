@@ -1,16 +1,22 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
     const Asistencia = sequelize.define('Asistencia', {
         id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
+            type: DataTypes.UUID,
             primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
         },
         fecha: {
             type: DataTypes.DATEONLY,
             allowNull: false,
         },
+        hora: {
+            type: DataTypes.TIME,
+            allowNull: false
+        },
         estado: {
-            type: DataTypes.ENUM('A', 'T', 'F'),
+            type: DataTypes.ENUM('A', 'J', 'D', 'F', 'V', 'NA'),
             allowNull: false,
         },
     }, {
@@ -22,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
     Asistencia.associate = (db) => {
         Asistencia.belongsTo(db.Empleado, {
             foreignKey: 'id_dni',
-            as: 'empleado',
+            as: 'id_empleado',
         });
     };
 
