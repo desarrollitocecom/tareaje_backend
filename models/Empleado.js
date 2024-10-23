@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         dni: {
-            type: DataTypes.STRING(8),
+            type: DataTypes.STRING(8),  
             allowNull: false,
             unique: true
         },
