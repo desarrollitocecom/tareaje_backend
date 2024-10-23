@@ -1,4 +1,3 @@
-
 const Funcion = require('../models/Funcion');
 const {sequelize}=require('../db_connection');
 //Crea una nueva Funcion

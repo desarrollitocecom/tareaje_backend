@@ -43,6 +43,10 @@ module.exports = (sequelize) => {
             foreignKey: 'id_usuario',
             as: 'usuario'
         });
+        db.Historial.hasOne(Historial, {
+            foreignKey: 'id_usuario',
+            as: 'historia'
+        })
     }
 
 
