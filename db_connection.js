@@ -27,9 +27,10 @@ fs.readdirSync(path.join(__dirname, 'models'))
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
-    console.log("asociando: ",modelName); 
+    console.log("asociando: ", modelName);
   }
-});
+}
+);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

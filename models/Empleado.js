@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         dni: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(8),
             allowNull: false,
             primaryKey: true
         },
@@ -71,56 +71,56 @@ module.exports = (sequelize) => {
     });
 
     // Asociaciones
-    /*
+    
     Empleado.associate = (db) => {
         // Relación con la tabla Cargo
         Empleado.belongsTo(db.Cargo, {
-            foreignKey: 'cargo',
+            foreignKey: 'id_cargo',
             as: 'cargo'
         });
 
         // Relación con la tabla Turno
         Empleado.belongsTo(db.Turno, {
-            foreignKey: 'turno',
+            foreignKey: 'id_turno',
             as: 'turno'
         });
 
         // Relación con la tabla Régimen Laboral
         Empleado.belongsTo(db.RegimenLaboral, {
-            foreignKey: 'regimen_laboral',
+            foreignKey: 'id_regimen_laboral',
             as: 'regimenLaboral'
         });
 
         // Relación con la tabla Sexo
         Empleado.belongsTo(db.Sexo, {
-            foreignKey: 'sexo',
+            foreignKey: 'id_sexo',
             as: 'sexo'
         });
 
         // Relación con la tabla Jurisdiccion
         Empleado.belongsTo(db.Jurisdiccion, {
-            foreignKey: 'jurisdiccion',
+            foreignKey: 'id_jurisdiccion',
             as: 'jurisdiccion'
         });
 
         // Relación con la tabla Grado de Estudios
         Empleado.belongsTo(db.GradoEstudios, {
-            foreignKey: 'grado_estudios',
+            foreignKey: 'id_grado_estudios',
             as: 'gradoEstudios'
         });
 
         // Relación con la tabla Subgerencia
         Empleado.belongsTo(db.Subgerencia, {
-            foreignKey: 'subgerencia',
+            foreignKey: 'id_subgerencia',
             as: 'subgerencia'
         });
 
         // Relación con la tabla Función
         Empleado.belongsTo(db.Funcion, {
-            foreignKey: 'funcion',
+            foreignKey: 'id_funcion',
             as: 'funcion'
         });
-    };*/
+    };
 
     return Empleado;
-};
+}

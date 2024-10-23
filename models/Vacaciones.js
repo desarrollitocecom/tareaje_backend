@@ -20,5 +20,12 @@ module.exports = (sequelize) => {
         timestamps: true
     });
 
+    Vacacion.associate = (db) => {
+        Vacacion.belongsTo(db.Empleado, {
+            foreignKey: 'id_dni',
+            as: 'empleado', // Alias más claro
+        });
+    };
+
     return Vacacion;
 };
