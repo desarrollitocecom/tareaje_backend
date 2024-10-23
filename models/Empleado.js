@@ -5,7 +5,7 @@ module.exports = (sequelize) => {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
-            unique: true
+           primaryKey: true
         },
         nombres: {
             type: DataTypes.STRING,
@@ -16,9 +16,9 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         dni: {
-            type: DataTypes.STRING(8),
+            type: DataTypes.STRING(8),  
             allowNull: false,
-            primaryKey: true
+            unique: true
         },
         ruc: {
             type: DataTypes.STRING,
