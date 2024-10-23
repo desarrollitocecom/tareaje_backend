@@ -18,17 +18,19 @@ const db = {};
 fs.readdirSync(path.join(__dirname, 'models'))
   .filter((file) => file.indexOf('.') !== 0 && file.slice(-3) === '.js') // Filtra solo archivos .js
   .forEach((file) => {
-    const model = require(path.join(__dirname, 'models', file))(sequelize, Sequelize.DataTypes);
+    const model = require(path.join(__dirname, 'models', file))(sequelize);
     db[model.name] = model;
-    //console.log(`Modelo ${file} cargado`);
+    console.log(`Modelo ${file} cargado`);
   });
 
 // Configurar asociaciones si los modelos tienen asociaciones
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
+    console.log("asociando: ", modelName);
   }
-});
+}
+);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
