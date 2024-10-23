@@ -27,7 +27,12 @@ module.exports = (sequelize) => {
         token: {
             type: DataTypes.STRING(500), // Token
             allowNull: true
-        }
+        },
+        state: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
     }, {
         tableName: 'Usuarios',
         timestamps: true

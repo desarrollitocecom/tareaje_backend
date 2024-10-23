@@ -14,7 +14,12 @@ module.exports = (sequelize) => {
         observacion: {
             type: DataTypes.TEXT,
             allowNull: false
-        }
+        },
+        state: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
     },{
         tableName: 'Descansos',
         timestamps: true
