@@ -27,6 +27,11 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        state:{
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        }
     }, {
         tableName: 'Historiales',
         timestamps: true

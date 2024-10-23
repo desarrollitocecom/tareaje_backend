@@ -10,6 +10,11 @@ module.exports = (sequelize) => {
         nombre: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        state:{
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
         }
     }, {
         tableName: 'LugarDeTrabajo',

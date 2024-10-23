@@ -14,10 +14,23 @@ module.exports = (sequelize) => {
         descripcion: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        state:{
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
         }
     }, {
         tableName: 'Roles',
         timestamps: true
     });
+
+     Rol.associate = (db) => {
+        Rol.hasMany(db.Usuario, {
+            foreignKey: 'id_rol', 
+            as: 'usuarios'
+        });
+    };
+
     return Rol;
 };

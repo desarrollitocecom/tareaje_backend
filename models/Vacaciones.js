@@ -14,6 +14,11 @@ module.exports = (sequelize) => {
         f_fin:{
             type: DataTypes.DATEONLY,
             allowNull: false
+        },
+        state:{
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
         }
     }, {
         tableName: 'Vacaciones',

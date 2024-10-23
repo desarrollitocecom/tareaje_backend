@@ -15,6 +15,11 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        state:{
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        }
     }, {
         tableName: 'Justificaciones',
         timestamps: true
