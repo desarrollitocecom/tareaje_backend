@@ -20,13 +20,15 @@ const readFuncion = async (nombrefuncion) => {
               nombre: { [Op.iRegexp]: `^${nombrefuncion}` },
             }
         });
+        if (!funcion) {
+            throw new Error('Función no encontrada');
+        }
         return funcion;
     } catch (error) {
         console.error(`Error al obtener la Función: ${error.message}`);
         throw new Error(`Error al obtener la Función: ${error.message}`);
     }
 };
-
 
 const deleteFuncion = async (id) => {
     try {
@@ -67,6 +69,7 @@ const UpdateFuncion = async (id, nuevoNombre) => {
         throw new Error(`Error al modificar la Funcion: ${error.message}`);
     }
 };  
+
 
 
 module.exports = {

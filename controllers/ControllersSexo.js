@@ -1,7 +1,8 @@
 const Sexo = require('../models/Sexo');
-const {sequelize}=require('../db_connection');
+const { sequelize } = require('../db_connection');
+const { Op } = require('sequelize');
 //Crea una nueva Sexo
-const createSexo = async ({nombre}) => {
+const createSexo = async ({ nombre }) => {
     try {
         const sexo = await Sexo(sequelize).create({ nombre });
         return sexo;
@@ -12,24 +13,33 @@ const createSexo = async ({nombre}) => {
     }
 };
 //leer Sexo
-const readSexo = async (id) => {
+const readSexo = async (nombreSexo) => {
     try {
-        const sexo = await Sexo.findbyPk(id);
+
+        const sexo = await Sexo(sequelize).findAll({
+            where: {
+                nombre: { [Op.iRegexp]: `^${nombreSexo}` },
+            }
+        });
+
+        if (!sexo) {
+            throw new Error('Sexo no encontrada');
+        }
         return sexo;
     } catch (error) {
-        throw new Error(`Error al obtener la Sexo: ${error.message}`)
+        throw new Error(`Error al obtener el Sexo: ${error.message}`)
     }
 };
 
 const deleteSexo = async (id) => {
     try {
-        const sexo = await Sexo.findByPk(id);
-        
+        const sexo = await Sexo(sequelize).findByPk(id);
+
         if (!sexo) {
-            throw new Error('Función no encontrada');
+            throw new Error('Sexo no encontrada');
         }
 
-         
+
         sexo.state = false;
         await sexo.save();
 
@@ -41,12 +51,12 @@ const deleteSexo = async (id) => {
 
 const UpdateSexo = async (id, nuevoSexo) => {
     try {
-        
-        const sexo = await Sexo.findByPk(id);
+
+        const sexo = await Sexo(sequelize).findByPk(id);
 
         // Verificar si la función existe
         if (!sexo) {
-            throw new Error('Función no encontrada');
+            throw new Error('Sexo no encontrada');
         }
 
         // Cambiar el nombre
@@ -59,7 +69,7 @@ const UpdateSexo = async (id, nuevoSexo) => {
     } catch (error) {
         throw new Error(`Error al modificar la Sexo: ${error.message}`);
     }
-};  
+};
 
 
 module.exports = {
