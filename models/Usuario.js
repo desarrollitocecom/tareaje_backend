@@ -42,17 +42,17 @@ module.exports = (sequelize) => {
 
         Usuario.belongsTo(db.Empleado, {
             foreignKey: {
-                name: 'id_dni',
-                allowNull: false,
-                unique: true // Asegura que cada usuario solo pueda tener un empleado
+                name: 'dni',
+                allowNull: false, // Un usuario debe siempre tener un empleado
+                unique: true
             },
             as: 'empleado',
         });
 
         db.Empleado.hasOne(db.Usuario, {
             foreignKey: {
-                name: 'id_dni',
-                allowNull: true,
+                name: 'dni',
+                allowNull: true, // Permitir que el empleado exista sin usuario al principio
             },
             as: 'usuario'
         });

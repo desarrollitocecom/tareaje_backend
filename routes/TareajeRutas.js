@@ -1,8 +1,6 @@
 const {Router}=require('express');
 const rutas=Router();
-const {
-    CrearFuncionHander
-}=require('../handerls/FuncionHanders');
+const {CrearFuncionHander}=require('../handerls/FuncionHanders');
 
 rutas.post('/crear/',CrearFuncionHander);
 
