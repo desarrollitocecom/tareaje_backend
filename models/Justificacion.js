@@ -34,7 +34,7 @@ module.exports = (sequelize) => {
     
         // Relación con Empleado
         Justificacion.belongsTo(db.Empleado, {
-            foreignKey: 'id_dni',
+            foreignKey: 'id_empleado',
             as: 'empleado', // Alias más claro
         });
     };
