@@ -30,9 +30,15 @@ module.exports = (sequelize) => {
             foreignKey: 'id_rol', // Esto referencia el campo en Usuario
             as: 'usuario'
         });
-        
-    }
 
+        // Relación muchos a muchos con Permisos
+        Rol.belongsToMany(db.Permiso, {
+            through: 'Roles_Permisos',
+            foreignKey: 'id_rol',
+            as: 'permisos'
+        });
+
+    }
 
     return Rol;
 };

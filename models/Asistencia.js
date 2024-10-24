@@ -28,12 +28,12 @@ module.exports = (sequelize) => {
                 fields: ['fecha'],
             },
             {
-                name: 'idx_asistencia_id_dni',
-                fields: ['id_dni'],
+                name: 'idx_asistencia_id_empleado',
+                fields: ['id_empleado'],
             },
             {
-                name: 'idx_asistencia_fecha_id_dni',
-                fields: ['fecha', 'id_dni'],
+                name: 'idx_asistencia_fecha_id_empleado',
+                fields: ['fecha', 'id_empleado'],
             },
         ],
     });
@@ -41,7 +41,7 @@ module.exports = (sequelize) => {
     // Definir la asociación de Asistencia con Empleado
     Asistencia.associate = (db) => {
         Asistencia.belongsTo(db.Empleado, {
-            foreignKey: 'id_dni',
+            foreignKey: 'id_empleado',
             as: 'empleado',
         });
     };
