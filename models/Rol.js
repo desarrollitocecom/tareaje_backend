@@ -24,7 +24,6 @@ module.exports = (sequelize) => {
         tableName: 'Roles',
         timestamps: true
     });
-
     Rol.associate = (db) => {
 
         Rol.hasMany(db.Usuario, {
