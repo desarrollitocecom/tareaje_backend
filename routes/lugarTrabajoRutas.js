@@ -5,7 +5,7 @@ const {
     ReadlugarTrabajoHander,
     UpdatelugarTrabajoHanderls,
     DeletelugarTrabajoHandler
-} = require('../handerls/lugarTrabajoHanders')
+} = require('../handlers/lugarTrabajoHanders')
 
 
 rutas.post('/crearlugarTrabajo/', CrearlugarTrabajoHander);

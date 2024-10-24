@@ -5,7 +5,7 @@ const {
     ReadFuncionHander,
     UpdateFuncionHanderls,
     DeleteFuncionHandler
-} = require('../handerls/FuncionHanders');
+} = require('../handlers/FuncionHanders');
 
 
 rutas.post('/crearfuncion/', CrearFuncionHander);
