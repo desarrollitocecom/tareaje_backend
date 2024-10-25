@@ -1,16 +1,18 @@
 const { Router } = require('express');
 const rutas = Router();
 const {
-    CrearlugarTrabajoHander,
-    ReadlugarTrabajoHander,
-    UpdatelugarTrabajoHanderls,
-    DeletelugarTrabajoHandler
-} = require('../handerls/lugarTrabajoHanders')
+    getLugarTrabajosHandler,
+    getLugarTrabajoHandler,
+    createLugarTrabajoHandler,
+    updateLugarTrabajoHandler,
+    deleteLugarTrabajoHandler
+} = require('../handlers/lugarTrabajoHandlers')
 
 
-rutas.post('/crearlugarTrabajo/', CrearlugarTrabajoHander);
-rutas.get('/consultadelugarTrabajo/:nombre', ReadlugarTrabajoHander);
-rutas.patch('/modificalugarTrabajo/:id', UpdatelugarTrabajoHanderls);
-rutas.delete('/eliminalugarTrabajo/:id', DeletelugarTrabajoHandler);
+rutas.get('/',getLugarTrabajosHandler)
+rutas.post('/', createLugarTrabajoHandler);
+rutas.get('/:id',  getLugarTrabajoHandler);  
+rutas.patch('/:id', updateLugarTrabajoHandler);
+rutas.delete('/:id', deleteLugarTrabajoHandler);
 
 module.exports = rutas;
