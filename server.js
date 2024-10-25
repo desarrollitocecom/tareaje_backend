@@ -14,7 +14,7 @@ server.get("/", (req, res) => {
 
 server.listen(PORT_TAREAJE, () => {
     console.log(`TAREAJE: Server is running on port ${PORT_TAREAJE}`);
-    sequelize.sync({ force: true }).then(
+    sequelize.sync({ alter: true }).then(
         console.log("Database is connected")
     );
 });

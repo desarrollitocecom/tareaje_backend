@@ -1,17 +1,18 @@
 const { Router } = require('express');
 const rutas = Router();
 const {
-    CrearFuncionHander,
-    ReadFuncionHander,
-    UpdateFuncionHanderls,
-    DeleteFuncionHandler
-} = require('../handlers/FuncionHanders');
+    getFuncionesHandler,
+    getFuncionHandler,
+    createFuncionHandler,
+    updateFuncionHandler,
+    deleteFuncionHandler
+} = require('../handlers/funcionHandlers');
 
-
-rutas.post('/crearfuncion/', CrearFuncionHander);
-rutas.get('/Consultadefuncion/:nombre', ReadFuncionHander);
-rutas.patch('/Modificafuncion/:id', UpdateFuncionHanderls);
-rutas.delete('/eliminaFuncion/:id', DeleteFuncionHandler);
+rutas.get('/',getFuncionesHandler)
+rutas.post('/', createFuncionHandler);
+rutas.get('/:id',  getFuncionHandler);  
+rutas.patch('/:id', updateFuncionHandler);
+rutas.delete('/:id', deleteFuncionHandler);
 
 
 module.exports = rutas;

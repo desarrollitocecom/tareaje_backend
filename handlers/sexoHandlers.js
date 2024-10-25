@@ -1,19 +1,19 @@
 const {
-    createlugarTrabajo,
-    readlugarTrabajo,
-    UpdatelugarTrabajo,
-    deletelugarTrabajo
-}=require('../controllers/controllerslugarTrabajo.js');
+    createSexo,
+    readSexo,
+    UpdateSexo,
+    deleteSexo
+} = require('../controllers/sexoController');
 
-const CrearlugarTrabajoHander = async (req, res) => {
+const CrearSexoHander = async (req, res) => {
     const { nombre } = req.body;
 
     if (!nombre || typeof nombre !== 'string')
         return res.status(400).json({ error: 'El nombre es requerido y debe ser una cadena de texto válida' });
     try {
-        const nuevolugarTrabajo = await createlugarTrabajo({ nombre })
+        const nuevoSexo = await createSexo({ nombre })
 
-        res.status(201).json(nuevolugarTrabajo);
+        res.status(201).json(nuevoSexo);
         
     } catch (error) {
         console.error(error);
@@ -21,28 +21,28 @@ const CrearlugarTrabajoHander = async (req, res) => {
     }
 }
 
-const ReadlugarTrabajoHander = async (req, res) => {
-    // entender que se debe buscar todos los nombresporlugarTrabajo como un where
-    const nombrelugarTrabajo = req.params.nombre;
-    const validaNombre = /^[a-zA-Z]+$/.test(nombrelugarTrabajo);
+const ReadSexoHander = async (req, res) => {
+    // entender que se debe buscar todos los nombresporSexo como un where
+    const nombreSexo = req.params.nombre;
+    const validaNombre = /^[a-zA-Z]+$/.test(nombreSexo);
 
     if (!validaNombre) {
-        return res.status(400).json({ message: 'El nombre de la lugarTrabajo es inválido. Debe contener solo letras.' });
+        return res.status(400).json({ message: 'El nombre de la Sexo es inválido. Debe contener solo letras.' });
     }
 
     try {
-        const BuscaellugarTrabajo = await readlugarTrabajo(nombrelugarTrabajo);
+        const BuscaelSexo = await readSexo(nombreSexo);
 
-        if (!BuscaellugarTrabajo || BuscaellugarTrabajo.length === 0) {
+        if (!BuscaelSexo || BuscaelSexo.length === 0) {
             return res.status(404).json({
-                message: "lugarTrabajo no encontrado",
+                message: "Sexo no encontrado",
                 data: []
             });
         }
 
         return res.status(200).json({
-            message: "lugarTrabajo encontrado",
-            data: BuscaellugarTrabajo
+            message: "Sexo encontrado",
+            data: BuscaelSexo
         });
     } catch (error) {
         console.error(error);
@@ -52,13 +52,13 @@ const ReadlugarTrabajoHander = async (req, res) => {
         });
     }
 };
-const UpdatelugarTrabajoHanderls = async (req, res) => {
+const UpdateSexoHanderls = async (req, res) => {
     const id = req.params.id;
     const { nombre } = req.body;
     const errores = [];
     if (!id || isNaN(id)) {
         errores.push('El ID es requerido y debe ser un Numero')
-       
+        console.log('id:' + id);
     }
     if (!nombre || typeof nombre !== 'string' || nombre.trim() === '') {
         errores.push('El nombre es requerido y debe ser una cadena de texto válida')
@@ -67,16 +67,16 @@ const UpdatelugarTrabajoHanderls = async (req, res) => {
         return res.status(400).json({ errores });
     }
     try {
-        const response = await UpdatelugarTrabajo(id, nombre)
+        const response = await UpdateSexo(id, nombre)
         res.status(201).json({
-            message: 'lugarTrabajo Modificado',
+            message: 'Sexo Modificado',
             data: response
         })
     } catch (error) {
-        res.status(404).json({ message: "lugarTrabajo no encontrado" })
+        res.status(404).json({ message: "Sexo no encontrado" })
     }
 };
-const DeletelugarTrabajoHandler = async (req, res) => {
+const DeleteSexoHandler = async (req, res) => {
     const id = req.params.id; // Convertir id a número
 
 
@@ -87,17 +87,17 @@ const DeletelugarTrabajoHandler = async (req, res) => {
 
     try {
         // Llamada a la función para eliminar (estado a inactivo)
-        await deletelugarTrabajo(id);
+        await deleteSexo(id);
         res.status(200).json({
-            message: 'lugarTrabajo eliminado correctamente (estado cambiado a inactivo)'
+            message: 'Sexo eliminado correctamente (estado cambiado a inactivo)'
         });
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
 };
 module.exports = {
-    CrearlugarTrabajoHander,
-    ReadlugarTrabajoHander,
-    UpdatelugarTrabajoHanderls,
-    DeletelugarTrabajoHandler
+    CrearSexoHander,
+    ReadSexoHander,
+    UpdateSexoHanderls,
+    DeleteSexoHandler
 }
