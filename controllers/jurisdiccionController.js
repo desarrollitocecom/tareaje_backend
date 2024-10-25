@@ -1,0 +1,1 @@
+const Jurisdiccion=require('sequelize');

@@ -6,7 +6,7 @@ const lugarTrabajoRutas = require('./lugarTrabajoRutas');
 
 // Usa prefijos para organizar las rutas
 tareaje.use('/funciones', funcionRutas);
-tareaje.use('/sexos', sexoRutas);
+tareaje.use('/sexo', sexoRutas);
 tareaje.use('/lugarestrabajo', lugarTrabajoRutas);
 
 module.exports = tareaje;

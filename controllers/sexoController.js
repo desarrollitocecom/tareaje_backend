@@ -1,80 +1,80 @@
 const Sexo = require('../models/Sexo');
-const { sequelize } = require('../db_connection');
-const { Op } = require('sequelize');
+const {sequelize}=require('../db_connection');
+//Trae todas las Sexoes
+const getSexos=async () => {
+    try {
+        const response=await Sexo(sequelize).findAll({where: {
+            state:true  
+        }});
+        return response || null
+    } catch (error) {
+        console.error('Error al Obtener todas las Sexoes',error);
+        return false
+    }
+}
+
+//trae una Sexo especifica por id
+const getSexo = async (id) => {
+    try {
+        const response = await Sexo(sequelize).findOne({where: {
+            id ,
+            state:true
+        }});
+        return response || null;
+    } catch (error) {
+        console.error(`Error al obtener la Función: ${error.message}`);
+      return false
+    }
+};
 //Crea una nueva Sexo
-const createSexo = async ({ nombre }) => {
+const createSexo = async ({nombre}) => {
     try {
-        const sexo = await Sexo(sequelize).create({ nombre });
-        return sexo;
+        const response = await Sexo(sequelize).create({ nombre });
+        return response
 
     } catch (error) {
-        console.log(error);
-        throw new Error('Error al crear Sexo');
+        console.error('Error al crear una nueva Sexo',error)
+        return false
     }
 };
-//leer Sexo
-const readSexo = async (nombreSexo) => {
-    try {
-
-        const sexo = await Sexo(sequelize).findAll({
-            where: {
-                nombre: { [Op.iRegexp]: `^${nombreSexo}` },
-            }
-        });
-
-        if (!sexo) {
-            throw new Error('Sexo no encontrada');
-        }
-        return sexo;
-    } catch (error) {
-        throw new Error(`Error al obtener el Sexo: ${error.message}`)
-    }
-};
-
+//elimina la Sexo o canbia el estado
 const deleteSexo = async (id) => {
     try {
-        const sexo = await Sexo(sequelize).findByPk(id);
-
-        if (!sexo) {
-            throw new Error('Sexo no encontrada');
-        }
-
-
-        sexo.state = false;
-        await sexo.save();
-
+        const response = await Sexo(sequelize).findByPk(id);
+        response.state = false;
+        await response.save();
+       return response || null
     } catch (error) {
-        throw new Error(`Error al eliminar su Sexo: ${error.message}`);
+        console.error('Error al canbiar de estado al eliminar Sexo');
+        return false;
     }
 };
 
 
-const UpdateSexo = async (id, nuevoSexo) => {
-    try {
+const updateSexo = async (id, nuevaSexo) => {
+    if (id && nuevaSexo)
+        try {
+            const response = await getSexo(id);
 
-        const sexo = await Sexo(sequelize).findByPk(id);
-
-        // Verificar si la función existe
-        if (!sexo) {
-            throw new Error('Sexo no encontrada');
+            if (response) 
+                await response.update(nuevaSexo);
+            
+                return response || null;
+           
+        } catch (error) {
+            console.error('Error al actualizar la Sexo:', error.message);
+            return false;
         }
+    else
+        return false;
+};  
 
-        // Cambiar el nombre
-        sexo.nombre = nuevoSexo;
-
-        // Guardar los cambios en la base de datos
-        await sexo.save();
-
-        return sexo; // Retornar la función modificada
-    } catch (error) {
-        throw new Error(`Error al modificar la Sexo: ${error.message}`);
-    }
-};
 
 
 module.exports = {
+    getSexos,
     createSexo,
-    readSexo,
-    UpdateSexo,
+    getSexo,
+    updateSexo,
     deleteSexo
 };

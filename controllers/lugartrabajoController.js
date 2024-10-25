@@ -1,80 +1,78 @@
-const LugarTrabajo = require('../models/lugarTrabajo');
-const { sequelize } = require('../db_connection');
-const { Op } = require('sequelize');
-//Crea una nuevo lugarTrabajo
-const createlugarTrabajo = async ({ nombre }) => {
+const LugarTrabajo = require('../models/LugarTrabajo');
+const {sequelize}=require('../db_connection');
+//Trae todas las LugarTrabajoes
+const getLugarTrabajos=async () => {
     try {
-        const lugarTrabajo = await LugarTrabajo(sequelize).create({ nombre });
-        return lugarTrabajo;
-
+        const response=await LugarTrabajo(sequelize).findAll({where: {
+            state:true  
+        }});
+        return response || null
     } catch (error) {
-        console.log(error);
-        throw new Error('Error al crear lugarTrabajo');
+        console.error('Error al Obtener todas las LugarTrabajoes',error);
+        return false
+    }
+}
+
+//trae una LugarTrabajo especifica por id
+const getLugarTrabajo = async (id) => {
+    try {
+        const LugarTrabajo = await LugarTrabajo(sequelize).findAll({where: {
+            id 
+        }});
+        return LugarTrabajo || null;
+    } catch (error) {
+        console.error(`Error al obtener la Función: ${error.message}`);
+      return false
     }
 };
-//leer lugarTrabajo
-const readlugarTrabajo = async (nombrelugarTrabajo) => {
+//Crea una nueva LugarTrabajo
+const createLugarTrabajo = async ({nombre}) => {
     try {
+        const LugarTrabajo = await LugarTrabajo(sequelize).create({ nombre });
+        return LugarTrabajo
 
-        const lugarTrabajo = await LugarTrabajo(sequelize).findAll({
-            where: {
-                nombre: { [Op.iRegexp]: `^${nombrelugarTrabajo}` },
-            }
-        });
+    } catch (error) {
+        console.error('Error al crear una nueva LugarTrabajo',error)
+        return false
+    }
+};
+//elimina la LugarTrabajo o canbia el estado
+const deleteLugarTrabajo = async (id) => {
+    try {
+        const LugarTrabajo = await LugarTrabajo(sequelize).findByPk(id);
+        LugarTrabajo.state = false;
+        await LugarTrabajo.save();
+       return LugarTrabajo || null
+    } catch (error) {
+        console.error('Error al canbiar de estado al eliminar LugarTrabajo');
+        return false;
+    }
+};
 
-        if (!lugarTrabajo) {
-            throw new Error('lugarTrabajo no encontrada');
+
+const updateLugarTrabajo = async (id, nuevaLugarTrabajo) => {
+    if (id && nuevaLugarTrabajo)
+        try {
+            const LugarTrabajo = await LugarTrabajo(sequelize).findOne({ where: { id } });
+            if (LugarTrabajo) 
+                await LugarTrabajo.update(nuevaLugarTrabajo);
+                return LugarTrabajo || null;
+            
+           
+        } catch (error) {
+            console.error('Error al actualizar la LugarTrabajo:', error.message);
+            return false;
         }
-        return lugarTrabajo;
-    } catch (error) {
-        throw new Error(`Error al obtener el lugarTrabajo: ${error.message}`)
-    }
-};
+    else
+        return false;
+};  
 
-const deletelugarTrabajo = async (id) => {
-    try {
-        const lugarTrabajo = await LugarTrabajo(sequelize).findByPk(id);
-
-        if (!lugarTrabajo) {
-            throw new Error('lugarTrabajo no encontrada');
-        }
-
-
-        lugarTrabajo.state = false;
-        await lugarTrabajo.save();
-
-    } catch (error) {
-        throw new Error(`Error al eliminar su lugarTrabajo: ${error.message}`);
-    }
-};
-
-
-const UpdatelugarTrabajo = async (id, nuevolugarTrabajo) => {
-    try {
-
-        const lugarTrabajo = await LugarTrabajo(sequelize).findByPk(id);
-
-        // Verificar si la función existe
-        if (!lugarTrabajo) {
-            throw new Error('lugarTrabajo no encontrada');
-        }
-
-        // Cambiar el nombre
-        lugarTrabajo.nombre = nuevolugarTrabajo;
-
-        // Guardar los cambios en la base de datos
-        await lugarTrabajo.save();
-
-        return lugarTrabajo; // Retornar la función modificada
-    } catch (error) {
-        throw new Error(`Error al modificar la lugarTrabajo: ${error.message}`);
-    }
-};
 
 
 module.exports = {
-    createlugarTrabajo,
-    readlugarTrabajo,
-    UpdatelugarTrabajo,
-    deletelugarTrabajo
+    getLugarTrabajos,
+    createLugarTrabajo,
+    getLugarTrabajo,
+    updateLugarTrabajo,
+    deleteLugarTrabajo
 };
