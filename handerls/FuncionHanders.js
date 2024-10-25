@@ -11,7 +11,7 @@ const CrearFuncionHander = async (req, res) => {
         res.status(201).json(nuevofuncion);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ messaje: 'Error del server' })
+        res.status(500).json({ message: 'error en la funcion ' })
     }
 }
 

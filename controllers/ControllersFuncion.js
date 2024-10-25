@@ -38,7 +38,6 @@ const deleteFuncion = async (id) => {
             throw new Error('Función no encontrada');
         }
 
-       
         funcion.state = false;
         await funcion.save();
 
