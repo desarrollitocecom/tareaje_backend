@@ -7,7 +7,7 @@ const CrearFuncionHander = async (req, res) => {
         return res.status(400).json({ error: 'El nombre es requerido y debe ser una cadena de texto válida' });
     try {
         const nuevofuncion=await createFuncion({nombre})
-      
+
         res.status(201).json(nuevofuncion);
     } catch (error) {
         console.error(error);
