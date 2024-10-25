@@ -1,10 +1,14 @@
 const { Router } = require("express");
 const tareaje = Router();
-const tareajeRutas = require("./TareajeRutas");
-const SubgerenciaRutas = require("./SubgerenciaRutas");
+const funcionRutas = require("./funcionRutas");
+const sexoRutas = require('./sexoRutas');
+const lugarTrabajoRutas = require('./lugarTrabajoRutas');
+const subgerenciaRutas =require('./subgerenciaRutas')
 
-// Usar prefijos para organizar las rutas
-tareaje.use('/subgerencias', SubgerenciaRutas);  // Prefijo para las rutas de subgerencias
-tareaje.use('/', tareajeRutas);                  // Rutas generales de tareaje
+// Usa prefijos para organizar las rutas
+tareaje.use('/funciones', funcionRutas);
+tareaje.use('/sexos', sexoRutas);
+tareaje.use('/lugarestrabajo', lugarTrabajoRutas);
+tareaje.use('/subgerencia',subgerenciaRutas)
 
 module.exports = tareaje;

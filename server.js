@@ -7,8 +7,7 @@ const tareajeRutas = require("./routes/index")
 const { PORT_TAREAJE } = process.env;
 
 server.use(express.json());
-server.use("/tareaje",tareajeRutas);
-
+server.use("/",tareajeRutas);
 server.get("/", (req, res) => {
     res.json({ hola: "Hello World" });
 });
