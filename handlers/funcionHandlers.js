@@ -77,10 +77,7 @@ const updateFuncionHandler = async (req, res) => {
     const errores = [];
     if (!id || isNaN(id)) {
         errores.push('El ID es requerido y debe ser un Numero')
-        console.log('id:' + id);
     }
-    console.log("name"+nombre);
-    
     if (!nombre || typeof nombre !== 'string' ) {
         errores.push('El nombre es requerido y debe ser una cadena de texto válida')
     }
@@ -88,10 +85,17 @@ const updateFuncionHandler = async (req, res) => {
         return res.status(400).json({ errores });
     }
     try {
-        console.log('id:'+id,"name:",nombre);
-        
         const response = await updateFuncion(id, {nombre})
-        res.status(201).json(response)
+        if (!response) {
+            return res.status(201).json({
+                message: "La funcion no se encuentra ",
+                data: {}
+            })
+        }
+        return res.status(200).json({
+            message: "Reguistro modificado",
+            data: response
+        })
     } catch (error) {
         res.status(404).json({ message: "Funcion no encontrada",error})
     }
