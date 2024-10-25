@@ -5,7 +5,7 @@ const {
     ReadSexoHander,
     UpdateSexoHanderls,
     DeleteSexoHandler
-} = require('../handerls/SexoHanderls');
+} = require('../handlers/sexoHandlers');
 
 
 

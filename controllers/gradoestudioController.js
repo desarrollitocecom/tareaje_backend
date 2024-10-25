@@ -1,6 +1,8 @@
 const GradodeEstudio = require('../models/GradoEstudios');
 const { sequelize } = require('../db_connection');
 const { Op } = require('sequelize');
+
+
 //Crea una nueva gradodeEstudio
 const creategradodeEstudio = async ({ nombre }) => {
     try {
