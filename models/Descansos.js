@@ -27,7 +27,7 @@ module.exports = (sequelize) => {
 
     Descanso.associate = (db) => {
         Descanso.belongsTo(db.Empleado, {
-            foreignKey: 'id_dni',
+            foreignKey: 'id_empleado',
             as: 'empleado', // Alias más claro
         });
     };

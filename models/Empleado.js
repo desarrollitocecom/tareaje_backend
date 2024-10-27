@@ -5,7 +5,7 @@ module.exports = (sequelize) => {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
-           primaryKey: true
+            primaryKey: true
         },
         nombres: {
             type: DataTypes.STRING,
@@ -79,6 +79,15 @@ module.exports = (sequelize) => {
             as: 'cargo'
         });
 
+        // Relacion empleado con usuario
+        db.Usuario.hasOne(Empleado, {
+            foreignKey: {
+                name: 'id_usuario',
+                allowNull: true, // Permitir que el empleado exista sin usuario al principio
+            },
+            as: 'id_usuario'
+        });
+
         // Relación con la tabla Turno
         Empleado.belongsTo(db.Turno, {
             foreignKey: 'id_turno',
@@ -120,6 +129,8 @@ module.exports = (sequelize) => {
             foreignKey: 'id_funcion',
             as: 'funcion'
         });
+
+        
     };
 
     return Empleado;

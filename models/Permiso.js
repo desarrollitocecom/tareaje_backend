@@ -1,18 +1,18 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-    const Vacacion = sequelize.define('Vacacion', {
+    const Permiso = sequelize.define('Permiso', {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true
         },
-        f_inicio: {
-            type: DataTypes.DATEONLY,
+        nombre: {
+            type: DataTypes.STRING,
             allowNull: false
         },
-        f_fin:{
-            type: DataTypes.DATEONLY,
+        descripcion: {
+            type: DataTypes.STRING,
             allowNull: false
         },
         state: {
@@ -21,16 +21,19 @@ module.exports = (sequelize) => {
             defaultValue: true
         },
     }, {
-        tableName: 'Vacaciones',
+        tableName: 'Permisos',
         timestamps: true
     });
 
-    Vacacion.associate = (db) => {
-        Vacacion.belongsTo(db.Empleado, {
-            foreignKey: 'id_empleado',
-            as: 'empleado', // Alias más claro
+    Permiso.associate = (db) => {
+        // Relación muchos a muchos con Roles
+        Permiso.belongsToMany(db.Rol, {
+            through: 'Roles_Permisos',
+            foreignKey: 'id_permiso',
+            as: 'roles'
         });
     };
 
-    return Vacacion;
+
+    return Permiso;
 };
