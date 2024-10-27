@@ -16,9 +16,11 @@ const getFunciones=async () => {
 //trae una funcion especifica por id
 const getFuncion = async (id) => {
     try {
-        const funcion = await Funcion(sequelize).findAll({where: {
-            id 
+        const funcion = await Funcion(sequelize).findOne({where: {
+            id,
+            state:true
         }});
+
         return funcion || null;
     } catch (error) {
         console.error(`Error al obtener la Función: ${error.message}`);
@@ -53,7 +55,7 @@ const deleteFuncion = async (id) => {
 const updateFuncion = async (id, nuevaFuncion) => {
     if (id && nuevaFuncion)
         try {
-            const funcion = await Funcion(sequelize).findOne({ where: { id } });
+            const funcion = await getFuncion(id);
             if (funcion) 
                 await funcion.update(nuevaFuncion);
                 return funcion || null ;
