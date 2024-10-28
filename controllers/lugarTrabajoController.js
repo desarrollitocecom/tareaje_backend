@@ -1,9 +1,9 @@
-const {LugarTrabajo} = require('../db_connection');
-
+const LugarTrabajo = require('../models/LugarTrabajo');
+const {sequelize}=require('../db_connection');
 //Trae todas las LugarTrabajoes
 const getLugarTrabajos=async () => {
     try {
-        const response=await LugarTrabajo.findAll({where: {
+        const response=await LugarTrabajo(sequelize).findAll({where: {
             state:true  
         }});
         return response || null
@@ -16,9 +16,8 @@ const getLugarTrabajos=async () => {
 //trae una LugarTrabajo especifica por id
 const getLugarTrabajo = async (id) => {
     try {
-        const LugarTrabajo = await LugarTrabajo.findAll({where: {
-            id ,
-            state:true
+        const LugarTrabajo = await LugarTrabajo(sequelize).findAll({where: {
+            id 
         }});
         return LugarTrabajo || null;
     } catch (error) {
@@ -29,7 +28,7 @@ const getLugarTrabajo = async (id) => {
 //Crea una nueva LugarTrabajo
 const createLugarTrabajo = async ({nombre}) => {
     try {
-        const LugarTrabajo = await LugarTrabajo.create({ nombre });
+        const LugarTrabajo = await LugarTrabajo(sequelize).create({ nombre });
         return LugarTrabajo
 
     } catch (error) {
@@ -40,7 +39,7 @@ const createLugarTrabajo = async ({nombre}) => {
 //elimina la LugarTrabajo o canbia el estado
 const deleteLugarTrabajo = async (id) => {
     try {
-        const LugarTrabajo = await LugarTrabajo.findByPk(id);
+        const LugarTrabajo = await LugarTrabajo(sequelize).findByPk(id);
         LugarTrabajo.state = false;
         await LugarTrabajo.save();
        return LugarTrabajo || null
@@ -54,7 +53,7 @@ const deleteLugarTrabajo = async (id) => {
 const updateLugarTrabajo = async (id, nuevaLugarTrabajo) => {
     if (id && nuevaLugarTrabajo)
         try {
-            const LugarTrabajo = await LugarTrabajo.findOne({ where: { id } });
+            const LugarTrabajo = await LugarTrabajo(sequelize).findOne({ where: { id } });
             if (LugarTrabajo) 
                 await LugarTrabajo.update(nuevaLugarTrabajo);
                 return LugarTrabajo || null;

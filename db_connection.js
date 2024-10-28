@@ -9,7 +9,7 @@ const { DB_DATABASE, DB_HOST, DB_USERNAME, DB_PASSWORD } = process.env;
 const sequelize = new Sequelize(DB_DATABASE, DB_USERNAME, DB_PASSWORD, {
   host: DB_HOST,
   dialect: 'postgres',
-  logging: false, // Desactiva los logs de Sequelize
+  logging: console.log, // Desactiva los logs de Sequelize
 });
 
 const db = {};
@@ -34,6 +34,5 @@ Object.keys(db).forEach((modelName) => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
-
 
 module.exports = db;

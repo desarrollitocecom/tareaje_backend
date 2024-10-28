@@ -15,6 +15,20 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        id_asistencia: {
+            type: DataTypes.UUID,
+            references: {
+                model: 'Asistencias',
+                key: 'id',
+            }
+        },
+        id_empleado: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Empleados',
+                key: 'id',
+            }
+        },
         state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
@@ -26,21 +40,13 @@ module.exports = (sequelize) => {
     });
 
     Justificacion.associate = (db) => {
-        // Relación con Asistencia
-        Justificacion.belongsTo(db.Asistencia, {
-            foreignKey: 'id_asistencia',
-            as: 'asistencia', // Alias más claro
-        });
-    
-        // Relación con Empleado
-        Justificacion.belongsTo(db.Empleado, {
-            foreignKey: 'id_empleado',
-            as: 'empleado', // Alias más claro
-        });
+        Justificacion.belongsTo(db.Asistencia, { foreignKey: 'id_asistencia', as: 'asistencia' });
+        Justificacion.belongsTo(db.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
     };
 
-
-
+    
+    
+    
 
     return Justificacion;
 };

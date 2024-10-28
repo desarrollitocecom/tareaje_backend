@@ -1,9 +1,9 @@
-const Jurisdiccion= require('../models/Jurisdiccions');
-const {sequelize}=require('../db_connection');
+const{ Jurisdiccion}= require('../db_connection');
+
 //Trae todas las Jurisdicciones
 const getJurisdicciones=async () => {
     try {
-        const response=await Jurisdiccion(sequelize).findAll({where: {
+        const response=await Jurisdiccion.findAll({where: {
             state:true  
         }});
         return response || null
@@ -16,7 +16,7 @@ const getJurisdicciones=async () => {
 //trae una Jurisdiccion especifica por id
 const getJurisdiccion = async (id) => {
     try {
-        const Jurisdiccion = await Jurisdiccion(sequelize).findOne({where: {
+        const Jurisdiccion = await Jurisdiccion.findOne({where: {
             id ,
             state:true
         }});
@@ -29,7 +29,7 @@ const getJurisdiccion = async (id) => {
 //Crea una nueva Jurisdiccion
 const createJurisdiccion = async ({nombre}) => {
     try {
-        const Jurisdiccion = await Jurisdiccion(sequelize).create({ nombre });
+        const Jurisdiccion = await Jurisdiccion.create({ nombre });
         return Jurisdiccion 
     } catch (error) {
         console.error('Error al crear una nueva Jurisdiccion',error)
@@ -39,7 +39,7 @@ const createJurisdiccion = async ({nombre}) => {
 //elimina la Jurisdiccion o canbia el estado
 const deleteJurisdiccion = async (id) => {
     try {
-        const Jurisdiccion = await Jurisdiccion(sequelize).findByPk(id);
+        const Jurisdiccion = await Jurisdiccion.findByPk(id);
         Jurisdiccion.state = false;
         await Jurisdiccion.save();
        return Jurisdiccion || null
@@ -53,7 +53,7 @@ const deleteJurisdiccion = async (id) => {
 const updateJurisdiccion = async (id, nuevaJurisdiccion) => {
     if (id && nuevaJurisdiccion)
         try {
-            const Jurisdiccion = await Jurisdiccion(sequelize).findOne({ where: { id } });
+            const Jurisdiccion = await Jurisdiccion.findOne({ where: { id } });
             if (Jurisdiccion) 
                 await Jurisdiccion.update(nuevaJurisdiccion);
                 return Jurisdiccion || null;

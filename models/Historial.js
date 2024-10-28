@@ -37,7 +37,7 @@ module.exports = (sequelize) => {
         timestamps: true
     });
 
-    Historial.associate = (db) => {
+    /*Historial.associate = (db) => {
         // Relación con la tabla Cargo
         Historial.belongsTo(db.Usuario, {
             foreignKey: 'id_usuario',
@@ -47,8 +47,11 @@ module.exports = (sequelize) => {
             foreignKey: 'id_usuario',
             as: 'historia'
         })
-    }
+    }*/
 
+        Historial.associate = (db) => {
+            Historial.belongsTo(db.Usuario, { foreignKey: 'id_usuario', as: 'usuario' });
+        };
 
     return Historial;
 };

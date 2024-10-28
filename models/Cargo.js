@@ -20,20 +20,20 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: true
         },
-
+        id_subgerencia: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: 'Subgerencias', // Nombre de la tabla referenciada
+                key: 'id',
+            }
+        },
     }, {
         tableName: 'Cargos',
         timestamps: true
     });
 
-    // Definir la asociación de Asistencia con Empleado
-    Cargo.associate = (db) => {
-        Cargo.belongsTo(db.Subgerencia, {
-            foreignKey: 'id_subgerencia', // Esto sería más adecuado
-            as: 'Subgerencia', // Alias más claro
-        });
-    };
+    
 
     return Cargo;
-
 };
