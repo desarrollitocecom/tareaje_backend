@@ -17,12 +17,48 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         dni: {
-            type: DataTypes.STRING(8),
+            type: DataTypes.STRING(8),  
             allowNull: false,
             unique: true
         },
         ruc: {
             type: DataTypes.STRING,
+            allowNull: true
+        },
+        hijos: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        edad: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        f_nacimiento: {
+            type: DataTypes.DATEONLY,
+            allowNull: true
+        },
+        correo: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        domicilio: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        celular: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        f_inicio: {
+            type: DataTypes.DATEONLY,
+            allowNull: true
+        },
+        foto: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        observaciones: {
+            type: DataTypes.TEXT,
             allowNull: true
         },
         id_cargo: {
