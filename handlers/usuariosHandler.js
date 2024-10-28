@@ -54,11 +54,11 @@ const createUserHandler = async (req, res) => {
 
 
 const updateUserHandler = async (req, res) => {
+
     const { usuario, contraseña, correo } = req.body;
 
-    if (usuario && contraseña && correo) {
         try {
-            const response = await Usuario(sequelize).findOne({
+            const response = await Usuario.findOne({
                 where: {
                     usuario: usuario
                 }
@@ -67,8 +67,7 @@ const updateUserHandler = async (req, res) => {
             console.error("error en updateUser: ", error.message)
             return false;
         }
-    }
-    return res.status(400).json({ message: "Faltan datos" });
+    
 };
 
 const loginHandler = async (req, res) => {
@@ -99,8 +98,8 @@ const loginHandler = async (req, res) => {
         if (!contraseñaValida)
             return res.status(400).json({ message: "Contraseña incorrecta", data: user });
 
-        const token = jwt.sign({ usuario: usuario, rol: user.id_rol }, process.env.SECRET_KEY, {
-            expiresIn: "2h"
+        const token = jwt.sign({ usuario: usuario, rol: user.id_rol }, process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRES_IN
         });
 
         return res.status(200).json({ message: "Sesion iniciada", token, data: user });
