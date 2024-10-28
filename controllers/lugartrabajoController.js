@@ -17,7 +17,8 @@ const getLugarTrabajos=async () => {
 const getLugarTrabajo = async (id) => {
     try {
         const LugarTrabajo = await LugarTrabajo(sequelize).findAll({where: {
-            id 
+            id ,
+            state:true
         }});
         return LugarTrabajo || null;
     } catch (error) {
