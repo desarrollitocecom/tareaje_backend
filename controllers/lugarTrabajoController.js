@@ -16,9 +16,8 @@ const getLugarTrabajos=async () => {
 //trae una LugarTrabajo especifica por id
 const getLugarTrabajo = async (id) => {
     try {
-        const LugarTrabajo = await LugarTrabajo(sequelize).findOne({where: {
-            id ,
-            state:true
+        const LugarTrabajo = await LugarTrabajo(sequelize).findAll({where: {
+            id 
         }});
         return LugarTrabajo || null;
     } catch (error) {
@@ -54,7 +53,7 @@ const deleteLugarTrabajo = async (id) => {
 const updateLugarTrabajo = async (id, nuevaLugarTrabajo) => {
     if (id && nuevaLugarTrabajo)
         try {
-            const LugarTrabajo = await getLugarTrabajo(id);
+            const LugarTrabajo = await LugarTrabajo(sequelize).findOne({ where: { id } });
             if (LugarTrabajo) 
                 await LugarTrabajo.update(nuevaLugarTrabajo);
                 return LugarTrabajo || null;
