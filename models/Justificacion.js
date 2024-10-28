@@ -39,5 +39,14 @@ module.exports = (sequelize) => {
         timestamps: true
     });
 
+    Justificacion.associate = (db) => {
+        Justificacion.belongsTo(db.Asistencia, { foreignKey: 'id_asistencia', as: 'asistencia' });
+        Justificacion.belongsTo(db.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+    };
+
+    
+    
+    
+
     return Justificacion;
 };

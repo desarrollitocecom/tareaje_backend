@@ -52,27 +52,18 @@ module.exports = (sequelize) => {
 
 
     Usuario.associate = (db) => {
-
+        // Usuario - Empleado (1 a 1)
         Usuario.belongsTo(db.Empleado, {
-            foreignKey: {
-                name: 'id_empleado',
-                allowNull: true, // Obligar a que un usuario siempre tenga un empleado asociado
-                unique: true // y que no se repita
-            },
+            foreignKey: { name: 'id_empleado', allowNull: true, unique: true },
             as: 'empleado',
         });
-
+    
+        // Usuario - Rol (Muchos a uno)
         Usuario.belongsTo(db.Rol, {
-            foreignKey: {
-                name: 'id_rol',
-                allowNull: false
-            },
+            foreignKey: { name: 'id_rol', allowNull: false },
             as: 'rol'
         });
-
     };
-
-
 
     return Usuario;
 };
