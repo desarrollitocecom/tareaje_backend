@@ -1,9 +1,9 @@
-const Funcion = require('../models/Funcion');
-const {sequelize}=require('../db_connection');
+const {Funcion} = require('../db_connection');
+
 //Trae todas las funciones
 const getFunciones=async () => {
     try {
-        const response=await Funcion(sequelize).findAll({where: {
+        const response=await Funcion.findAll({where: {
             state:true  
         }});
         return response || null
@@ -16,7 +16,7 @@ const getFunciones=async () => {
 //trae una funcion especifica por id
 const getFuncion = async (id) => {
     try {
-        const funcion = await Funcion(sequelize).findOne({where: {
+        const funcion = await Funcion.findOne({where: {
             id,
             state:true
         }});
@@ -30,7 +30,7 @@ const getFuncion = async (id) => {
 //Crea una nueva Funcion
 const createFuncion = async ({nombre}) => {
     try {
-        const funcion = await Funcion(sequelize).create({ nombre });
+        const funcion = await Funcion.create({ nombre });
         return funcion
 
     } catch (error) {
@@ -41,7 +41,7 @@ const createFuncion = async ({nombre}) => {
 //elimina la funcion o canbia el estado
 const deleteFuncion = async (id) => {
     try {
-        const funcion = await Funcion(sequelize).findByPk(id);
+        const funcion = await Funcion.findByPk(id);
         funcion.state = false;
         await funcion.save();
        return funcion || null

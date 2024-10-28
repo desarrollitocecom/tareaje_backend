@@ -15,6 +15,11 @@ module.exports = (sequelize) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        state: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
         id_subgerencia: {
             type: DataTypes.INTEGER,
             allowNull: true,
@@ -23,15 +28,12 @@ module.exports = (sequelize) => {
                 key: 'id',
             }
         },
-        state: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,
-            defaultValue: true
-        },
     }, {
         tableName: 'Cargos',
         timestamps: true
     });
+
+    
 
     return Cargo;
 };

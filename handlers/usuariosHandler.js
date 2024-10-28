@@ -85,13 +85,14 @@ const loginHandler = async (req, res) => {
     else if (!contraseñaRegex.test(contraseña))
         errors.push("La contraseña debe tener al menos 8 caracteres, incluyendo letras y números");
     if (errors.length > 0)
-        return res.status(400).json({ message: "Se encontraron los siguientes errores", data: errors.join("\n") });
+        return res.status(400).json({ message: "Se encontraron los siguientes errores", data: errors });
 
     try {
         // Busca al usuario en la base de datos
         const user = await getUser(usuario);
+        console.log(user);
         if (!user)
-            return res.status(200).json({ message: "Usuario no encontrado", data: user });
+            return res.status(201).json({ message: "Usuario no encontrado", data: "asdasd"} );
 
         const contraseñaValida = await argon2.verify(user.contraseña, contraseña);
 
@@ -99,13 +100,13 @@ const loginHandler = async (req, res) => {
             return res.status(400).json({ message: "Contraseña incorrecta", data: user });
 
         const token = jwt.sign({ usuario: usuario, rol: user.id_rol }, process.env.SECRET_KEY, {
-            expiresIn: "1h"
+            expiresIn: "2h"
         });
 
         return res.status(200).json({ message: "Sesion iniciada", token, data: user });
     } catch (error) {
-        console.error("error en login: ", error.message);
-        return res.status(500).json({ message: "Error en el servidor", error: error.message });
+        console.error("error en login: ", error);
+        return res.status(500).json({ message: "Error en loginHandler: ", error: error.message });
     }
 };
 

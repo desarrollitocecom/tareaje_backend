@@ -1,9 +1,9 @@
-const RegimenLaboral= require('../models/RegimenLaborals');
-const {sequelize}=require('../db_connection');
+const {RegimenLaboral}= require('../db_connection');
+
 //Trae todas las RegimenLaborales
 const getRegimenLaborales=async () => {
     try {
-        const response=await RegimenLaboral(sequelize).findAll({where: {
+        const response=await RegimenLaboral.findAll({where: {
             state:true  
         }});
         return response || null
@@ -16,7 +16,7 @@ const getRegimenLaborales=async () => {
 //trae una RegimenLaboral especifica por id
 const getRegimenLaboral = async (id) => {
     try {
-        const RegimenLaboral = await RegimenLaboral(sequelize).findOne({where: {
+        const RegimenLaboral = await RegimenLaboral.findOne({where: {
             id ,
             state:true
         }});
@@ -29,7 +29,7 @@ const getRegimenLaboral = async (id) => {
 //Crea una nueva RegimenLaboral
 const createRegimenLaboral = async ({nombre}) => {
     try {
-        const RegimenLaboral = await RegimenLaboral(sequelize).create({ nombre });
+        const RegimenLaboral = await RegimenLaboral.create({ nombre });
         return RegimenLaboral 
     } catch (error) {
         console.error('Error al crear una nueva RegimenLaboral',error)
@@ -39,7 +39,7 @@ const createRegimenLaboral = async ({nombre}) => {
 //elimina la RegimenLaboral o canbia el estado
 const deleteRegimenLaboral = async (id) => {
     try {
-        const RegimenLaboral = await RegimenLaboral(sequelize).findByPk(id);
+        const RegimenLaboral = await RegimenLaboral.findByPk(id);
         RegimenLaboral.state = false;
         await RegimenLaboral.save();
        return RegimenLaboral || null

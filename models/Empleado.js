@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 
+
 module.exports = (sequelize) => {
     const Empleado = sequelize.define('Empleado', {
         id: {
@@ -27,7 +28,7 @@ module.exports = (sequelize) => {
         id_cargo: {
             type: DataTypes.INTEGER,
             references: {
-                model: 'Cargos',
+                model:'Cargos',
                 key: 'id',
             }
         },
@@ -89,6 +90,29 @@ module.exports = (sequelize) => {
         tableName: 'Empleados',
         timestamps: true
     });
+
+    Empleado.associate = (db) => {
+        Empleado.belongsTo(db.Cargo, { foreignKey: 'id_cargo', as: 'cargo' });
+        Empleado.belongsTo(db.Turno, { foreignKey: 'id_turno', as: 'turno' });
+        Empleado.belongsTo(db.RegimenLaboral, { foreignKey: 'id_regimen_laboral', as: 'regimenLaboral' });
+        Empleado.belongsTo(db.Sexo, { foreignKey: 'id_sexo', as: 'sexo' });
+        Empleado.belongsTo(db.Jurisdiccion, { foreignKey: 'id_jurisdiccion', as: 'jurisdiccion' });
+        Empleado.belongsTo(db.GradoEstudios, { foreignKey: 'id_grado_estudios', as: 'gradoEstudios' });
+        Empleado.belongsTo(db.Subgerencia, { foreignKey: 'id_subgerencia', as: 'subgerencia' });
+        Empleado.belongsTo(db.Funcion, { foreignKey: 'id_funcion', as: 'funcion' });
+
+        // Relación uno a muchos con Asistencias
+        Empleado.hasMany(db.Asistencia, { foreignKey: 'id_empleado', as: 'asistencias' });
+    
+        // Relación uno a muchos con Descansos
+        Empleado.hasMany(db.Descanso, { foreignKey: 'id_empleado', as: 'descansos' });
+    
+        // Relación uno a muchos con Justificaciones
+        Empleado.hasMany(db.Justificacion, { foreignKey: 'id_empleado', as: 'justificaciones' });
+    
+        // Relación uno a muchos con Vacaciones
+        Empleado.hasMany(db.Vacacion, { foreignKey: 'id_empleado', as: 'vacaciones' });
+    };
 
     return Empleado;
 };
