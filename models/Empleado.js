@@ -1,4 +1,4 @@
-dconst { DataTypes } = require("sequelize");
+const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
     const Empleado = sequelize.define('Empleado', {
@@ -128,9 +128,7 @@ module.exports = (sequelize) => {
         Empleado.belongsTo(db.Funcion, {
             foreignKey: 'id_funcion',
             as: 'funcion'
-        });
-
-        
+        });     
     };
 
     return Empleado;
