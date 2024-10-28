@@ -19,32 +19,23 @@ module.exports = (sequelize) => {
             type: DataTypes.ENUM('A', 'J', 'D', 'F', 'V', 'NA'),
             allowNull: false,
         },
+        id_empleado: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'Empleados', // Nombre de la tabla referenciada
+                key: 'id', // Clave referenciada
+            }
+        }
     }, {
         tableName: 'Asistencias',
         timestamps: true,
         indexes: [
-            {
-                name: 'idx_asistencia_fecha',
-                fields: ['fecha'],
-            },
-            {
-                name: 'idx_asistencia_id_empleado',
-                fields: ['id_empleado'],
-            },
-            {
-                name: 'idx_asistencia_fecha_id_empleado',
-                fields: ['fecha', 'id_empleado'],
-            },
+            { name: 'idx_asistencia_fecha', fields: ['fecha'] },
+            { name: 'idx_asistencia_id_empleado', fields: ['id_empleado'] },
+            { name: 'idx_asistencia_fecha_id_empleado', fields: ['fecha', 'id_empleado'] },
         ],
     });
-
-    // Definir la asociación de Asistencia con Empleado
-    Asistencia.associate = (db) => {
-        Asistencia.belongsTo(db.Empleado, {
-            foreignKey: 'id_empleado',
-            as: 'empleado',
-        });
-    };
 
     return Asistencia;
 };

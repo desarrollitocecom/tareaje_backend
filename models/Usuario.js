@@ -27,7 +27,8 @@ module.exports = (sequelize) => {
         },
         token: {
             type: DataTypes.STRING(500), // Token
-            allowNull: true
+            allowNull: true,
+            defaultValue: null
         },
         state: {
             type: DataTypes.BOOLEAN,
@@ -55,7 +56,7 @@ module.exports = (sequelize) => {
         Usuario.belongsTo(db.Empleado, {
             foreignKey: {
                 name: 'id_empleado',
-                allowNull: false, // Obligar a que un usuario siempre tenga un empleado asociado
+                allowNull: true, // Obligar a que un usuario siempre tenga un empleado asociado
                 unique: true // y que no se repita
             },
             as: 'empleado',
