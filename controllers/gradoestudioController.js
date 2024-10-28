@@ -16,8 +16,9 @@ const getGradoEstudios=async () => {
 //trae una GradoEstudio especifica por id
 const getGradoEstudio = async (id) => {
     try {
-        const GradoEstudio = await GradoEstudios(sequelize).findAll({where: {
-            id 
+        const GradoEstudio = await GradoEstudios(sequelize).findOne({where: {
+            id ,
+            state:true
         }});
         return GradoEstudio || null;
     } catch (error) {
@@ -52,7 +53,7 @@ const deleteGradoEstudio = async (id) => {
 const updateGradoEstudio = async (id, nuevaGradoEstudio) => {
     if (id && nuevaGradoEstudio)
         try {
-            const GradoEstudio = await GradoEstudios(sequelize).findOne({ where: { id } });
+            const GradoEstudio = await getGradoEstudio(id);
             if (GradoEstudio) 
                 await GradoEstudio.update(nuevaGradoEstudio);
                 return GradoEstudio || null;
