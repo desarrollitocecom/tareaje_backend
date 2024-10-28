@@ -1,7 +1,7 @@
-const {Usuario} = require("../db_connection");
+const { Usuario } = require("../db_connection");
 //const { sequelize } = require("../db_connection");
 
-const createUser = async ({usuario, contraseña, correo, id_rol, id_empleado}) => {
+const createUser = async ({ usuario, contraseña, correo, id_rol, id_empleado }) => {
 
     try {
         const response = await Usuario.create(
@@ -23,19 +23,18 @@ const createUser = async ({usuario, contraseña, correo, id_rol, id_empleado}) =
     }
 };
 
-const updateUser = async (usuario, contraseña, correo) => {
-    
-        try {
-            const response = await Usuario.findOne({
-                where: {
-                    usuario: usuario
-                }
-            });
-            return response || null;
-        } catch (error) {
-            console.error("error en updateUser: ", error.message)
-            return false;
+const changePassword = async (usuario, contraseña) => {
+
+    try {
+        const user = await getUser(usuario);
+        if (user) {
+            const update = user.update({ usuario, contraseña });
         }
+        return null;
+    } catch (error) {
+        console.error("error en changePassword: ", error.message)
+        return false;
+    }
 }
 
 //"^5.0.1",
@@ -92,7 +91,7 @@ const getToken = async (usuario) => {
 
 module.exports = {
     createUser,
-    updateUser,
+    changePassword,
     getUser,
     getToken,
     signToken
