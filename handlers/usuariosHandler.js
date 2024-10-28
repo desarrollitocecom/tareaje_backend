@@ -90,7 +90,7 @@ const loginHandler = async (req, res) => {
     try {
         // Busca al usuario en la base de datos
         const user = await getUser(usuario);
-        //console.log(user);
+        console.log(user);
         if (!user)
             return res.status(201).json({ message: "Usuario no encontrado", data: "asdasd"} );
 
