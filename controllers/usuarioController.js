@@ -1,23 +1,24 @@
-const Usuario = require("../models/Usuario");
-const { sequelize } = require("../db_connection");
+const {Usuario} = require("../db_connection");
+//const { sequelize } = require("../db_connection");
 
 const createUser = async ({usuario, contraseña, correo, id_rol, id_empleado}) => {
      console.log("DATA: ", id_empleado);
     try {
-        const response = await Usuario(sequelize).create(
+        const response = await Usuario.create(
             {
                 usuario: usuario,
                 contraseña: contraseña,
                 correo: correo,
-                id_rol: id_rol,
-                id_empleado: id_empleado
+                token: null,
+                id_rol: 1,
+                id_empleado: 1
             }
         );
         console.log("contolador");
         console.log("crear usuario: ", response);
         return response || null;
     } catch (error) {
-        console.error("error en createUser: ", error.message)
+        console.error("error en createUser: ", error)
         return false;
     }
 };

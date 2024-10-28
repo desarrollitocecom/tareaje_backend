@@ -29,8 +29,9 @@ const createUserHandler = async (req, res) => {
     else if (!correoRegex.test(correo))
         errors.push("Formato de correo inválido");
 
+    console.log(errors);
     if (errors.length > 0) 
-        return res.status(402).json({ message: "Se encontraron los siguientes errores", data: errors.join("\n") });
+        return res.status(402).json({ message: "Se encontraron los siguientes errores", data: errors });
 
     try {
         //console.log("DATA: ",usuario, contraseña, correo, id_rol, id_empleado);
