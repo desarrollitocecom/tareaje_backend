@@ -29,7 +29,7 @@ const getFuncion = async (id) => {
 const createFuncion = async ({nombre}) => {
     try {
         const funcion = await Funcion(sequelize).create({ nombre });
-        return funcion;
+        return funcion
 
     } catch (error) {
         console.error('Error al crear una nueva Funcion',error)
@@ -54,12 +54,10 @@ const updateFuncion = async (id, nuevaFuncion) => {
     if (id && nuevaFuncion)
         try {
             const funcion = await Funcion(sequelize).findOne({ where: { id } });
-            if (funcion) {
+            if (funcion) 
                 await funcion.update(nuevaFuncion);
-                return funcion;
-            } else {
-                return null;
-            }
+                return funcion || null ;
+           
         } catch (error) {
             console.error('Error al actualizar la funcion:', error.message);
             return false;

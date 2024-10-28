@@ -1,17 +1,19 @@
 const { Router } = require('express');
 const rutas = Router();
 const {
-    CrearSexoHander,
-    ReadSexoHander,
-    UpdateSexoHanderls,
-    DeleteSexoHandler
+    getSexosHandler,
+    getSexoHandler,
+    createSexoHandler,
+    updateSexoHandler,
+    deleteSexoHandler
 } = require('../handlers/sexoHandlers');
 
 
 
-rutas.post('/crearSexo/', CrearSexoHander);
-rutas.get('/consultadeSexo/:nombre', ReadSexoHander);
-rutas.patch('/modificaSexo/:id', UpdateSexoHanderls);
-rutas.delete('/eliminaSexo/:id', DeleteSexoHandler);
+rutas.get('/',getSexosHandler)
+rutas.post('/', createSexoHandler);
+rutas.get('/:id',  getSexoHandler);  
+rutas.patch('/:id', updateSexoHandler);
+rutas.delete('/:id', deleteSexoHandler);
 
 module.exports = rutas;

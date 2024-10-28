@@ -1,82 +1,76 @@
-const GradodeEstudio = require('../models/GradoEstudios');
-const { sequelize } = require('../db_connection');
-const { Op } = require('sequelize');
-
-
-//Crea una nueva gradodeEstudio
-const creategradodeEstudio = async ({ nombre }) => {
+const GradoEstudios = require('../models/GradoEstudios');
+const {sequelize}=require('../db_connection');
+//Trae todas las GradoEstudioes
+const getGradoEstudios=async () => {
     try {
-        const gradodeEstudio = await GradodeEstudio(sequelize).create({ nombre });
-        return gradodeEstudio;
-
+        const response=await GradoEstudios(sequelize).findAll({where: {
+            state:true  
+        }});
+        return response || null
     } catch (error) {
-        console.log(error);
-        throw new Error('Error al crear Grado de Estudio');
+        console.error('Error al Obtener todas los Grado Estudioes',error);
+        return false
+    }
+}
+
+//trae una GradoEstudio especifica por id
+const getGradoEstudio = async (id) => {
+    try {
+        const GradoEstudio = await GradoEstudios(sequelize).findAll({where: {
+            id 
+        }});
+        return GradoEstudio || null;
+    } catch (error) {
+        console.error(`Error al obtener la Función: ${error.message}`);
+      return false
     }
 };
-//leer gradodeEstudio
-const readgradodeEstudio = async (nombregradodeEstudio) => {
+//Crea una nueva GradoEstudio
+const createGradoEstudio = async ({nombre}) => {
     try {
+        const GradoEstudio = await GradoEstudios(sequelize).create({ nombre });
+        return GradoEstudio 
+    } catch (error) {
+        console.error('Error al crear una nueva GradoEstudio',error)
+        return false
+    }
+};
+//elimina la GradoEstudio o canbia el estado
+const deleteGradoEstudio = async (id) => {
+    try {
+        const GradoEstudio = await GradoEstudios(sequelize).findByPk(id);
+        GradoEstudio.state = false;
+        await GradoEstudio.save();
+       return GradoEstudio || null
+    } catch (error) {
+        console.error('Error al canbiar de estado al eliminar GradoEstudio');
+        return false;
+    }
+};
 
-        const gradodeEstudio = await GradodeEstudio(sequelize).findAll({
-            where: {
-                nombre: { [Op.iRegexp]: `^${nombregradodeEstudio}` },
-            }
-        });
 
-        if (!gradodeEstudio) {
-            throw new Error('gradodeEstudio no encontrada');
+const updateGradoEstudio = async (id, nuevaGradoEstudio) => {
+    if (id && nuevaGradoEstudio)
+        try {
+            const GradoEstudio = await GradoEstudios(sequelize).findOne({ where: { id } });
+            if (GradoEstudio) 
+                await GradoEstudio.update(nuevaGradoEstudio);
+                return GradoEstudio || null;
+            
+        } catch (error) {
+            console.error('Error al actualizar la GradoEstudio:', error.message);
+            return false;
         }
-        return gradodeEstudio;
-    } catch (error) {
-        throw new Error(`Error al obtener el gradodeEstudio: ${error.message}`)
-    }
-};
+    else
+        return false;
+};  
 
-const deletegradodeEstudio = async (id) => {
-    try {
-        const gradodeEstudio = await GradodeEstudio(sequelize).findByPk(id);
-
-        if (!gradodeEstudio) {
-            throw new Error('gradodeEstudio no encontrada');
-        }
-
-
-        gradodeEstudio.state = false;
-        await gradodeEstudio.save();
-
-    } catch (error) {
-        throw new Error(`Error al eliminar su gradodeEstudio: ${error.message}`);
-    }
-};
-
-
-const UpdategradodeEstudio = async (id, nuevogradodeEstudio) => {
-    try {
-
-        const gradodeEstudio = await GradodeEstudio(sequelize).findByPk(id);
-
-        // Verificar si la función existe
-        if (!gradodeEstudio) {
-            throw new Error('gradodeEstudio no encontrada');
-        }
-
-        // Cambiar el nombre
-        gradodeEstudio.nombre = nuevogradodeEstudio;
-
-        // Guardar los cambios en la base de datos
-        await gradodeEstudio.save();
-
-        return gradodeEstudio; // Retornar la función modificada
-    } catch (error) {
-        throw new Error(`Error al modificar la gradodeEstudio: ${error.message}`);
-    }
-};
 
 
 module.exports = {
-    creategradodeEstudio,
-    readgradodeEstudio,
-    UpdategradodeEstudio,
-    deletegradodeEstudio
+    getGradoEstudios,
+    createGradoEstudio,
+    getGradoEstudio,
+    updateGradoEstudio,
+    deleteGradoEstudio
 };
