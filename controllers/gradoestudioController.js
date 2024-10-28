@@ -1,9 +1,9 @@
-const GradoEstudios = require('../models/GradoEstudios');
-const {sequelize}=require('../db_connection');
+const {GradoEstudios} = require('../db_connection');
+
 //Trae todas las GradoEstudioes
 const getGradoEstudios=async () => {
     try {
-        const response=await GradoEstudios(sequelize).findAll({where: {
+        const response=await GradoEstudios.findAll({where: {
             state:true  
         }});
         return response || null
@@ -16,7 +16,7 @@ const getGradoEstudios=async () => {
 //trae una GradoEstudio especifica por id
 const getGradoEstudio = async (id) => {
     try {
-        const GradoEstudio = await GradoEstudios(sequelize).findOne({where: {
+        const GradoEstudio = await GradoEstudios.findOne({where: {
             id ,
             state:true
         }});
@@ -29,7 +29,7 @@ const getGradoEstudio = async (id) => {
 //Crea una nueva GradoEstudio
 const createGradoEstudio = async ({nombre}) => {
     try {
-        const GradoEstudio = await GradoEstudios(sequelize).create({ nombre });
+        const GradoEstudio = await GradoEstudios.create({ nombre });
         return GradoEstudio 
     } catch (error) {
         console.error('Error al crear una nueva GradoEstudio',error)
@@ -39,7 +39,7 @@ const createGradoEstudio = async ({nombre}) => {
 //elimina la GradoEstudio o canbia el estado
 const deleteGradoEstudio = async (id) => {
     try {
-        const GradoEstudio = await GradoEstudios(sequelize).findByPk(id);
+        const GradoEstudio = await GradoEstudios.findByPk(id);
         GradoEstudio.state = false;
         await GradoEstudio.save();
        return GradoEstudio || null

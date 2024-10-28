@@ -1,9 +1,9 @@
-const Sexo = require('../models/Sexo');
-const {sequelize}=require('../db_connection');
+const {Sexo} = require('../db_connection');
+
 //Trae todas las Sexoes
 const getSexos=async () => {
     try {
-        const response=await Sexo(sequelize).findAll({where: {
+        const response=await Sexo.findAll({where: {
             state:true  
         }});
         return response || null
@@ -16,7 +16,7 @@ const getSexos=async () => {
 //trae una Sexo especifica por id
 const getSexo = async (id) => {
     try {
-        const response = await Sexo(sequelize).findOne({where: {
+        const response = await Sexo.findOne({where: {
             id ,
             state:true
         }});
@@ -29,7 +29,7 @@ const getSexo = async (id) => {
 //Crea una nueva Sexo
 const createSexo = async ({nombre}) => {
     try {
-        const response = await Sexo(sequelize).create({ nombre });
+        const response = await Sexo.create({ nombre });
         return response
 
     } catch (error) {
@@ -40,7 +40,7 @@ const createSexo = async ({nombre}) => {
 //elimina la Sexo o canbia el estado
 const deleteSexo = async (id) => {
     try {
-        const response = await Sexo(sequelize).findByPk(id);
+        const response = await Sexo.findByPk(id);
         response.state = false;
         await response.save();
        return response || null

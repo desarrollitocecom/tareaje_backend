@@ -1,9 +1,9 @@
-const Turno= require('../models/Turnos');
-const {sequelize}=require('../db_connection');
+const {Turno}= require('../db_connection');
+
 //Trae todas las Turnoes
 const getTurnos=async () => {
     try {
-        const response=await Turno(sequelize).findAll({where: {
+        const response=await Turno.findAll({where: {
             state:true  
         }});
         return response || null
@@ -16,7 +16,7 @@ const getTurnos=async () => {
 //trae una Turno especifica por id
 const getTurno = async (id) => {
     try {
-        const Turno = await Turno(sequelize).findOne({where: {
+        const Turno = await Turno.findOne({where: {
             id ,
             state:true
         }});
@@ -29,7 +29,7 @@ const getTurno = async (id) => {
 //Crea una nueva Turno
 const createTurno = async ({nombre}) => {
     try {
-        const Turno = await Turno(sequelize).create({ nombre });
+        const Turno = await Turno.create({ nombre });
         return Turno 
     } catch (error) {
         console.error('Error al crear una nueva Turno',error)
@@ -39,7 +39,7 @@ const createTurno = async ({nombre}) => {
 //elimina la Turno o canbia el estado
 const deleteTurno = async (id) => {
     try {
-        const Turno = await Turno(sequelize).findByPk(id);
+        const Turno = await Turno.findByPk(id);
         Turno.state = false;
         await Turno.save();
        return Turno || null
