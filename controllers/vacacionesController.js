@@ -1,12 +1,12 @@
-const {sequelize} = require("../db_connection.js")
-const Vacaciones=require('../models/Vacaciones')
-const Empleado=require('../models/Empleado')
+//const {sequelize} = require("../db_connection.js")
+const {Empleado,Vacacion} =require('../db_connection')
+
 const getVacaciones = async () => {
   try {
-    const response = await Vacaciones(sequelize).findAll({
+    const response = await Vacacion.findAll({
       where: { state: true },
       include: [{
-        model: Empleado(sequelize),
+        model: Empleado,
         as: "empleado"
       }]
     });
@@ -17,15 +17,18 @@ const getVacaciones = async () => {
   }
 };
 
-const createVacaciones = async (f_inicio, f_fin, id_empleado) => {
+const createVacaciones = async ({f_inicio, f_fin, id_empleado}) => {
+
   try {
     
-    const newVacaciones = await Vacaciones(sequelize).create({
+    const newVacaciones = await Vacacion.create({
       f_inicio:f_inicio,
-      f_fin:f_fin,
-      id_empleado:id_empleado,
+       f_fin:f_fin,
+        id_empleado:id_empleado
     });
     return newVacaciones || null;
+    
+    
   } catch (error) {
     console.error({
       message: "Error al Crear nueva Vacacion",
@@ -36,7 +39,7 @@ const createVacaciones = async (f_inicio, f_fin, id_empleado) => {
 const getVacacion = async (id) => {
 
   try {
-    const response = await Vacaciones.findOne({
+    const response = await Vacacion.findOne({
       where: { state: true },
       id,
       include: {
@@ -55,7 +58,7 @@ const getVacacion = async (id) => {
 };
 const deleteVaciones = async (id) => {
   try {
-    const response = await Vacaciones.findByPk(id);
+    const response = await Vacacion.findByPk(id);
     response.state = false;
     await response.save();
     return response || null;

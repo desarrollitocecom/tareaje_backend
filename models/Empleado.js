@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 
+
 module.exports = (sequelize) => {
     const Empleado = sequelize.define('Empleado', {
         id: {
@@ -27,7 +28,7 @@ module.exports = (sequelize) => {
         id_cargo: {
             type: DataTypes.INTEGER,
             references: {
-                model: 'Cargos',
+                model:'Cargo',
                 key: 'id',
             }
         },

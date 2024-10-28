@@ -67,11 +67,10 @@ const createVacacionesHandler = async (req, res) => {
       data: [],
     });
   }
-  console.log(f_fin,f_inicio);
+
   
   try {
-    const newVacaciones = await createVacaciones(f_inicio, f_fin, id_empleado);
-    console.log(newVacaciones);
+    const newVacaciones = await createVacaciones({f_inicio, f_fin, id_empleado});
     
     if (!newVacaciones)
       return res.status(203).json({
@@ -89,6 +88,8 @@ const createVacacionesHandler = async (req, res) => {
     });
   }
 };
+
+
 const deleteVacacionesHandler = async (req, res) => {
   const { id } = req.params;
   if (!id || isNaN(id)) {

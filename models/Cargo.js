@@ -33,5 +33,13 @@ module.exports = (sequelize) => {
         timestamps: true
     });
 
+    Cargo.associate = (db) => {
+        Cargo.belongsToMany(db.Empleado, {
+            through: 'Empleado_Cargos', // Nombre de la tabla intermedia
+            foreignKey: 'id_cargo', // Clave foránea en la tabla intermedia
+            otherKey: 'id_empleado', // Clave foránea del otro modelo en la tabla intermedia
+            as: 'empleados', // Alias para acceder a los empleados desde un cargo
+        });}
+
     return Cargo;
 };
