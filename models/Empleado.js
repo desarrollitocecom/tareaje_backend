@@ -78,7 +78,12 @@ module.exports = (sequelize) => {
             foreignKey: 'id_cargo',
             as: 'cargo'
         });
-
+        //
+        db.Vacacion.hasMany(Empleado,{
+            foreignKey:'id_vacacion',
+            allowNull:true,
+            as:'vacacion'
+        })
         // Relacion empleado con usuario
         db.Usuario.hasOne(Empleado, {
             foreignKey: {

@@ -30,6 +30,8 @@ module.exports = (sequelize) => {
             foreignKey: 'id_empleado',
             as: 'empleado', // Alias más claro
         });
+        
+
     };
 
     return Vacacion;
