@@ -2,7 +2,7 @@ const {Usuario} = require("../db_connection");
 //const { sequelize } = require("../db_connection");
 
 const createUser = async ({usuario, contraseña, correo, id_rol, id_empleado}) => {
-     console.log("DATA: ", id_empleado);
+
     try {
         const response = await Usuario.create(
             {
@@ -10,8 +10,8 @@ const createUser = async ({usuario, contraseña, correo, id_rol, id_empleado}) =
                 contraseña: contraseña,
                 correo: correo,
                 token: null,
-                id_rol: 1,
-                id_empleado: 1
+                id_rol: id_rol,
+                id_empleado: id_empleado
             }
         );
         console.log("contolador");
@@ -24,9 +24,9 @@ const createUser = async ({usuario, contraseña, correo, id_rol, id_empleado}) =
 };
 
 const updateUser = async (usuario, contraseña, correo) => {
-    if (usuario && contraseña && correo)
+    
         try {
-            const response = await Usuario(sequelize).findOne({
+            const response = await Usuario.findOne({
                 where: {
                     usuario: usuario
                 }
@@ -38,12 +38,12 @@ const updateUser = async (usuario, contraseña, correo) => {
         }
 }
 
-
+//"^5.0.1",
 const getUser = async (username) => {
 
     if (username)
         try {
-            const response = await Usuario(sequelize).findOne({
+            const response = await Usuario.findOne({
                 where: {
                     usuario: username
                 }
@@ -61,7 +61,7 @@ const getUser = async (username) => {
 const signToken = async (usuario, jwt) => {
 
     try {
-        const response = await Usuario(sequelize).findOne({
+        const response = await Usuario.findOne({
             where: {
                 usuario: usuario
             }
@@ -76,7 +76,7 @@ const signToken = async (usuario, jwt) => {
 const getToken = async (usuario) => {
 
     try {
-        const token = await Usuario(sequelize).findOne({
+        const token = await Usuario.findOne({
             where: {
                 usuario: usuario
             }

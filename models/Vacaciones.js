@@ -28,11 +28,12 @@ module.exports = (sequelize) => {
     Vacacion.associate = (db) => {
         Vacacion.belongsTo(db.Empleado, {
             foreignKey: 'id_empleado',
-            as: 'empleado', // Alias más claro
+            as: 'empleado',
         });
         
 
     };
+    
 
     return Vacacion;
 };
