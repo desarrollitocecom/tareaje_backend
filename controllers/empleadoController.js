@@ -1,30 +1,24 @@
 
-const { sequelize } = require('../db_connection');
-const Empleado = require('../models/Empleado');
-const Cargo = require('../models/Cargo');
-const Usuario = require('../models/Usuario');
-const Turno = require('../models/Turno');
-const RegimenLaboral = require('../models/RegimenLaboral');
-const Sexo = require('../models/Sexo');
-const Jurisdiccion = require('../models/Jurisdiccion');
-const GradoEstudios = require('../models/GradoEstudios');
-const Subgerencia = require('../models/Subgerencia');
-const Funcion = require('../models/Funcion');
+const {Empleado,Cargo,Usuario,RegimenLaboral,Sexo,
+    Jurisdiccion,GradoEstudios,Funcion,Subgerencia}=require('../db_connection');
+
+
 
 const getEmpleados = async () => {
     try {
-        const response = await Empleado(sequelize).findAll({
+        const response = await Empleado.findAll({
             where: { state: true },
             include: [
-                { model: Cargo(sequelize), as: 'cargo' },
-                { model: Usuario(sequelize), as: 'id_usuario' },
-                { model: Turno(sequelize), as: 'turno' },
-                { model: RegimenLaboral(sequelize), as: 'regimenLaboral' },
-                { model: Sexo(sequelize), as: 'sexo' },
-                { model: Jurisdiccion(sequelize), as: 'jurisdiccion' },
-                { model: GradoEstudios(sequelize), as: 'gradoEstudios' },
-                { model: Subgerencia(sequelize), as: 'subgerencia' },
-                { model: Funcion(sequelize), as: 'funcion' }
+              
+                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+            //     { model: Usuario, as: 'id_usuario' },
+            //     { model: Turno, as: 'turno' },
+            //     { model: RegimenLaboral, as: 'regimenLaboral' },
+            //     { model: Sexo, as: 'sexo' },
+            //     { model: Jurisdiccion, as: 'jurisdiccion' },
+            //     { model: GradoEstudios, as: 'gradoEstudios' },
+            //     { model: Subgerencia, as: 'subgerencia' },
+            //     { model: Funcion, as: 'funcion' }
             ]
         });
         return response || null;
@@ -44,7 +38,7 @@ const getEmpleado = async (id) => {
 /*
 const createEmpleado=async (id) => {
     try {
-        const response=await 
+       
     } catch (error) {
         
     }

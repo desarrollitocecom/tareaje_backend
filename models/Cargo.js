@@ -33,5 +33,7 @@ module.exports = (sequelize) => {
         timestamps: true
     });
 
+    
+
     return Cargo;
 };
