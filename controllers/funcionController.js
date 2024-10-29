@@ -1,18 +1,19 @@
 const {Funcion} = require('../db_connection');
 
-//Trae todas las funciones
-const getFunciones=async () => {
+//Trae todas las funciones y las pagina 
+const getFunciones = async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit; // Cálculo del offset
     try {
-        const response=await Funcion.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const { count, rows } = await Funcion.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows } || null;
     } catch (error) {
-        console.error('Error al Obtener todas las funciones',error);
-        return false
+        console.error('Error al obtener todas las funciones', error);
+        return false;
     }
-}
-
+};
 //trae una funcion especifica por id
 const getFuncion = async (id) => {
     try {

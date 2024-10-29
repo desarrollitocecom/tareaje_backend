@@ -6,19 +6,36 @@ const { getFunciones,
 } = require('../controllers/funcionController');
 
 //Handlers para obtener las funciones
+// const getFuncionesHandler = async (req, res) => {
+//     try {
+//         const response = await getFunciones();
+//         if (!response.length) {
+//             res.status(204).send();
+//         }
+//         return res.status(200).json({
+//             message: 'Son las funciones',
+//             data: response
+//         })
+//     } catch (error) {
+//         console.error('Error al obtener todas las funciones en el handlers', error)
+//         return res.status(500).json({ message: "Error al obtener todas las funciones en el handlers" })
+//     }
+// }
 const getFuncionesHandler = async (req, res) => {
+    const { page = 1, limit = 20 } = req.query; // Extraer page y limit de la consulta
     try {
-        const response = await getFunciones();
-        if (!response.length) {
-            res.status(204).send();
+        const response = await getFunciones(Number(page), Number(limit));
+        if (!response.data.length) {
+            return res.status(204).send(); // Sin contenido
         }
         return res.status(200).json({
             message: 'Son las funciones',
-            data: response
-        })
+            total: response.total,
+            data: response.data
+        });
     } catch (error) {
-        console.error('Error al obtener todas las funciones en el handlers', error)
-        return res.status(500).json({ message: "Error al obtener todas las funciones en el handlers" })
+        console.error('Error al obtener todas las funciones en el handler', error);
+        return res.status(500).json({ message: "Error al obtener todas las funciones en el handler" });
     }
 }
 //Handlers para obtener una funcion 
