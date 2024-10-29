@@ -1,11 +1,13 @@
 const { Router } = require('express');
 const rutas = Router();
 const {
-    getEmpleadosHandlers,
+    getAllEmpleadosHandlers,
+    getEmpleadoHandler
   
 } = require('../handlers/empleadoHandlers');
 
-rutas.get('/', getEmpleadosHandlers)
+rutas.get('/', getAllEmpleadosHandlers);
+rutas.get('/:id',getEmpleadoHandler);
 
 
 module.exports = rutas;
