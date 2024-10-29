@@ -1,5 +1,4 @@
 const {LugarTrabajo} = require('../db_connection');
-
 //Trae todas las LugarTrabajoes
 const getLugarTrabajos=async () => {
     try {

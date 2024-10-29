@@ -1,57 +1,61 @@
-const { getFunciones,
-    createFuncion,
-    getFuncion,
-    updateFuncion,
-    deleteFuncion
-} = require('../controllers/funcionController');
-const getFuncionesHandler = async (req, res) => {
-    const { page = 1, limit = 20 } = req.query; // Extraer page y limit de la consulta
+const { getTurnos,
+    createTurno,
+    getTurno,
+    updateTurno,
+    deleteTurno
+} = require('../controllers/turnoController');
+
+//Handlers para obtener los Turnos
+const getTurnosHandler = async (req, res) => {
     try {
-        const response = await getFunciones();
-        if (!response.length) {
-            res.status(204).send();
-        } 
+        const response = await getTurnos();
+        
+        // Si no hay datos, devuelve un mensaje con estado 200
+        if (!response || response.length === 0) {
+            return res.status(200).json({ message: "No hay Turnos disponibles" });
+        }
+
+        // Si hay datos, devuélvelos con el mensaje correspondiente
         return res.status(200).json({
-            message: 'Son las funciones',
-            total: response.total,
-            data: response.data
+            message: 'Son los Turnos',
+            data: response
         });
     } catch (error) {
-        console.error('Error al obtener todas las funciones en el handler', error);
-        return res.status(500).json({ message: "Error al obtener todas las funciones en el handler" });
+        console.error('Error al obtener todas los turnos:', error);
+        return res.status(500).json({ message: "Error al obtener todos los turnos" });
     }
-}
-//Handlers para obtener una funcion 
-const getFuncionHandler = async (req, res) => {
+};
+//Handlers para obtener una Turno 
+const getTurnoHandler = async (req, res) => {
     const id = req.params.id;
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
     }
     try {
-        const response = await getFuncion(id);
+        const response = await getTurno(id);
 
         if (!response || response.length === 0) {
             return res.status(404).json({
-                message: "Función no encontrada",
+                message: "Turno no encontrada",
                 data: []
             });
         }
 
         return res.status(200).json({
-            message: "Función encontrada",
+            message: "Turno encontrada",
             data: response
         });
     } catch (error) {
         console.error(error);
         return res.status(500).json({
-            message: "Error al buscar la función",
+            message: "Error al buscar la Turno",
             error: error.message
         });
     }
 };
-//handlers para crear una nueva funcion
+//handlers para crear una nueva Turno
 
-const createFuncionHandler = async (req, res) => {
+const createTurnoHandler = async (req, res) => {
     const { nombre } = req.body;
 
     const validaNombre = /^[a-zA-Z]+( [a-zA-Z]+)*$/.test(nombre);
@@ -61,17 +65,17 @@ const createFuncionHandler = async (req, res) => {
         return res.status(400).json({ error: 'El nombre es requerido y debe ser una cadena de texto válida y tener solo letras' });
 
     try {
-        const nuevaFuncion = await createFuncion({ nombre })
+        const nuevaTurno = await createTurno({ nombre })
 
-        res.status(201).json(nuevaFuncion);
+        res.status(201).json(nuevaTurno);
     } catch (error) {
         console.error(error);
         res.status(500).json({ messaje: 'Error del server' })
     }
 }
-//handler para modificar una funcion
+//handler para modificar una Turno
 
-const updateFuncionHandler = async (req, res) => {
+const updateTurnoHandler = async (req, res) => {
     const {id} = req.params;
     const  {nombre}  = req.body;
     const errores = [];
@@ -85,22 +89,22 @@ const updateFuncionHandler = async (req, res) => {
         return res.status(400).json({ errores });
     }
     try {
-        const response = await updateFuncion(id, {nombre})
+        const response = await updateTurno(id, {nombre})
         if (!response) {
             return res.status(201).json({
-                message: "La funcion no se encuentra ",
+                message: "El Turno no se encuentra ",
                 data: {}
             })
         }
         return res.status(200).json({
-            message: "Reguistro modificado",
+            message: "Registro modificado",
             data: response
         })
     } catch (error) {
-        res.status(404).json({ message: "Funcion no encontrada",error})
+        res.status(404).json({ message: "Turno no encontrada",error})
     }
 };
-const deleteFuncionHandler = async (req, res) => {
+const deleteTurnoHandler = async (req, res) => {
     const id = req.params.id;
     // Validación del ID
     if (isNaN(id)) {
@@ -108,16 +112,17 @@ const deleteFuncionHandler = async (req, res) => {
     }
 
     try {
-        // Llamada a la función para eliminar (estado a inactivo)
-        const response = await deleteFuncion(id);
+        // Llamada a la Turno para eliminar (estado a inactivo)
+        const response = await deleteTurno(id);
 
         if (!response) {
-            return res.status(204).json({
-                message: `No se encontró la funcion con ID${id}`
+            return res.status(200).json({
+                message: `No se encontró la Turno con ID:${id}`,
+                data:{}
             })
         }
         return res.status(200).json({
-            message: 'Función eliminada correctamente (estado cambiado a inactivo)'
+            message: 'Turno eliminada correctamente (estado cambiado a inactivo)'
         });
     } catch (error) {
         return res.status(404).json({ message: error.message });
@@ -125,10 +130,10 @@ const deleteFuncionHandler = async (req, res) => {
 };
 
 module.exports = {
-    getFuncionesHandler,
-    getFuncionHandler,
-    createFuncionHandler,
-    updateFuncionHandler,
-    deleteFuncionHandler
+    getTurnosHandler,
+    getTurnoHandler,
+    createTurnoHandler,
+    updateTurnoHandler,
+    deleteTurnoHandler
 }
 

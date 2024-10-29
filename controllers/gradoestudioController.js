@@ -8,7 +8,7 @@ const getGradoEstudios=async () => {
         }});
         return response || null
     } catch (error) {
-        console.error('Error al Obtener todas los Grado Estudioes',error);
+        console.error('Error al Obtener todas los Grado Estudios',error);
         return false
     }
 }
@@ -22,7 +22,7 @@ const getGradoEstudio = async (id) => {
         }});
         return GradoEstudio || null;
     } catch (error) {
-        console.error(`Error al obtener la Función: ${error.message}`);
+        console.error(`Error al obtener la Grado de Estudio: ${error.message}`);
       return false
     }
 };
@@ -32,7 +32,7 @@ const createGradoEstudio = async ({nombre}) => {
         const GradoEstudio = await GradoEstudios.create({ nombre });
         return GradoEstudio 
     } catch (error) {
-        console.error('Error al crear una nueva GradoEstudio',error)
+        console.error('Error al crear una nueva Grado de Estudio',error)
         return false
     }
 };
@@ -44,7 +44,7 @@ const deleteGradoEstudio = async (id) => {
         await GradoEstudio.save();
        return GradoEstudio || null
     } catch (error) {
-        console.error('Error al canbiar de estado al eliminar GradoEstudio');
+        console.error('Error al cambiar de estado al eliminar Grado de Estudio');
         return false;
     }
 };
