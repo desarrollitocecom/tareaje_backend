@@ -15,7 +15,7 @@ const getLugarTrabajos=async () => {
 //trae una LugarTrabajo especifica por id
 const getLugarTrabajo = async (id) => {
     try {
-        const LugarTrabajo = await LugarTrabajo.findAll({where: {
+        const LugarTrabajo = await LugarTrabajo.findOne({where: {
             id ,
             state:true
         }});

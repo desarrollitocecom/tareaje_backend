@@ -1,6 +1,6 @@
 // handlers/cargoHandler.js
 const { getCargoById, getAllCargos, createCargo, deleteCargo, updateCargo } = require('../controllers/cargoController');
-
+const { Subgerencia } = require('../db_connection');
 // Handler para obtener un Cargo por ID
 const getCargoByIdHandler = async (req, res) => {
     const { id } = req.params;
@@ -68,6 +68,19 @@ const deleteCargoHandler = async (req, res) => {
 const updateCargoHandler = async (req, res) => {
     const { id } = req.params;
     const { nombre, sueldo, id_subgerencia } = req.body;
+
+    // Validación: Asegúrate de que sueldo sea un número válido y no un valor NaN o string
+    if (sueldo !== undefined && (typeof sueldo !== 'number' || isNaN(sueldo))) {
+        return res.status(400).json({ error: 'El campo sueldo debe ser un número válido' });
+    }
+
+    // Validación: Asegúrate de que id_subgerencia corresponde a una subgerencia existente
+    if (id_subgerencia !== undefined) {
+        const subgerenciaExists = await Subgerencia.findByPk(id_subgerencia);
+        if (!subgerenciaExists) {
+            return res.status(400).json({ error: 'El id_subgerencia debe corresponder a una subgerencia existente' });
+        }
+    }
 
     try {
         const updatedCargo = await updateCargo(id, { nombre, sueldo, id_subgerencia });
