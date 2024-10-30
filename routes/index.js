@@ -8,6 +8,7 @@ const cargoRutas=require('./cargoRutas');
 const empleadosRutas=require('./empleadoRutas')
 const vacacionesRouter=require('./vacacionesRutas')
 const usuariosRouter = require("./usuariosRouter");
+const rol_permisoRouter = require("./rol_permisosRouter");
 
 // Usa prefijos para organizar las rutas
 tareaje.use('/funciones', funcionRutas);
@@ -18,6 +19,7 @@ tareaje.use('/cargo',cargoRutas);
 tareaje.use('/empleado',empleadosRutas);
 tareaje.use('/users', usuariosRouter);
 tareaje.use('/vacaciones',vacacionesRouter);
+tareaje.use('/auth',rol_permisoRouter)
 
 
 module.exports = tareaje;
