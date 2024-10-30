@@ -2,20 +2,28 @@ const { getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado } = require('../controllers/empleadoController');
 
 const getAllEmpleadosHandlers = async (req, res) => {
+    const { page, limit } = req.query;
     try {
-        const response = await getAllEmpleados(); // Llamamos a la función getEmpleados
+        const response = await getAllEmpleados(Number(page), Number(limit)); // Llamamos a la función getEmpleados
         console.log(response);
+        if (!response) return res.status(200).json(
+            {
+                message: 'No se encontraron Empleados',
+                data: {}
+            }
+        )
 
-        if (response) {
-            return res.status(200).json(response); // Respondemos con los datos de empleados en formato JSON
-        } else {
-            return res.status(200).json({ message: "No se encontraron empleados activos.", data: [] });
-        }
+        return res.status(200).json({
+            message: "Empleados obtenidos correctamente",
+            total: response.total,
+            data: response.data,
+        })
     } catch (error) {
         console.error("Error al obtener empleados:", error); // Log para debugging
         res.status(500).json({ error: "Error interno del servidor al obtener los empleados." });
     }
 };
+
 const getEmpleadoHandler = async (req, res) => {
     const { id } = req.params
     if (!id || isNaN(id)) {
@@ -133,9 +141,9 @@ const updateEmpleadoHandler = async (req, res) => {
         id_subgerencia,
         id_funcion,
         id_lugar_trabajo,
-      } = req.body;
-    
-      
+    } = req.body;
+
+
     const errores = [];
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(nombres))
         errores.push("Nombres deben contener solo letras y tener entre 2 y 50 caracteres");

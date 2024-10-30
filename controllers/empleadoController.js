@@ -3,50 +3,53 @@ const { Empleado, Cargo, Usuario, RegimenLaboral, Sexo,
 
 
 
-const getAllEmpleados = async () => {
+const getAllEmpleados = async (page=1,limit=20) => {
+    const offset = (page - 1) * limit;
     try {
-        const response = await Empleado.findAll({
+        const response = await Empleado.findAndCountAll({
             attributes: ['nombres', 'apellidos', 'dni'],
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
                 { model: Turno, as: 'turno', attributes: ['nombre'] }
-            ]
+            ],
+            limit,
+            offset
         });
-        return response || null;
+        return { total: response.count, data: response.rows } || null;
     } catch (error) {
         console.error("Error al obtener todos los empleados:", error);
         return false;
     }
 };
 
-const getEmpleado = async (id) => {
-    try {
-        const response = await Empleado.findOne({
-            attributes: ['id','nombres', 'apellidos', 'dni',
-                'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'observaciones', 'foto'],
-            where: {
-                id
-            },
-            include: [
-                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
-                { model: Turno, as: 'turno', attributes: ['nombre'] },
-                { model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'] },
-                { model: Sexo, as: 'sexo', attributes: ['nombre'] },
-                { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
-                { model: Jurisdiccion, as: 'jurisdiccion', attributes: ['nombre'] },
-                { model: LugarTrabajo, as: 'lugarTrabajo', attributes: ['nombre'] },
-                { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
-            ]
+    const getEmpleado = async (id) => {
+        try {
+            const response = await Empleado.findOne({
+                attributes: ['id','nombres', 'apellidos', 'dni',
+                    'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
+                    'celular', 'f_inicio', 'observaciones', 'foto'],
+                where: {id},
+                include: [
+                    { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+                    { model: Turno, as: 'turno', attributes: ['nombre'] },
+                    { model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'] },
+                    { model: Sexo, as: 'sexo', attributes: ['nombre'] },
+                    { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+                    { model: Jurisdiccion, as: 'jurisdiccion', attributes: ['nombre'] },
+                    { model: LugarTrabajo, as: 'lugarTrabajo', attributes: ['nombre'] },
+                    { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+                ]
 
-        });
-        return response || null
-    } catch (error) {
-        console.error("Error al obtener un empleado en el controlador:", error);
-        return false;
+            });
+            if (!response) return null;
+            const estado = response.state ? "Trabajando" : "Cesado";
+            return {...response.toJSON() , estado }
+        } catch (error) {
+            console.error("Error al obtener un empleado en el controlador:", error);
+            return false;
+        }
     }
-}
 
 const createEmpleado = async ({
     nombres, apellidos, dni, ruc, hijos, edad,

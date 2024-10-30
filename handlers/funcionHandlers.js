@@ -4,24 +4,27 @@ const { getFunciones,
     updateFuncion,
     deleteFuncion
 } = require('../controllers/funcionController');
+
 const getFuncionesHandler = async (req, res) => {
-    const { page = 1, limit = 20 } = req.query; // Extraer page y limit de la consulta
+    const { page , limit  } = req.query; 
     try {
-        const response = await getFunciones();
-        if (!response.length) {
-            res.status(204).send();
-        } 
+      
+        const response = await getFunciones(Number(page), Number(limit));   
+        if (!response.data.length) {
+            return res.status(204).send();
+        }
         return res.status(200).json({
             message: 'Son las funciones',
             total: response.total,
             data: response.data
         });
+        
     } catch (error) {
         console.error('Error al obtener todas las funciones en el handler', error);
         return res.status(500).json({ message: "Error al obtener todas las funciones en el handler" });
     }
 }
-//Handlers para obtener una funcion 
+
 const getFuncionHandler = async (req, res) => {
     const id = req.params.id;
     if (!id || isNaN(id)) {
@@ -49,7 +52,7 @@ const getFuncionHandler = async (req, res) => {
         });
     }
 };
-//handlers para crear una nueva funcion
+
 
 const createFuncionHandler = async (req, res) => {
     const { nombre } = req.body;
@@ -69,7 +72,7 @@ const createFuncionHandler = async (req, res) => {
         res.status(500).json({ messaje: 'Error del server' })
     }
 }
-//handler para modificar una funcion
+
 
 const updateFuncionHandler = async (req, res) => {
     const {id} = req.params;
@@ -100,9 +103,10 @@ const updateFuncionHandler = async (req, res) => {
         res.status(404).json({ message: "Funcion no encontrada",error})
     }
 };
+
 const deleteFuncionHandler = async (req, res) => {
     const id = req.params.id;
-    // Validación del ID
+
     if (isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
     }
