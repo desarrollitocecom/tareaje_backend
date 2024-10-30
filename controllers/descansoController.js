@@ -1,11 +1,14 @@
 const { Descanso, Empleado } = ("../db_connection.js");
 
-const getAllDescansos = async () => {
+const getAllDescansos = async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit;
     try {
-        const response = await Descanso.findAll({
-            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombre'] }]
+        const response = await Descanso.findAndCountAll({
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombre'] }],
+            limit,
+            offset
         });
-        return response || null;
+        return { total: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
         console.error({ message: "Error en el controlador al traer todos los Descansos", data: error });
         return false

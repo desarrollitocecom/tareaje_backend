@@ -1,12 +1,14 @@
 const {Turno}= require('../db_connection');
 
 //Trae todas las Turnoes
-const getTurnos=async () => {
+const getTurnos=async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit; 
     try {
-        const response=await Turno.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const  { count, rows }=await Turno.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al Obtener todas las Turnoes ',error);
         return false
@@ -18,7 +20,6 @@ const getTurno = async (id) => {
     try {
         const turno = await Turno.findOne({where: {
             id ,
-            state:true
         }});
         return turno || null;
     } catch (error) {

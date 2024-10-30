@@ -15,8 +15,7 @@ const getFuncionesHandler = async (req, res) => {
         }
         return res.status(200).json({
             message: 'Son las funciones',
-            total: response.total,
-            data: response.data
+            data: response
         });
         
     } catch (error) {

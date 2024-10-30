@@ -15,8 +15,7 @@ const getAllEmpleadosHandlers = async (req, res) => {
 
         return res.status(200).json({
             message: "Empleados obtenidos correctamente",
-            total: response.total,
-            data: response.data,
+            data: response,
         })
     } catch (error) {
         console.error("Error al obtener empleados:", error); // Log para debugging
@@ -222,11 +221,14 @@ const deleteEmpleadoHandler = async (req, res) => {
 
     }
 
-}
+};
+
+
 module.exports = {
     getAllEmpleadosHandlers,
     getEmpleadoHandler,
     createEmpleadoHandler,
     updateEmpleadoHandler,
-    deleteEmpleadoHandler
+    deleteEmpleadoHandler,
+    
 };

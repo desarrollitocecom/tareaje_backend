@@ -2,13 +2,13 @@ const { Funcion } = require('../db_connection');
 
 //Trae todas las funciones y las pagina 
 const getFunciones = async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit; // Cálculo del offset
+    const offset = (page - 1) * limit; 
     try {
         const { count, rows } = await Funcion.findAndCountAll({
             limit,
             offset
         });
-        return { total: count, data: rows } || null;
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al obtener todas las funciones', error);
         return false;
