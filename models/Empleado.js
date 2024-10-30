@@ -145,17 +145,9 @@ module.exports = (sequelize) => {
         Empleado.belongsTo(db.Subgerencia, { foreignKey: 'id_subgerencia', as: 'subgerencia' });
         Empleado.belongsTo(db.Funcion, { foreignKey: 'id_funcion', as: 'funcion' });
         Empleado.belongsTo(db.LugarTrabajo,{foreignKey:'id_lugar_trabajo',as:'lugarTrabajo'})
-
-        // Relación uno a muchos con Asistencias
         Empleado.hasMany(db.Asistencia, { foreignKey: 'id_empleado', as: 'asistencias' });
-    
-        // Relación uno a muchos con Descansos
         Empleado.hasMany(db.Descanso, { foreignKey: 'id_empleado', as: 'descansos' });
-    
-        // Relación uno a muchos con Justificaciones
         Empleado.hasMany(db.Justificacion, { foreignKey: 'id_empleado', as: 'justificaciones' });
-    
-        // Relación uno a muchos con Vacaciones
         Empleado.hasMany(db.Vacacion, { foreignKey: 'id_empleado', as: 'vacaciones' });
     };
 

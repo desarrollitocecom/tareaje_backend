@@ -32,6 +32,7 @@ module.exports = (sequelize) => {
         tableName: 'Descansos',
         timestamps: true
     });
+    
 
     return Descanso;
 };

@@ -7,9 +7,6 @@ const getAllEmpleados = async () => {
     try {
         const response = await Empleado.findAll({
             attributes: ['nombres', 'apellidos', 'dni'],
-            where: {
-                state: true
-            },
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
@@ -26,11 +23,11 @@ const getAllEmpleados = async () => {
 const getEmpleado = async (id) => {
     try {
         const response = await Empleado.findOne({
-            attributes: ['nombres', 'apellidos', 'dni',
+            attributes: ['id','nombres', 'apellidos', 'dni',
                 'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
                 'celular', 'f_inicio', 'observaciones', 'foto'],
             where: {
-                state: true
+                id
             },
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
@@ -101,24 +98,67 @@ const deleteEmpleado = async (id) => {
     }
 
 };
-const updateEmpleado = async ({
-    id, nombres, apellidos, dni, ruc, hijos, edad,
-    f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
-    id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
-    id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
-}) => {
+const updateEmpleado = async (
+    id,
+    {
+      nombres,
+      apellidos,
+      dni,
+      ruc,
+      hijos,
+      edad,
+      f_nacimiento,
+      correo,
+      domicilio,
+      celular,
+      f_inicio,
+      foto,
+      observaciones,
+      id_cargo,
+      id_turno,
+      id_regimen_laboral,
+      id_sexo,
+      id_jurisdiccion,
+      id_grado_estudios,
+      id_subgerencia,
+      id_funcion,
+      id_lugar_trabajo,
+    }
+  ) => {
     try {
-        const response = await getEmpleado(id);
-        if (response) await response.update(nombres, apellidos, dni, ruc, hijos, edad,
-            f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
-            id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
-            id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo);
-        return response || null;
-
+      const empleado = await getEmpleado(id);
+      if (empleado) {
+        await empleado.update({
+          nombres:nombres,
+          apellidos: apellidos,
+          dni:dni,
+          ruc: ruc,
+          hijos: hijos,
+          edad:edad,
+          f_nacimiento:f_nacimiento,
+          correo:correo,
+          domicilio:domicilio,
+          celular:celular,
+          f_inicio:f_inicio,
+          foto:foto,
+          observaciones:observaciones,
+          id_cargo:id_cargo,
+          id_turno:id_turno,
+          id_regimen_laboral:id_regimen_laboral,
+          id_sexo:id_sexo,
+          id_jurisdiccion:id_jurisdiccion,
+          id_grado_estudios:id_grado_estudios,
+          id_subgerencia:id_subgerencia,
+          id_funcion:id_funcion,
+          id_lugar_trabajo:id_lugar_trabajo,
+        });
+      }
+      return empleado || null;
     } catch (error) {
-        console.error('Error al canbiar de estado al modificar Eliminar');
-        return false;
-    }};
+      console.error("Error al modificar el empleado en el controlador:", error);
+      return false;
+    }
+  };
 module.exports = {
     getAllEmpleados,
     getEmpleado,
