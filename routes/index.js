@@ -6,8 +6,8 @@ const lugarTrabajoRutas = require('./lugarTrabajoRutas');
 const subgerenciaRutas =require('./subgerenciaRutas');
 const cargoRutas=require('./cargoRutas');
 const empleadosRutas=require('./empleadoRutas')
-const usuariosRouter = require("./usuariosRouter");
 const vacacionesRouter=require('./vacacionesRutas')
+const usuariosRouter = require("./usuariosRouter");
 
 // Usa prefijos para organizar las rutas
 tareaje.use('/funciones', funcionRutas);
@@ -16,7 +16,7 @@ tareaje.use('/lugarestrabajo', lugarTrabajoRutas);
 tareaje.use('/subgerencia',subgerenciaRutas);
 tareaje.use('/cargo',cargoRutas);
 tareaje.use('/empleado',empleadosRutas);
-tareaje.use('/usuarios', usuariosRouter);
+tareaje.use('/users', usuariosRouter);
 tareaje.use('/vacaciones',vacacionesRouter);
 
 

@@ -1,13 +1,14 @@
-const { createUser, getUser, updateUser } = require("../controllers/usuarioController");
+const { createUser, getUser, changePassword, signToken, getToken, changeUserData, getAllUsers, getUserById, deleteUser } = require("../controllers/usuarioController");
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
+const { userSockets } = require("../sockets");
 
 
 const usuarioRegex = /^[a-zA-Z0-9._-]{4,20}$/;
 const contraseñaRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
 const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const idRolRegex = /^[1-9]\d*$/;
-const idEmpleadoRegex = /^[1-9]\d*$/;
+//const idEmpleadoRegex = /^[1-9]\d*$/;
 
 const createUserHandler = async (req, res) => {
     const { usuario, contraseña, correo, id_rol, id_empleado } = req.body;
@@ -30,11 +31,10 @@ const createUserHandler = async (req, res) => {
         errors.push("Formato de correo inválido");
 
     console.log(errors);
-    if (errors.length > 0) 
+    if (errors.length > 0)
         return res.status(402).json({ message: "Se encontraron los siguientes errores", data: errors });
 
     try {
-        //console.log("DATA: ",usuario, contraseña, correo, id_rol, id_empleado);
         const response = await createUser({
             usuario: usuario,
             contraseña: contraseña,
@@ -43,9 +43,9 @@ const createUserHandler = async (req, res) => {
             id_empleado: id_empleado
         });
         if (response)
-            return res.status(201).json({ message: "Usuario creado correctamente", data: response});
-    
-            return res.status(201).json({ message: "Error al crear el usuario", data: response});
+            return res.status(201).json({ message: "Usuario creado correctamente", data: response });
+
+        return res.status(201).json({ message: "Error al crear el usuario", data: response });
     } catch (error) {
         console.error("Error en createUser: ", error.message);
         return res.status(500).json({ message: "Error en createUserHandler", error: error.message });
@@ -53,24 +53,51 @@ const createUserHandler = async (req, res) => {
 };
 
 
-const updateUserHandler = async (req, res) => {
+const changePasswordHandler = async (req, res) => {
+    const { usuario, contraseña, nuevaContraseña } = req.body;
 
-    const { usuario, contraseña, correo } = req.body;
+    const errors = [];
+    if (!usuario) errors.push("El nombre de usuario es requerido");
+    if (!contraseña) errors.push("La contraseña actual es requerida");
+    if (!nuevaContraseña) errors.push("La nueva contraseña es requerida");
+    else if (!contraseñaRegex.test(nuevaContraseña))
+        errors.push("La nueva contraseña debe tener al menos 8 caracteres, incluyendo letras y números");
 
-        try {
-            const response = await Usuario.findOne({
-                where: {
-                    usuario: usuario
-                }
-            });
-        } catch (error) {
-            console.error("error en updateUser: ", error.message)
-            return false;
+    if (errors.length > 0) {
+        return res.status(400).json({ message: "Se encontraron los siguientes errores", data: errors });
+    }
+
+    try {
+
+        const user = await getUser(usuario);
+        if (!user) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
         }
-    
+
+        const contraseñaCorrecta = await argon2.verify(user.dataValues.contraseña, contraseña);
+        if (!contraseñaCorrecta) {
+            return res.status(400).json({ message: "La contraseña actual es incorrecta" });
+        }
+
+        if (await argon2.verify(user.dataValues.contraseña, nuevaContraseña)) {
+            return res.status(400).json({ message: "La nueva contraseña no puede ser igual a la anterior" });
+        }
+
+        const response = await changePassword(usuario, nuevaContraseña);
+        if (response) {
+            return res.status(200).json({ message: "Contraseña cambiada correctamente" });
+        } else {
+            return res.status(500).json({ message: "Error al cambiar la contraseña" });
+        }
+    } catch (error) {
+        console.error("Error en changePasswordHandler: ", error.message);
+        return res.status(500).json({ message: "Error en changePasswordHandler", error: error.message });
+    }
 };
 
+
 const loginHandler = async (req, res) => {
+
     const { usuario, contraseña } = req.body;
     const errors = [];
 
@@ -87,25 +114,126 @@ const loginHandler = async (req, res) => {
         return res.status(400).json({ message: "Se encontraron los siguientes errores", data: errors });
 
     try {
-        // Busca al usuario en la base de datos
+
         const user = await getUser(usuario);
-        console.log(user);
+
         if (!user)
-            return res.status(201).json({ message: "Usuario no encontrado", data: "asdasd"} );
+            return res.status(404).json({ message: "Usuario no encontrado", data: false });
 
         const contraseñaValida = await argon2.verify(user.contraseña, contraseña);
 
         if (!contraseñaValida)
-            return res.status(400).json({ message: "Contraseña incorrecta", data: user });
+            return res.status(400).json({ message: "Contraseña incorrecta", data: false });
 
         const token = jwt.sign({ usuario: usuario, rol: user.id_rol }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRES_IN
         });
 
-        return res.status(200).json({ message: "Sesion iniciada", token, data: user });
+        // Verificar si el usuario ya está registrado en userSockets
+        if (userSockets.has(user.id)) {
+            const previousSocket = userSockets.get(user.id);
+            previousSocket.emit("forceLogout", { message: "Sesión cerrada debido a un inicio de sesión en otro dispositivo", log: false });
+        }
+
+        const sesion = await signToken(usuario, token);
+        if (sesion.token)
+            return res.status(200).json({ message: "Sesion iniciada", token, data: user });
+
+        return res.status(400).json({ message: "Error al iniciar la sesión", data: false });
     } catch (error) {
         console.error("error en login: ", error);
         return res.status(500).json({ message: "Error en loginHandler: ", error: error.message });
+    }
+};
+
+const changeUserDataHandler = async (req, res) => {
+
+    const { usuario, correo, id_rol } = req.body;
+    const errors = [];
+
+    if (!correo)
+        errors.push("El correo es requerido");
+    if (!correoRegex.test(correo))
+        errors.push("Formato de correo inválido");
+    if (!id_rol)
+        errors.push("El id de rol es requerido");
+    if (!idRolRegex.test(id_rol))
+        errors.push("El id de rol debe ser un número entero positivo");
+    if (errors.length > 0)
+        return res.status(400).json({ message: "Se encontraron los siguientes errores", data: errors });
+
+    try {
+        const response = changeUserData(usuario, correo, id_rol);
+        if (response)
+            return res.status(200).json({ message: "Datos actualizados correctamente", data: response });
+        return res.status(400).json({ message: "Error al actualizar los datos", data: false });
+    } catch (error) {
+        console.error("Error en el changeUserDataHandler", error.message);
+        return res.status(500).json({ message: "Error en el changeUserDataHandler", error: error.message });
+    }
+
+};
+
+const getTokenHandler = async (req, res) => {
+
+    const { usuario } = req.params;
+
+    try {
+        const response = await getToken(usuario);
+        return res.status(200).json(response);
+    } catch (error) {
+        console.error("Error en getTokenHandler: ", error.message);
+        return res.status(500).json({ message: "error en getTokenHandler", error: error.message });
+    }
+
+
+};
+
+const getAllUsersHandler = async (req, res) => {
+
+    const { page, pagesize } = req.query;
+
+    try {
+        const users = await getAllUsers(page, pagesize);
+        if (users)
+            return res.status(200).json({ message: "Se completo con exito la peticion", data: users });
+        return res.status(400).json({ message: "Error al obtener los usuarios", data: false });
+    } catch (error) {
+        console.error("Error en el getAllUsersHandler: ", error.message);
+        return res.status(500).json({ message: "Error en el getAllUsersHandler", data: error.message })
+    }
+
+};
+
+const getUserByIdHandler = async (req, res) => {
+
+    const { id } = req.params;
+    try {
+        const user = await getUserById(id);
+        if (user)
+            return res.status(200).json({ message: "Usuario encontrado", data: user });
+        return res.status(404).json({ message: "Usuario no encontrado", data: false });
+    }
+    catch (error) {
+        console.error("Error en getUserByIdHandler: ", error.message);
+        return res.status(500).json({ message: "Error en getUserByIdHandler", data: error.message });
+    }
+
+};
+
+const deleteUserHandler = async (req, res) => {
+
+    const { usuario } = req.body;
+    try {
+        const user = await deleteUser(usuario);
+        if (user) {
+            const response = await user.update({ state: false });
+            return res.status(200).json({ message: "Usuario eliminado correctamente", data: response });
+        }
+        return res.status(404).json({ message: "Usuario no encontrado", data: false });
+    } catch (error) {
+        console.error("Error en deleteUserHandler: ", error.message);
+        return res.status(500).json({ message: "Error en deleteUserHandler", data: error.message });
     }
 };
 
@@ -113,6 +241,11 @@ const loginHandler = async (req, res) => {
 
 module.exports = {
     createUserHandler,
-    updateUserHandler,
-    loginHandler
+    changePasswordHandler,
+    loginHandler,
+    getTokenHandler,
+    changeUserDataHandler,
+    getAllUsersHandler,
+    getUserByIdHandler,
+    deleteUserHandler
 };
