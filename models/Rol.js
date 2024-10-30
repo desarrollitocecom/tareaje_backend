@@ -24,28 +24,17 @@ module.exports = (sequelize) => {
         tableName: 'Roles',
         timestamps: true
     });
+
     Rol.associate = (db) => {
+        Rol.belongsToMany(db.Permiso, {
+            through: 'Roles_Permisos',      // Nombre de la tabla intermedia
+            foreignKey: 'id_rol',           // Nombre de la clave foránea para Rol
+            otherKey: 'id_permiso',         // Nombre de la clave foránea para Permiso
+            as: 'permisos'
+        });
 
-        Rol.associate = (db) => {
-            Rol.belongsToMany(db.Permiso, {
-                through: 'Roles_Permisos',
-                foreignKey: 'id_rol',
-                as: 'permisos'
-            });
-        
-            Rol.hasMany(db.Usuario, { foreignKey: 'id_rol', as: 'usuarios' });
-        };
-        
-        db.Permiso.associate = (db) => {
-            Permiso.belongsToMany(db.Rol, {
-                through: 'Roles_Permisos',
-                foreignKey: 'id_permiso',
-                as: 'roles'
-            });
-        };
-        
-
-    }
+        Rol.hasMany(db.Usuario, { foreignKey: 'id_rol', as: 'usuarios' });
+    };
 
     return Rol;
 };
