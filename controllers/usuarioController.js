@@ -87,6 +87,8 @@ const getToken = async (usuario) => {
 
 }
 
+
+
 const changeUserData = async (usuario, correo, id_rol) => {
 
     try {
@@ -110,7 +112,6 @@ const changeUserData = async (usuario, correo, id_rol) => {
 
 const getAllUsers = async (page = 1, pageSize = 20) => {
     try {
-
         const offset = (page - 1) * pageSize;
         const limit = pageSize;
 
@@ -118,31 +119,29 @@ const getAllUsers = async (page = 1, pageSize = 20) => {
             attributes: ['id', 'usuario', 'correo', 'state', 'id_rol', 'id_empleado'],
             include: [
                 { model: Rol, as: 'rol', attributes: ['nombre'] },
-                { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos'] }
+                { model: Empleado, as:'empleado', attributes: ['nombres', 'apellidos'] }
             ],
-            limit: limit,
-            offset: offset,
+            limit,
+            offset,
             order: [['createdAt', 'DESC']],
         });
-        console.log("response: ", response);
-        // Calcula el número total de páginas
+
+        // Calcular el número total de páginas basado en el total de registros y el tamaño de la página
         const totalPages = Math.ceil(response.count / pageSize);
 
-        if (response.rows.length > 0)
-            return {
-                data: response.rows,
-                currentPage: page,
-                totalPages: totalPages,
-                totalCount: response.count,
-            };
         return {
-
+            data: response.rows,                // Datos de los usuarios en la página actual
+            currentPage: page,                   // Página solicitada
+            totalPages: totalPages,              // Total de páginas calculadas
+            totalCount: response.count           // Total de registros en la base de datos
         };
     } catch (error) {
         console.error("Error en getAllUsers:", error.message);
         return false;
     }
 };
+
+
 
 const getUserById = async (id) => {
     try {
@@ -183,6 +182,20 @@ const deleteUser = async (usuario) => {
 
 
 
+const logoutUser = async (usuario) => {
+    try {
+        const user = await getUser(usuario);
+        if (user) {
+            await user.update({ token: null }); // Eliminar el token
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error("Error en logoutUser:", error.message);
+        return false;
+    }
+};
+
 module.exports = {
     createUser,
     changePassword,
@@ -192,5 +205,6 @@ module.exports = {
     changeUserData,
     getAllUsers,
     getUserById,
-    deleteUser
+    deleteUser,
+    logoutUser,
 };
