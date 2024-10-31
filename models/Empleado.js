@@ -17,12 +17,48 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         dni: {
-            type: DataTypes.STRING(8),
+            type: DataTypes.STRING(8),  
             allowNull: false,
             unique: true
         },
         ruc: {
             type: DataTypes.STRING,
+            allowNull: true
+        },
+        hijos: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        edad: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        f_nacimiento: {
+            type: DataTypes.DATEONLY,
+            allowNull: true
+        },
+        correo: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        domicilio: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        celular: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        f_inicio: {
+            type: DataTypes.DATEONLY,
+            allowNull: true
+        },
+        foto: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        observaciones: {
+            type: DataTypes.TEXT,
             allowNull: true
         },
         id_cargo: {
@@ -74,6 +110,14 @@ module.exports = (sequelize) => {
                 key: 'id',
             }
         },
+        id_lugar_trabajo:{
+            type:DataTypes.INTEGER,
+            references:{
+                model:'LugarDeTrabajo',
+                key:'id'
+            }
+
+        },
         id_funcion: {
             type: DataTypes.INTEGER,
             references: {
@@ -100,17 +144,10 @@ module.exports = (sequelize) => {
         Empleado.belongsTo(db.GradoEstudios, { foreignKey: 'id_grado_estudios', as: 'gradoEstudios' });
         Empleado.belongsTo(db.Subgerencia, { foreignKey: 'id_subgerencia', as: 'subgerencia' });
         Empleado.belongsTo(db.Funcion, { foreignKey: 'id_funcion', as: 'funcion' });
-
-        // Relación uno a muchos con Asistencias
+        Empleado.belongsTo(db.LugarTrabajo,{foreignKey:'id_lugar_trabajo',as:'lugarTrabajo'})
         Empleado.hasMany(db.Asistencia, { foreignKey: 'id_empleado', as: 'asistencias' });
-    
-        // Relación uno a muchos con Descansos
         Empleado.hasMany(db.Descanso, { foreignKey: 'id_empleado', as: 'descansos' });
-    
-        // Relación uno a muchos con Justificaciones
         Empleado.hasMany(db.Justificacion, { foreignKey: 'id_empleado', as: 'justificaciones' });
-    
-        // Relación uno a muchos con Vacaciones
         Empleado.hasMany(db.Vacacion, { foreignKey: 'id_empleado', as: 'vacaciones' });
     };
 

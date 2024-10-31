@@ -15,7 +15,7 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        campo:{
+        campo: {
             type: DataTypes.STRING,
             allowNull: true
         },
@@ -49,9 +49,9 @@ module.exports = (sequelize) => {
         })
     }*/
 
-        Historial.associate = (db) => {
-            Historial.belongsTo(db.Usuario, { foreignKey: 'id_usuario', as: 'usuario' });
-        };
+    Historial.associate = (db) => {
+        Historial.belongsTo(db.Usuario, { foreignKey: 'id_usuario', as: 'usuario' });
+    };
 
     return Historial;
 };

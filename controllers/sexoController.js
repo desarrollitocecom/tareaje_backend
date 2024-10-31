@@ -1,12 +1,14 @@
 const {Sexo} = require('../db_connection');
 
 //Trae todas las Sexoes
-const getSexos=async () => {
+const getSexos=async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit; 
     try {
-        const response=await Sexo.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const  { count, rows }=await Sexo.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al Obtener todas las Sexoes',error);
         return false
@@ -18,7 +20,7 @@ const getSexo = async (id) => {
     try {
         const response = await Sexo.findOne({where: {
             id ,
-            state:true
+            
         }});
         return response || null;
     } catch (error) {
