@@ -1,12 +1,14 @@
-const Subgerencia = require('../models/Subgerencia');
-const {sequelize}=require('../db_connection');
+const {Subgerencia} = require('../db_connection');
+
 //Trae todas las Subgerencias
-const getSubgerencias=async () => {
+const getSubgerencias=async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit; 
     try {
-        const response=await Subgerencia(sequelize).findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const  { count, rows }=await Subgerencia.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al Obtener todas las Subgerencias',error);
         return false
@@ -14,15 +16,12 @@ const getSubgerencias=async () => {
 }
 
 //trae una Subgerencia especifica por id
-const getSubgerencia = async (id) => {
-    
-    
+const getSubgerencia = async (id) => { 
     try {
-        const newSubgerencia = await Subgerencia(sequelize).findOne({where: {
+        const newSubgerencia = await Subgerencia.findOne({where: {
             id ,
-            state:true
+           
         }});
-        console.log(id);
         return newSubgerencia || null;
     } catch (error) {
         console.error(`Error al obtener la Subgerencia: ${error.message}`);
@@ -32,7 +31,7 @@ const getSubgerencia = async (id) => {
 //Crea una nueva Subgerencia
 const createSubgerencia = async ({nombre}) => {
     try {
-        const newSubgerencia = await Subgerencia(sequelize).create({ nombre });
+        const newSubgerencia = await Subgerencia.create({ nombre });
         return newSubgerencia
 
     } catch (error) {
@@ -43,7 +42,7 @@ const createSubgerencia = async ({nombre}) => {
 //elimina la Subgerencia o canbia el estado
 const deleteSubgerencia = async (id) => {
     try {
-        const newSubgerencia = await Subgerencia(sequelize).findByPk(id);
+        const newSubgerencia = await Subgerencia.findByPk(id);
         newSubgerencia.state = false;
         await newSubgerencia.save();
        return newSubgerencia || null
@@ -57,7 +56,7 @@ const deleteSubgerencia = async (id) => {
 const updateSubgerencia = async (id, nuevaSubgerencia) => {
     if (id && nuevaSubgerencia)
         try {
-            const newSubgerencia = await Subgerencia(sequelize).findOne({ where: { id } });
+            const newSubgerencia = await Subgerencia.findOne({ where: { id } });
             if (newSubgerencia) 
                 await newSubgerencia.update(nuevaSubgerencia);
                 return newSubgerencia || null ;

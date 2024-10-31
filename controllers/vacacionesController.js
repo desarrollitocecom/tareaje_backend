@@ -1,16 +1,18 @@
 //const {sequelize} = require("../db_connection.js")
 const {Empleado,Vacacion} =require('../db_connection')
 
-const getVacaciones = async () => {
+const getVacaciones = async (page = 1, limit = 20) => {
+  const offset = (page - 1) * limit;
   try {
-    const response = await Vacacion.findAll({
-      where: { state: true },
+    const response = await Vacacion.findAndCountAll({
       include: [{
         model: Empleado,
         as: "empleado"
-      }]
+      }],
+      limit,
+      offset
     });
-    return response || null;
+    return { total: response.count, data: response.rows, currentPage: page } || null;
   } catch (error) {
     console.error("Error al traer todas las Vacaciones", error)
     return false;

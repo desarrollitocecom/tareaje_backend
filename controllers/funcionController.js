@@ -1,40 +1,42 @@
-const {Funcion} = require('../db_connection');
+const { Funcion } = require('../db_connection');
 
-//Trae todas las funciones
-const getFunciones=async () => {
+//Trae todas las funciones y las pagina 
+const getFunciones = async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit; 
     try {
-        const response=await Funcion.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const { count, rows } = await Funcion.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
-        console.error('Error al Obtener todas las funciones',error);
-        return false
+        console.error('Error al obtener todas las funciones', error);
+        return false;
     }
-}
-
+};
 //trae una funcion especifica por id
 const getFuncion = async (id) => {
     try {
-        const funcion = await Funcion.findOne({where: {
-            id,
-            state:true
-        }});
+        const funcion = await Funcion.findOne({
+            where: {
+                id,
+            }
+        });
 
         return funcion || null;
     } catch (error) {
         console.error(`Error al obtener la Función: ${error.message}`);
-      return false
+        return false
     }
 };
 //Crea una nueva Funcion
-const createFuncion = async ({nombre}) => {
+const createFuncion = async ({ nombre }) => {
     try {
         const funcion = await Funcion.create({ nombre });
         return funcion
 
     } catch (error) {
-        console.error('Error al crear una nueva Funcion',error)
+        console.error('Error al crear una nueva Funcion', error)
         return false
     }
 };
@@ -44,7 +46,7 @@ const deleteFuncion = async (id) => {
         const funcion = await Funcion.findByPk(id);
         funcion.state = false;
         await funcion.save();
-       return funcion || null
+        return funcion || null
     } catch (error) {
         console.error('Error al canbiar de estado al eliminar Funcion');
         return false;
@@ -56,17 +58,17 @@ const updateFuncion = async (id, nuevaFuncion) => {
     if (id && nuevaFuncion)
         try {
             const funcion = await getFuncion(id);
-            if (funcion) 
+            if (funcion)
                 await funcion.update(nuevaFuncion);
-                return funcion || null ;
-           
+            return funcion || null;
+
         } catch (error) {
             console.error('Error al actualizar la funcion:', error.message);
             return false;
         }
     else
         return false;
-};  
+};
 
 
 
