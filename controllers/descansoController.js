@@ -1,10 +1,11 @@
-const { Descanso, Empleado } = ("../db_connection.js");
+const { Descanso, Empleado } = require ("../db_connection");
 
 const getAllDescansos = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
         const response = await Descanso.findAndCountAll({
-            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombre'] }],
+            where: {  state: true }, 
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres','apellidos'] }],
             limit,
             offset
         });
@@ -17,7 +18,11 @@ const getAllDescansos = async (page = 1, limit = 20) => {
 const getDescansos = async (id) => {
     try {
         const response = await Descanso.findOne({
-            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombre'] }]
+            where:{id , state:true},
+            include: [{ 
+                model: Empleado, 
+                as: 'empleado', 
+                attributes: ['id', 'nombres','apellidos'] }]
         })
         return response || null
     } catch (error) {
@@ -36,12 +41,21 @@ const createDescansos = async ({ fecha, observacion, id_empleado }) => {
 }
 const deleteDescanso = async (id) => {
     try {
-        const response = await findByPk(id);
+        // Usa Descanso.findByPk en lugar de findByPk directamente
+        const response = await Descanso.findByPk(id);
+
+        if (!response) {
+            console.error("Descanso no encontrado");
+            return null;
+        }
+
+        // Cambia el estado a false en lugar de eliminar el registro
         response.state = false;
         await response.save();
-        return response || null
+
+        return response;
     } catch (error) {
-        console.error('Error al canbiar de estado al eliminar Descanso', error);
+        console.error("Error al cambiar de estado al eliminar Descanso", error);
         return false;
     }
 };
