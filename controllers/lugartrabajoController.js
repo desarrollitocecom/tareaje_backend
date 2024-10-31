@@ -1,11 +1,14 @@
 const {LugarTrabajo} = require('../db_connection');
+
 //Trae todas las LugarTrabajoes
-const getLugarTrabajos=async () => {
+const getLugarTrabajos=async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit; 
     try {
-        const response=await LugarTrabajo.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const  { count, rows }=await LugarTrabajo.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al Obtener todas las LugarTrabajoes',error);
         return false
@@ -15,9 +18,8 @@ const getLugarTrabajos=async () => {
 //trae una LugarTrabajo especifica por id
 const getLugarTrabajo = async (id) => {
     try {
-        const LugarTrabajo = await LugarTrabajo.findOne({where: {
-            id ,
-            state:true
+        const LugarTrabajo = await LugarTrabajo.findAll({where: {
+            id 
         }});
         return LugarTrabajo || null;
     } catch (error) {

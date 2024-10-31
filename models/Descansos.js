@@ -32,6 +32,13 @@ module.exports = (sequelize) => {
         tableName: 'Descansos',
         timestamps: true
     });
+
+    Descanso.associate = (models) => {
+        Descanso.belongsTo(models.Empleado, { 
+            foreignKey: 'id_empleado', 
+            as: 'empleado' 
+        });
+    };
     
 
     return Descanso;

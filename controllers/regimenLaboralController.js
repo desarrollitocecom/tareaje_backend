@@ -1,12 +1,14 @@
 const {RegimenLaboral}= require('../db_connection');
 
 //Trae todas las RegimenLaborales
-const getRegimenLaborales=async () => {
+const getRegimenLaborales=async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit;
     try {
-        const response=await RegimenLaboral.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const  { count, rows }=await RegimenLaboral.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al Obtener todas las RegimenLaborales ',error);
         return false
@@ -18,7 +20,6 @@ const getRegimenLaboral = async (id) => {
     try {
         const newRegimenLaboral = await RegimenLaboral.findOne({where: {
             id ,
-            state:true
         }});
         return newRegimenLaboral || null;
     } catch (error) {

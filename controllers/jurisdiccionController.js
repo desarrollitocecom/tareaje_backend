@@ -1,12 +1,14 @@
 const{ Jurisdiccion}= require('../db_connection');
 
 //Trae todas las Jurisdicciones
-const getJurisdicciones=async () => {
+const getJurisdicciones=async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit;
     try {
-        const response=await Jurisdiccion.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const { count, rows }=await Jurisdiccion.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page }
     } catch (error) {
         console.error('Error al Obtener todas las Jurisdicciones ',error);
         return false
@@ -18,7 +20,7 @@ const getJurisdiccion = async (id) => {
     try {
         const newJurisdiccion = await Jurisdiccion.findOne({where: {
             id ,
-            state:true
+           
         }});
         return newJurisdiccion || null;
     } catch (error) {

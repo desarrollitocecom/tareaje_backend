@@ -3,7 +3,10 @@ const { getCargoById, getAllCargos, createCargo, deleteCargo, updateCargo } = re
 const { Subgerencia } = require('../db_connection');
 // Handler para obtener un Cargo por ID
 const getCargoByIdHandler = async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.params
+    if (!id || isNaN(id)) {
+        return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
+    }
     try {
         const cargo = await getCargoById(id);
         if (!cargo) {
@@ -17,8 +20,9 @@ const getCargoByIdHandler = async (req, res) => {
 
 // Handler para obtener todos los Cargos
 const getAllCargosHandler = async (req, res) => {
+    const {page,limit}=req.query;
     try {
-        const cargos = await getAllCargos();
+        const cargos = await getAllCargos(Number(page),Number(limit));
         if(cargos.length === 0){
             return res.status(200).json({message:'Ya no hay mas cargos'});
         }

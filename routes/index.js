@@ -6,14 +6,15 @@ const lugarTrabajoRutas = require('./lugarTrabajoRutas');
 const subgerenciaRutas =require('./subgerenciaRutas');
 const cargoRutas=require('./cargoRutas');
 const empleadosRutas=require('./empleadoRutas')
+const vacacionesRouter=require('./vacacionesRutas')
 const usuariosRouter = require("./usuariosRouter");
-const vacacionesRouter=require('./vacacionesRutas');
+const rol_permisoRouter = require("./rol_permisosRouter");;
 const gradoEstudioRouter=require("./gradoEstudioRouter");
 const jurisdiccionRouter=require('./jurisdiccionRouter');
 const regimenLaboralRouter=require('./regimenLaboralRouter')
-const turnoRouter=require('./turnoRouter')
-
-
+const turnoRouter=require('./turnoRouter');
+const descansoRouter=require('./descansoRouter');
+const feriadoRouter=require('./feriadoRouter')
 // Usa prefijos para organizar las rutas
 tareaje.use('/funciones', funcionRutas);
 tareaje.use('/sexo', sexoRutas);
@@ -23,9 +24,8 @@ tareaje.use('/cargo',cargoRutas);
 tareaje.use('/empleado',empleadosRutas);
 tareaje.use('/users', usuariosRouter);
 tareaje.use('/vacaciones',vacacionesRouter);
-tareaje.use('/gradoestudio',gradoEstudioRouter);
-tareaje.use('/jurisdiccion',jurisdiccionRouter);
-tareaje.use('/regimenlaboral',regimenLaboralRouter);
-tareaje.use('/turno',turnoRouter)
+tareaje.use('/auth',rol_permisoRouter)
+tareaje.use('/descanso',descansoRouter);
+tareaje.use('/feriado',feriadoRouter)
 
 module.exports = tareaje;
