@@ -1,6 +1,4 @@
 const { Rol, Permiso } = require("../db_connection");
-const sequelize = require("../db_connection");
-
 
 const createRol = async (nombre, descripcion, permisos) => {
 
@@ -42,8 +40,180 @@ const createPermiso = async (action, resource, descripcion) => {
 
 };
 
+const getAllRols = async (page = 1, pageSize = 20) => {
+    try {
+        const offset = (page - 1) * pageSize;
+        const limit = pageSize;
+
+        const response = await Rol.findAndCountAll({
+            where: { state: true },
+            include: {
+                model: Permiso,
+                as: 'permisos',
+                attributes: ['id', 'nombre', 'descripcion']
+            },
+            limit,
+            offset,
+            order: [['nombre', 'DESC']]
+        });
+        console.log(page, response.count);
+        return {
+            data: response.rows,
+            currentPage: page,
+            totalCount: response.count,
+        };
+    } catch (error) {
+        console.error('Error al obtener los roles:', error);
+        return false;
+    }
+};
+
+
+const getRolById = async (id) => {
+    try {
+        const rol = await Rol.findByPk(id, {
+            include: {
+                model: Permiso,
+                as: 'permisos',
+                attributes: ['id', 'nombre', 'descripcion']
+            }
+        });
+        return rol || null;
+    } catch (error) {
+        console.error("Error al obtener el rol por ID:", error);
+        return false;
+    }
+};
+
+const getAllPermisos = async (page = 1, pageSize = 20) => {
+    try {
+        const offset = (page - 1) * pageSize;
+        const limit = pageSize;
+
+        const response = await Permiso.findAndCountAll({
+            where: { state: true },
+            limit,
+            offset,
+            order: [['id', 'ASC']]
+        });
+
+        return {
+            data: response.rows,
+            currentPage: page,
+            totalCount: response.count,
+        };
+    } catch (error) {
+        console.error("Error en getAllPermisos ", error.message);
+        return false;
+    }
+};
+
+const getPermisoById = async (id) => {
+
+    try {
+        const permiso = await Permiso.findByPk({
+            where: { state: true },
+        });
+        return permiso || null;
+    } catch (error) {
+        console.error("Error en getAllPermisos ", error.message);
+        return false;
+    }
+
+};
+
+const updatePermiso = async (id, nombre, descripcion) => {
+    try {
+        const permiso = await Permiso.findByPk(id);
+        if (!permiso) return null;
+        const updates = {};
+        if (nombre !== undefined) updates.nombre = nombre;
+        if (descripcion !== undefined) updates.descripcion = descripcion;
+        await permiso.update(updates);
+        return permiso;
+    } catch (error) {
+        console.error("Error al actualizar el permiso:", error);
+        return false;
+    }
+};
+
+const updateRol = async (id, nombre, descripcion) => {
+    try {
+        const rol = await Rol.findByPk(id);
+        if (!rol) return null;
+        const updates = {};
+        if (nombre !== undefined) updates.nombre = nombre;
+        if (descripcion !== undefined) updates.descripcion = descripcion;
+        await rol.update(updates);
+        return rol;
+    } catch (error) {
+        console.error("Error al actualizar el rol:", error);
+        return false;
+    }
+};
+
+const deletePermiso = async (id) => {
+    try {
+        const permiso = await Permiso.findByPk(id);
+        if (!permiso) return null;
+
+        await permiso.update({ state: false });
+        return true;
+    } catch (error) {
+        console.error("Error al realizar el borrado lógico del permiso:", error);
+        return false;
+    }
+};
+
+const deleteRol = async (id) => {
+    try {
+        const rol = await Rol.findByPk(id);
+        if (!rol) return null;
+
+        await rol.update({ state: false });
+        return true;
+    } catch (error) {
+        console.error("Error al realizar el borrado lógico del rol:", error);
+        return false;
+    }
+};
+
+
+
+
+const getPermisosByRolId = async (id_rol) => {
+
+    try {
+        // Buscar el rol con sus permisos
+        const rol = await Rol.findByPk(id_rol, {
+            include: {
+                model: Permiso,
+                as: 'permisos',
+                attributes: ['id', 'nombre', 'descripcion']
+            }
+        });
+
+        // Si no existe el rol o no tiene permisos, devolvemos un array vacío
+        if (!rol) return null;
+
+        return rol.permisos || [];
+    } catch (error) {
+        console.error("Error en getPermisosByRolId:", error.message);
+        return false;
+    }
+};
 
 module.exports = {
     createRol,
-    createPermiso
-}
+    createPermiso,
+    getAllRols,
+    getRolById,
+    getAllPermisos,
+    getPermisoById,
+    updatePermiso,
+    deletePermiso,
+    updateRol,
+    deleteRol,
+    getPermisosByRolId
+};
+
