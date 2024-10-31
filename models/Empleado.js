@@ -110,6 +110,14 @@ module.exports = (sequelize) => {
                 key: 'id',
             }
         },
+        id_lugar_trabajo:{
+            type:DataTypes.INTEGER,
+            references:{
+                model:'LugarDeTrabajo',
+                key:'id'
+            }
+
+        },
         id_funcion: {
             type: DataTypes.INTEGER,
             references: {
@@ -136,17 +144,10 @@ module.exports = (sequelize) => {
         Empleado.belongsTo(db.GradoEstudios, { foreignKey: 'id_grado_estudios', as: 'gradoEstudios' });
         Empleado.belongsTo(db.Subgerencia, { foreignKey: 'id_subgerencia', as: 'subgerencia' });
         Empleado.belongsTo(db.Funcion, { foreignKey: 'id_funcion', as: 'funcion' });
-
-        // Relación uno a muchos con Asistencias
+        Empleado.belongsTo(db.LugarTrabajo,{foreignKey:'id_lugar_trabajo',as:'lugarTrabajo'})
         Empleado.hasMany(db.Asistencia, { foreignKey: 'id_empleado', as: 'asistencias' });
-    
-        // Relación uno a muchos con Descansos
         Empleado.hasMany(db.Descanso, { foreignKey: 'id_empleado', as: 'descansos' });
-    
-        // Relación uno a muchos con Justificaciones
         Empleado.hasMany(db.Justificacion, { foreignKey: 'id_empleado', as: 'justificaciones' });
-    
-        // Relación uno a muchos con Vacaciones
         Empleado.hasMany(db.Vacacion, { foreignKey: 'id_empleado', as: 'vacaciones' });
     };
 

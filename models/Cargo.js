@@ -33,7 +33,12 @@ module.exports = (sequelize) => {
         timestamps: true
     });
 
-    
+    Cargo.associate = (db) => {
+        Cargo.belongsTo(db.Subgerencia, {
+            foreignKey: 'id_subgerencia', // Clave foránea
+            as: 'Subgerencia' // Alias para la relación
+        });
+    };
 
     return Cargo;
 };

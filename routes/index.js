@@ -8,7 +8,12 @@ const cargoRutas=require('./cargoRutas');
 const empleadosRutas=require('./empleadoRutas')
 const vacacionesRouter=require('./vacacionesRutas')
 const usuariosRouter = require("./usuariosRouter");
-const rol_permisoRouter = require("./rol_permisosRouter");
+const rol_permisoRouter = require("./rol_permisosRouter");;
+const gradoEstudioRouter=require("./gradoEstudioRouter");
+const jurisdiccionRouter=require('./jurisdiccionRouter');
+const regimenLaboralRouter=require('./regimenLaboralRouter')
+const turnoRouter=require('./turnoRouter')
+
 
 // Usa prefijos para organizar las rutas
 tareaje.use('/funciones', funcionRutas);

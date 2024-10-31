@@ -1,12 +1,14 @@
 const {RegimenLaboral}= require('../db_connection');
 
 //Trae todas las RegimenLaborales
-const getRegimenLaborales=async () => {
+const getRegimenLaborales=async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit;
     try {
-        const response=await RegimenLaboral.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const  { count, rows }=await RegimenLaboral.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al Obtener todas las RegimenLaborales ',error);
         return false
@@ -16,11 +18,10 @@ const getRegimenLaborales=async () => {
 //trae una RegimenLaboral especifica por id
 const getRegimenLaboral = async (id) => {
     try {
-        const RegimenLaboral = await RegimenLaboral.findOne({where: {
+        const newRegimenLaboral = await RegimenLaboral.findOne({where: {
             id ,
-            state:true
         }});
-        return RegimenLaboral || null;
+        return newRegimenLaboral || null;
     } catch (error) {
         console.error(`Error al obtener la RegimenLaboral: ${error.message}`);
       return false
@@ -29,8 +30,8 @@ const getRegimenLaboral = async (id) => {
 //Crea una nueva RegimenLaboral
 const createRegimenLaboral = async ({nombre}) => {
     try {
-        const RegimenLaboral = await RegimenLaboral.create({ nombre });
-        return RegimenLaboral 
+        const newRegimenLaboral = await RegimenLaboral.create({ nombre });
+        return newRegimenLaboral 
     } catch (error) {
         console.error('Error al crear una nueva RegimenLaboral',error)
         return false
@@ -39,10 +40,10 @@ const createRegimenLaboral = async ({nombre}) => {
 //elimina la RegimenLaboral o canbia el estado
 const deleteRegimenLaboral = async (id) => {
     try {
-        const RegimenLaboral = await RegimenLaboral.findByPk(id);
-        RegimenLaboral.state = false;
-        await RegimenLaboral.save();
-       return RegimenLaboral || null
+        const newRegimenLaboral = await RegimenLaboral.findByPk(id);
+        newRegimenLaboral.state = false;
+        await newRegimenLaboral.save();
+       return newRegimenLaboral || null
     } catch (error) {
         console.error('Error al canbiar de estado al eliminar RegimenLaboral');
         return false;

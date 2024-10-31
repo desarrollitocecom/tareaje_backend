@@ -1,12 +1,14 @@
 const {Turno}= require('../db_connection');
 
 //Trae todas las Turnoes
-const getTurnos=async () => {
+const getTurnos=async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit; 
     try {
-        const response=await Turno.findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const  { count, rows }=await Turno.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al Obtener todas las Turnoes ',error);
         return false
@@ -16,11 +18,10 @@ const getTurnos=async () => {
 //trae una Turno especifica por id
 const getTurno = async (id) => {
     try {
-        const Turno = await Turno.findOne({where: {
+        const turno = await Turno.findOne({where: {
             id ,
-            state:true
         }});
-        return Turno || null;
+        return turno || null;
     } catch (error) {
         console.error(`Error al obtener la Turno: ${error.message}`);
       return false
@@ -29,8 +30,8 @@ const getTurno = async (id) => {
 //Crea una nueva Turno
 const createTurno = async ({nombre}) => {
     try {
-        const Turno = await Turno.create({ nombre });
-        return Turno 
+        const newTurno = await Turno.create({ nombre });
+        return newTurno 
     } catch (error) {
         console.error('Error al crear una nueva Turno',error)
         return false
@@ -39,12 +40,11 @@ const createTurno = async ({nombre}) => {
 //elimina la Turno o canbia el estado
 const deleteTurno = async (id) => {
     try {
-        const Turno = await Turno.findByPk(id);
-        Turno.state = false;
-        await Turno.save();
-       return Turno || null
+        const newTurno = await Turno.findByPk(id);
+        newTurno.state = false;
+        await newTurno.save();
+       return newTurno || null
     } catch (error) {
-        console.error('Error al canbiar de estado al eliminar Turno');
         return false;
     }
 };
@@ -53,10 +53,10 @@ const deleteTurno = async (id) => {
 const updateTurno = async (id, nuevaTurno) => {
     if (id && nuevaTurno)
         try {
-            const Turno = await getTurno(id);
-            if (Turno) 
-                await Turno.update(nuevaTurno);
-                return Turno || null;
+            const newTurno = await getTurno(id);
+            if (newTurno) 
+                await newTurno.update(nuevaTurno);
+                return newTurno || null;
             
         } catch (error) {
             console.error('Error al actualizar la Turno:', error.message);
