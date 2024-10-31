@@ -10,7 +10,7 @@ router.get("/rol/:id", getRolByIdHandler);
 router.get("/rol/permisos/:id", getRolPermisosHandler);
 router.get("/permiso/:id", getPermisoByIdHandler);
 router.patch("/permiso", updatePermisoHandler);
-router.patch("/rol", updateRolHandler);
+router.patch("/rol/:id", updateRolHandler);
 router.delete("/permiso", deletePermisoHandler);
 router.delete("/rol", deleteRolHandler);
 
