@@ -14,7 +14,7 @@ const getAllEmpleados = async (page = 1, limit = 20) => {
             limit,
             offset
         });
-        return { total: response.count, data: response.rows, currentPage: page } || null;
+        return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
         console.error("Error al obtener todos los empleados:", error);
         return false;

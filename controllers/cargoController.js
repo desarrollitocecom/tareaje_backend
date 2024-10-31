@@ -29,7 +29,7 @@ const getAllCargos = async (page = 1, limit = 20) => {
             offset
         });
         return {
-            total: cargos.count,
+            totalCount: cargos.count,
             data:cargos.rows,
             currentPage: page
         } || null;

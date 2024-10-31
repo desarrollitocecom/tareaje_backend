@@ -9,8 +9,16 @@ const { getSexos,
 const getSexosHandler = async (req, res) => {
     try {
         const response = await getSexos();
-        if (!response.length) {
-            res.status(204).send();
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas descansos',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
         return res.status(200).json({
             message: 'Son las Sexoes',

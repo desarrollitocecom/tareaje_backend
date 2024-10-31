@@ -9,13 +9,17 @@ const getAllFeriadosHandler = async (req, res) => {
     try {
         const response = await getAllFeriados(Number(page), Number(limit));
 
-        if (!response || response.data.length === 0) {
-            return res.status(200).json({
-                message: 'No se encontraron feriados',
-                data: {}
-            });
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas descansos',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
-
         return res.status(200).json({
             message: "Feriados obtenidos correctamente",
             data: response

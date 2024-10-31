@@ -7,12 +7,21 @@ const { getTurnos,
 
 //Handlers para obtener los Turnos
 const getTurnosHandler = async (req, res) => {
+    const {page,limit}=req.query;
     try {
-        const response = await getTurnos();
+        const response = await getTurnos(Number(page),Number(limit));
         
         // Si no hay datos, devuelve un mensaje con estado 200
-        if (!response || response.length === 0) {
-            return res.status(200).json({ message: "No hay Turnos disponibles" });
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas descansos',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
 
         // Si hay datos, devuélvelos con el mensaje correspondiente

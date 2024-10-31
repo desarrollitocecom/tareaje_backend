@@ -8,10 +8,19 @@ const {
 
 //Handlers para obtener las LugarTrabajoes
 const getLugarTrabajosHandler = async (req, res) => {
+    const {page,limit}=req.query;
     try {
-        const response = await getLugarTrabajos();
-        if (!response.length) {
-            res.status(204).send();
+        const response = await getLugarTrabajos(Number(page),Number(limit));
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas descansos',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
         return res.status(200).json({
             message: 'Son las LugarTrabajoes',
