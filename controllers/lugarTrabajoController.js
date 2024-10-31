@@ -1,14 +1,16 @@
-const LugarTrabajo = require('../models/LugarTrabajo');
-const {sequelize}=require('../db_connection');
+const { LugarTrabajo } = require('../db_connection');
+
 //Trae todas las LugarTrabajoes
-const getLugarTrabajos=async () => {
+const getLugarTrabajos = async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit;
     try {
-        const response=await LugarTrabajo(sequelize).findAll({where: {
-            state:true  
-        }});
-        return response || null
+        const { count, rows } = await LugarTrabajo.findAndCountAll({
+            limit,
+            offset
+        });
+        return { total: count, data: rows, currentPage: page } || null;
     } catch (error) {
-        console.error('Error al Obtener todas las LugarTrabajoes',error);
+        console.error('Error al Obtener todas las LugarTrabajoes', error);
         return false
     }
 }
@@ -16,33 +18,35 @@ const getLugarTrabajos=async () => {
 //trae una LugarTrabajo especifica por id
 const getLugarTrabajo = async (id) => {
     try {
-        const LugarTrabajo = await LugarTrabajo(sequelize).findAll({where: {
-            id 
-        }});
+        const LugarTrabajo = await LugarTrabajo.findAll({
+            where: {
+                id
+            }
+        });
         return LugarTrabajo || null;
     } catch (error) {
         console.error(`Error al obtener la Función: ${error.message}`);
-      return false
+        return false
     }
 };
 //Crea una nueva LugarTrabajo
-const createLugarTrabajo = async ({nombre}) => {
+const createLugarTrabajo = async ({ nombre }) => {
     try {
-        const LugarTrabajo = await LugarTrabajo(sequelize).create({ nombre });
+        const LugarTrabajo = await LugarTrabajo.create({ nombre });
         return LugarTrabajo
 
     } catch (error) {
-        console.error('Error al crear una nueva LugarTrabajo',error)
+        console.error('Error al crear una nueva LugarTrabajo', error)
         return false
     }
 };
 //elimina la LugarTrabajo o canbia el estado
 const deleteLugarTrabajo = async (id) => {
     try {
-        const LugarTrabajo = await LugarTrabajo(sequelize).findByPk(id);
+        const LugarTrabajo = await LugarTrabajo.findByPk(id);
         LugarTrabajo.state = false;
         await LugarTrabajo.save();
-       return LugarTrabajo || null
+        return LugarTrabajo || null
     } catch (error) {
         console.error('Error al canbiar de estado al eliminar LugarTrabajo');
         return false;
@@ -53,19 +57,19 @@ const deleteLugarTrabajo = async (id) => {
 const updateLugarTrabajo = async (id, nuevaLugarTrabajo) => {
     if (id && nuevaLugarTrabajo)
         try {
-            const LugarTrabajo = await LugarTrabajo(sequelize).findOne({ where: { id } });
-            if (LugarTrabajo) 
+            const LugarTrabajo = await LugarTrabajo.findOne({ where: { id } });
+            if (LugarTrabajo)
                 await LugarTrabajo.update(nuevaLugarTrabajo);
-                return LugarTrabajo || null;
-            
-           
+            return LugarTrabajo || null;
+
+
         } catch (error) {
             console.error('Error al actualizar la LugarTrabajo:', error.message);
             return false;
         }
     else
         return false;
-};  
+};
 
 
 
