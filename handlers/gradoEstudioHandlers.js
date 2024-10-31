@@ -15,7 +15,7 @@ const getGradoEstudiosHandler = async (req, res) => {
         // Si no hay datos, devuelve un mensaje con estado 200
         if(response.length === 0 || page>limit){
             return res.status(200).json(
-                {message:'Ya no hay mas descansos',
+                {message:'Ya no hay mas Grados de Estudios',
                  data:{
                     data:[],
                     totalPage:response.currentPage,

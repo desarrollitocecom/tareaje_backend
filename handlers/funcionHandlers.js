@@ -12,7 +12,7 @@ const getFuncionesHandler = async (req, res) => {
         const response = await getFunciones(Number(page), Number(limit));   
         if(response.length === 0 || page>limit){
             return res.status(200).json(
-                {message:'Ya no hay mas descansos',
+                {message:'Ya no hay mas Funciones',
                  data:{
                     data:[],
                     totalPage:response.currentPage,

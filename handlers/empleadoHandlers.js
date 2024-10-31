@@ -8,7 +8,7 @@ const getAllEmpleadosHandlers = async (req, res) => {
         
         if(response.length === 0 || page>limit){
             return res.status(200).json(
-                {message:'Ya no hay mas descansos',
+                {message:'Ya no hay mas Empleados',
                  data:{
                     data:[],
                     totalPage:response.currentPage,

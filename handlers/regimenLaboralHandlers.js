@@ -14,7 +14,7 @@ const {page,limit}=req.query;
         // Si no hay datos, devuelve un mensaje con estado 200
         if(response.length === 0 || page>limit){
             return res.status(200).json(
-                {message:'Ya no hay mas descansos',
+                {message:'Ya no hay mas regimen laborales',
                  data:{
                     data:[],
                     totalPage:response.currentPage,

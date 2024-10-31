@@ -13,7 +13,7 @@ const getLugarTrabajosHandler = async (req, res) => {
         const response = await getLugarTrabajos(Number(page),Number(limit));
         if(response.length === 0 || page>limit){
             return res.status(200).json(
-                {message:'Ya no hay mas descansos',
+                {message:'Ya no hay mas lugares de trabajo',
                  data:{
                     data:[],
                     totalPage:response.currentPage,
@@ -23,12 +23,12 @@ const getLugarTrabajosHandler = async (req, res) => {
             );
         }
         return res.status(200).json({
-            message: 'Son las LugarTrabajoes',
+            message: 'Son los Lugar Trabajos',
             data: response
         })
     } catch (error) {
-        console.error('Error al obtener todas las LugarTrabajoes en el handlers', error)
-        return res.status(500).json({ message: "Error al obtener todas las LugarTrabajoes en el handlers" })
+        console.error('Error al obtener todas los Lugar de Trabajos ', error)
+        return res.status(500).json({ message: "Error al obtener todas las Lugar de trabajo" })
     }
 }
 //Handlers para obtener una LugarTrabajo 
@@ -42,19 +42,19 @@ const getLugarTrabajoHandler = async (req, res) => {
 
         if (!response || response.length === 0) {
             return res.status(404).json({
-                message: "Función no encontrada",
+                message: "Lugares de trabajo no encontrado",
                 data: []
             });
         }
 
         return res.status(200).json({
-            message: "Función encontrada",
+            message: "Lugares de trabajo encontrada",
             data: response
         });
     } catch (error) {
         console.error(error);
         return res.status(500).json({
-            message: "Error al buscar la función",
+            message: "Error al buscar la Lugares de trabajo",
             error: error.message
         });
     }
@@ -106,11 +106,11 @@ const updateLugarTrabajoHandler = async (req, res) => {
             })
         }
         return res.status(200).json({
-            message: "Reguistro modificado",
+            message: "Registro modificado",
             data: response
         })
     } catch (error) {
-        res.status(404).json({ message: "LugarTrabajo no encontrada",error})
+        res.status(404).json({ message: "Lugar de Trabajo no encontrada",error})
     }
 };
 const deleteLugarTrabajoHandler = async (req, res) => {
@@ -126,11 +126,11 @@ const deleteLugarTrabajoHandler = async (req, res) => {
 
         if (!response) {
             return res.status(204).json({
-                message: `No se encontró la LugarTrabajo con ID${id}`
+                message: `No se encontró la Lugar de Trabajo con ID${id}`
             })
         }
         return res.status(200).json({
-            message: 'Función eliminada correctamente (estado cambiado a inactivo)'
+            message: 'Función eliminada correctamente '
         });
     } catch (error) {
         return res.status(404).json({ message: error.message });

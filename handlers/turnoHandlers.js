@@ -14,7 +14,7 @@ const getTurnosHandler = async (req, res) => {
         // Si no hay datos, devuelve un mensaje con estado 200
         if(response.length === 0 || page>limit){
             return res.status(200).json(
-                {message:'Ya no hay mas descansos',
+                {message:'Ya no hay mas Turnos',
                  data:{
                     data:[],
                     totalPage:response.currentPage,
@@ -131,7 +131,7 @@ const deleteTurnoHandler = async (req, res) => {
             })
         }
         return res.status(200).json({
-            message: 'Turno eliminada correctamente (estado cambiado a inactivo)'
+            message: 'Turno eliminado correctamente'
         });
     } catch (error) {
         return res.status(404).json({ message: error.message });
