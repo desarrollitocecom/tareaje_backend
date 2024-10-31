@@ -1,4 +1,3 @@
-const { where } = require("sequelize");
 const { Descanso, Empleado } = require ("../db_connection");
 
 const getAllDescansos = async (page = 1, limit = 20) => {
