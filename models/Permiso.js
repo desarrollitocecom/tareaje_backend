@@ -26,14 +26,13 @@ module.exports = (sequelize) => {
     });
 
     Permiso.associate = (db) => {
-        // Relación muchos a muchos con Roles
         Permiso.belongsToMany(db.Rol, {
-            through: 'Roles_Permisos',
-            foreignKey: 'id_permiso',
+            through: 'Roles_Permisos',      // Nombre de la tabla intermedia
+            foreignKey: 'id_permiso',       // Nombre de la clave foránea para Permiso
+            otherKey: 'id_rol',             // Nombre de la clave foránea para Rol
             as: 'roles'
         });
     };
-
 
     return Permiso;
 };

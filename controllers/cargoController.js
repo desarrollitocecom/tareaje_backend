@@ -52,7 +52,6 @@
             if (!cargo) {
                 return null; // Si el cargo no existe, retorna null
             }
-
             // Cambia el estado a false en lugar de eliminar
             cargo.state = false;
             await cargo.save();

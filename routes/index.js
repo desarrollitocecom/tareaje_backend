@@ -21,7 +21,7 @@ tareaje.use('/lugarestrabajo', lugarTrabajoRutas);
 tareaje.use('/subgerencia',subgerenciaRutas);
 tareaje.use('/cargo',cargoRutas);
 tareaje.use('/empleado',empleadosRutas);
-tareaje.use('/usuarios', usuariosRouter);
+tareaje.use('/users', usuariosRouter);
 tareaje.use('/vacaciones',vacacionesRouter);
 tareaje.use('/gradoestudio',gradoEstudioRouter);
 tareaje.use('/jurisdiccion',jurisdiccionRouter);
