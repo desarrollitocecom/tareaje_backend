@@ -4,12 +4,12 @@ const getAllDescansos = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
         const response = await Descanso.findAndCountAll({
-            where: {  state: true }, 
+       
             include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres','apellidos'] }],
             limit,
             offset
         });
-        return { total: response.count, data: response.rows, currentPage: page } || null;
+        return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
         console.error({ message: "Error en el controlador al traer todos los Descansos", data: error });
         return false

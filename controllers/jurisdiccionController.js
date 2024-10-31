@@ -8,7 +8,7 @@ const getJurisdicciones=async (page = 1, limit = 20) => {
             limit,
             offset
         });
-        return { total: count, data: rows , currentPage:page }
+        return { totalCount: count, data: rows , currentPage:page }
     } catch (error) {
         console.error('Error al Obtener todas las Jurisdicciones ',error);
         return false
