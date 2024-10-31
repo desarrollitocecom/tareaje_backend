@@ -1,5 +1,4 @@
 
-
 const roleAuth = async (auth) => {
     return (req, res, next) => {
         const { rol } = req.user;
@@ -10,3 +9,4 @@ const roleAuth = async (auth) => {
 
     }
 }
+

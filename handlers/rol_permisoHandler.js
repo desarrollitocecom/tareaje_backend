@@ -1,5 +1,5 @@
 
-const { createPermiso, createRol } = require("../controllers/rol_permisoController");
+const { createPermiso, createRol, getAllRols, getRolById, getAllPermisos, getPermisoById, getPermisosByRolId } = require("../controllers/rol_permisoController");
 
 
 const createPermisoHandler = async (req, res) => {
@@ -25,10 +25,25 @@ const createPermisoHandler = async (req, res) => {
 
 };
 
-const getUserPermisosHandler = async (id) => {
+const getRolPermisosHandler = async (req, res) => {
 
+    const { id_rol } = req.params;
 
+    try {
+        const permisos = await getPermisosByRolId(id_rol);
 
+        if (permisos === null) {
+            return res.status(404).json({ message: "Rol no encontrado o sin permisos asociados" });
+        }
+
+        return res.status(200).json({
+            message: "Permisos obtenidos correctamente",
+            data: permisos
+        });
+    } catch (error) {
+        console.error("Error en getRolPermisosHandler:", error.message);
+        return res.status(500).json({ message: "Error en getRolPermisosHandler", error: error.message });
+    }
 };
 
 const createRolHandler = async (req, res) => {
@@ -46,7 +61,6 @@ const createRolHandler = async (req, res) => {
 
     try {
         // Crear el rol y asociar los permisos
-        console.log("permisos:", permisos.length);
         const rol = await createRol(nombre, descripcion, permisos);
 
         if (rol) {
@@ -60,9 +74,174 @@ const createRolHandler = async (req, res) => {
     }
 };
 
+const getAllRolsHandler = async (req, res) => {
+    const { page = 1, pageSize = 20 } = req.query;
 
+    try {
+        const rols = await getAllRols(page, pageSize);
+        
+        // Calcular el total de páginas
+        const totalPages = Math.ceil(rols.totalCount / pageSize);
+
+        // Verificar si la página solicitada está fuera de rango
+        if (page > totalPages) {
+            return res.status(404).json({
+                message: "Página fuera de rango",
+                data: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalCount: rols.totalCount,
+                }
+            });
+        }
+
+        return res.status(200).json({
+            message: "Rols obtenidos correctamente",
+            data: {
+                data: rols.data,
+                currentPage: page,
+                totalPages: totalPages,
+                totalCount: rols.totalCount,
+            }
+        });
+    } catch (error) {
+        console.error("Error en getAllRols:", error.message);
+        return res.status(500).json({ message: "Error en getAllRols", error: error.message });
+    }
+};
+
+const getRolByIdHandler = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const rol = await getRolById(id);
+        if (rol)
+            return res.status(200).json({ message: "Rol obtenido correctamente", data: rol });
+        return res.status(404).json({ message: "Rol no encontrado", data: null });
+    } catch (error) {
+        console.error("Error en getRolByIdHandler:", error.message);
+        return res.status(500).json({ message: "Error en getRolByIdHandler", error: error.message });
+    }
+};
+
+const getAllPermisosHandler = async (req, res) => {
+    const { page = 1, pageSize = 20 } = req.query;
+
+    try {
+        const permisos = await getAllPermisos(page, pageSize);
+
+        const totalPages = Math.ceil(permisos.totalCount / pageSize);
+
+        if (page > totalPages) {
+            return res.status(404).json({
+                message: "Página fuera de rango",
+                data: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalCount: permisos.totalCount,
+                }
+            });
+        }
+
+        return res.status(200).json({
+            message: "Permisos obtenidos correctamente",
+            data: {
+                data: permisos.data,
+                currentPage: page,
+                totalPages: totalPages,
+                totalCount: permisos.totalCount,
+            }
+        });
+    } catch (error) {
+        console.error("Error en getAllPermisosHandler:", error.message);
+        return res.status(500).json({ message: "Error en getAllPermisosHandler", error: error.message });
+    }
+};
+
+const updatePermisoHandler = async (req, res) => {
+    const { id } = req.params;
+    const updates = req.body;
+
+    try {
+        const permiso = await updatePermiso(id, updates);
+        if (permiso)
+            return res.status(200).json({ message: "Permiso actualizado correctamente", data: permiso });
+        return res.status(404).json({ message: "Permiso no encontrado", data: null });
+    } catch (error) {
+        console.error("Error en updatePermisoHandler:", error.message);
+        return res.status(500).json({ message: "Error en updatePermisoHandler", error: error.message });
+    }
+};
+
+const deletePermisoHandler = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const success = await deletePermiso(id);
+        if (success)
+            return res.status(200).json({ message: "Permiso eliminado correctamente" });
+        return res.status(404).json({ message: "Permiso no encontrado" });
+    } catch (error) {
+        console.error("Error en deletePermisoHandler:", error.message);
+        return res.status(500).json({ message: "Error en deletePermisoHandler", error: error.message });
+    }
+};
+
+const updateRolHandler = async (req, res) => {
+    const { id } = req.params;
+    const updates = req.body;
+
+    try {
+        const rol = await updateRol(id, updates);
+        if (rol)
+            return res.status(200).json({ message: "Rol actualizado correctamente", data: rol });
+        return res.status(404).json({ message: "Rol no encontrado", data: null });
+    } catch (error) {
+        console.error("Error en updateRolHandler:", error.message);
+        return res.status(500).json({ message: "Error en updateRolHandler", error: error.message });
+    }
+};
+
+const deleteRolHandler = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const success = await deleteRol(id);
+        if (success)
+            return res.status(200).json({ message: "Rol eliminado correctamente" });
+        return res.status(404).json({ message: "Rol no encontrado" });
+    } catch (error) {
+        console.error("Error en deleteRolHandler:", error.message);
+        return res.status(500).json({ message: "Error en deleteRolHandler", error: error.message });
+    }
+};
+
+const getPermisoByIdHandler = async (req, res) => {
+
+    const { id } = req.params;
+
+    try {
+        const permiso = await getPermisoById(id);
+        if (permiso)
+            return res.status(200).json({ message: "Permiso obtenido correctamente", data: permiso });
+        return res.status(404).json({ message: "Permiso no encontrado", data: null });
+    } catch (error) {
+        console.error("Error en getPermisoByIdHandler:", error.message);
+        return res.status(500).json({ message: "Error en getPermisoByIdHandler", error: error.message });
+    }
+
+};
 
 module.exports = {
     createPermisoHandler,
-    createRolHandler
-}
+    createRolHandler,
+    getAllRolsHandler,
+    getRolPermisosHandler,
+    getRolByIdHandler,
+    getAllPermisosHandler,
+    updatePermisoHandler,
+    deletePermisoHandler,
+    updateRolHandler,
+    deleteRolHandler,
+    getPermisoByIdHandler
+};

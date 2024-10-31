@@ -1,4 +1,4 @@
-const { createUser, getUser, changePassword, signToken, getToken, changeUserData, getAllUsers, getUserById, deleteUser } = require("../controllers/usuarioController");
+const { createUser, getUser, changePassword, signToken, getToken, changeUserData, getAllUsers, getUserById, deleteUser,logoutUser } = require("../controllers/usuarioController");
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const { userSockets } = require("../sockets");
@@ -8,7 +8,6 @@ const usuarioRegex = /^[a-zA-Z0-9._-]{4,20}$/;
 const contraseñaRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
 const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const idRolRegex = /^[1-9]\d*$/;
-//const idEmpleadoRegex = /^[1-9]\d*$/;
 
 const createUserHandler = async (req, res) => {
     const { usuario, contraseña, correo, id_rol, id_empleado } = req.body;
@@ -129,11 +128,11 @@ const loginHandler = async (req, res) => {
             expiresIn: process.env.JWT_EXPIRES_IN
         });
 
-        // Verificar si el usuario ya está registrado en userSockets
-        if (userSockets.has(user.id)) {
-            const previousSocket = userSockets.get(user.id);
-            previousSocket.emit("forceLogout", { message: "Sesión cerrada debido a un inicio de sesión en otro dispositivo", log: false });
-        }
+         // Verificar si el usuario ya está conectado y forzar logout en otros dispositivos
+         const previousSocket = userSockets.get(usuario);
+         if (previousSocket) {
+             previousSocket.emit("forceLogout", { message: "Sesión cerrada en otro dispositivo", data: { usuario: usuario } });
+         }
 
         const sesion = await signToken(usuario, token);
         if (sesion.token)
@@ -190,19 +189,40 @@ const getTokenHandler = async (req, res) => {
 };
 
 const getAllUsersHandler = async (req, res) => {
-
-    const { page, pagesize } = req.query;
+    const { page = 1, pageSize = 20 } = req.query;
 
     try {
-        const users = await getAllUsers(page, pagesize);
-        if (users)
-            return res.status(200).json({ message: "Se completo con exito la peticion", data: users });
-        return res.status(400).json({ message: "Error al obtener los usuarios", data: false });
-    } catch (error) {
-        console.error("Error en el getAllUsersHandler: ", error.message);
-        return res.status(500).json({ message: "Error en el getAllUsersHandler", data: error.message })
-    }
+        const users = await getAllUsers(page, pageSize);
+        const totalPages = Math.ceil(users.totalCount / pageSize);
 
+        // Verificar si la página solicitada está fuera de rango
+        if (page > totalPages) {
+            return res.status(404).json({
+                message: "Página fuera de rango",
+                data: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalCount: users.totalCount,
+                }
+            });
+        }
+
+        return res.status(200).json({
+            message: "Usuarios obtenidos correctamente",
+            data: {
+                data: users.data,
+                currentPage: page,
+                totalPages: totalPages,
+                totalCount: users.totalCount,
+            }
+        });
+    } catch (error) {
+        console.error("Error en getAllUsersHandler:", error.message);
+        return res.status(500).json({
+            message: "Error en getAllUsersHandler",
+            data: error.message
+        });
+    }
 };
 
 const getUserByIdHandler = async (req, res) => {
@@ -218,7 +238,6 @@ const getUserByIdHandler = async (req, res) => {
         console.error("Error en getUserByIdHandler: ", error.message);
         return res.status(500).json({ message: "Error en getUserByIdHandler", data: error.message });
     }
-
 };
 
 const deleteUserHandler = async (req, res) => {
@@ -238,6 +257,33 @@ const deleteUserHandler = async (req, res) => {
 };
 
 
+const logoutHandler = async (req, res) => {
+    const { usuario } = req.body;
+
+    if (!usuario) {
+        return res.status(400).json({ message: "El nombre de usuario es requerido para cerrar sesión" });
+    }
+
+    try {
+        const result = await logoutUser(usuario);
+
+        if (result) {
+            // Emitir evento de logout si el usuario está conectado
+            const socket = userSockets.get(usuario);
+            if (socket) {
+                socket.emit("logout", { message: "Sesión cerrada", usuario: usuario });
+                userSockets.delete(usuario);
+            }
+
+            return res.status(200).json({ message: "Sesión cerrada correctamente" });
+        } else {
+            return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+    } catch (error) {
+        console.error("Error en logoutHandler:", error.message);
+        return res.status(500).json({ message: "Error al cerrar sesión", error: error.message });
+    }
+};
 
 module.exports = {
     createUserHandler,
@@ -247,5 +293,6 @@ module.exports = {
     changeUserDataHandler,
     getAllUsersHandler,
     getUserByIdHandler,
-    deleteUserHandler
+    deleteUserHandler,
+    logoutHandler,
 };
