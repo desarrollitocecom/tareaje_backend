@@ -137,17 +137,27 @@ const updatePermiso = async (id, nombre, descripcion) => {
     }
 };
 
-const updateRol = async (id, nombre, descripcion) => {
+const updateRol = async (id, nombre, descripcion, permisos = []) => { 
     try {
+       
         const rol = await Rol.findByPk(id);
         if (!rol) return null;
+
         const updates = {};
         if (nombre !== undefined) updates.nombre = nombre;
         if (descripcion !== undefined) updates.descripcion = descripcion;
+
         await rol.update(updates);
+
+        // Actualizar permisos asociados si se proporcionan
+        if (permisos.length > 0) {
+            const permisosEncontrados = await Permiso.findAll({ where: { id: permisos } });
+            await rol.setPermisos(permisosEncontrados); // Actualiza la relación del rol con los permisos
+        }
+
         return rol;
     } catch (error) {
-        console.error("Error al actualizar el rol:", error);
+        console.error("Error al actualizar el rol y sus permisos:", error);
         return false;
     }
 };
@@ -179,20 +189,21 @@ const deleteRol = async (id) => {
 };
 
 
-
-
-const getPermisosByRolId = async (id_rol) => {
-
+const getPermisosByRolId = async (token) => {
+    //console.log("id: ",token);
     try {
         // Buscar el rol con sus permisos
-        const rol = await Rol.findByPk(id_rol, {
+        const rol = await Rol.findOne({
+            where:{
+                token: token
+            }, 
             include: {
                 model: Permiso,
                 as: 'permisos',
-                attributes: ['id', 'nombre', 'descripcion']
+                attributes: ['nombre']
             }
         });
-
+    
         // Si no existe el rol o no tiene permisos, devolvemos un array vacío
         if (!rol) return null;
 

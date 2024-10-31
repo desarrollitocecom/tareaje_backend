@@ -4,7 +4,7 @@ const { getAllUsersHandler,getUserByIdHandler, deleteUserHandler } = require('..
 
 
 router.get("/", getAllUsersHandler);
-router.get("/:id", getUserByIdHandler);
+router.post("/", getUserByIdHandler);
 router.delete("/:id", deleteUserHandler);
 
 module.exports = router;
