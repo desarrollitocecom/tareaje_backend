@@ -2,7 +2,7 @@ const { getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado } = require('../controllers/empleadoController');
 
 const getAllEmpleadosHandlers = async (req, res) => {
-    const { page, limit } = req.query;
+    const { page = 1 , limit = 20 } = req.query;
     try {
         const response = await getAllEmpleados(Number(page), Number(limit)); // Llamamos a la función getEmpleados
         console.log(response);

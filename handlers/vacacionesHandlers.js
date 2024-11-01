@@ -23,8 +23,9 @@ const getVacacionHandler = async (req, res) => {
   }
 };
 const getVacacionesHandler = async (req, res) => {
+  const { page = 1 , pageSize = 20 } = req.query;
   try {
-    const respuesta = await getVacaciones();
+    const respuesta = await getVacaciones(page, pageSize);
     if (!respuesta) {
       return res.status(204).json(
        { message:'No se encuentran empleados',

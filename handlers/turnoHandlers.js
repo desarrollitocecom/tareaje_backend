@@ -7,8 +7,9 @@ const { getTurnos,
 
 //Handlers para obtener los Turnos
 const getTurnosHandler = async (req, res) => {
+    const { page = 1 , pageSize = 20 } = req.query;
     try {
-        const response = await getTurnos();
+        const response = await getTurnos(page, pageSize);
         
         // Si no hay datos, devuelve un mensaje con estado 200
         if (!response || response.length === 0) {

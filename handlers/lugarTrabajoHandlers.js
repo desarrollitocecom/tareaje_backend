@@ -8,8 +8,9 @@ const {
 
 //Handlers para obtener las LugarTrabajoes
 const getLugarTrabajosHandler = async (req, res) => {
+    const { page = 1 , pageSize = 20 } = req.query;
     try {
-        const response = await getLugarTrabajos();
+        const response = await getLugarTrabajos(page, pageSize);
         if (!response.length) {
             res.status(204).send();
         }

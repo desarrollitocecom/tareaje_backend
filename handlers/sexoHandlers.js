@@ -7,8 +7,9 @@ const { getSexos,
 
 //Handlers para obtener las Sexoes
 const getSexosHandler = async (req, res) => {
+    const { page = 1 , pageSize = 20 } = req.query;
     try {
-        const response = await getSexos();
+        const response = await getSexos(page, pageSize);
         if (!response.length) {
             res.status(204).send();
         }

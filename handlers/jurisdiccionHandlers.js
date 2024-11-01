@@ -7,8 +7,9 @@ const { getJurisdicciones,
 
 //Handlers para obtener las Jurisdicciones
 const getJurisdiccionesHandler = async (req, res) => {
+    const { page = 1 , pageSize = 20 } = req.query;
     try {
-        const response = await getJurisdicciones();
+        const response = await getJurisdicciones(page, pageSize);
         if (!response.length) {
             res.status(204).send();
         }

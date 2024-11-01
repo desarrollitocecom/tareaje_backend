@@ -20,7 +20,7 @@ const getCargoByIdHandler = async (req, res) => {
 
 // Handler para obtener todos los Cargos
 const getAllCargosHandler = async (req, res) => {
-    const {page,limit}=req.query;
+    const {page = 1 , limit = 20}=req.query;
     try {
         const cargos = await getAllCargos(Number(page),Number(limit));
         if(cargos.length === 0){
