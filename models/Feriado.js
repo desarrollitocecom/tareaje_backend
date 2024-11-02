@@ -11,15 +11,15 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        fecha:{
+        fecha: {
             type: DataTypes.DATEONLY,
             allowNull: false
         },
-        state:{
+        state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        }
+        },
     }, {
         tableName: 'Feriados',
         timestamps: true

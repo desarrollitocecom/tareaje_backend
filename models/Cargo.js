@@ -15,6 +15,19 @@ module.exports = (sequelize) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        state: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
+        id_subgerencia: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: 'Subgerencias', // Nombre de la tabla referenciada
+                key: 'id',
+            }
+        },
         state:{
             type: DataTypes.BOOLEAN,
             allowNull: false,
@@ -25,14 +38,12 @@ module.exports = (sequelize) => {
         timestamps: true
     });
 
-    // Definir la asociación de Asistencia con Empleado
     Cargo.associate = (db) => {
         Cargo.belongsTo(db.Subgerencia, {
-            foreignKey: 'id_subgerencia', // Esto sería más adecuado
-            as: 'Subgerencia', // Alias más claro
+            foreignKey: 'id_subgerencia', // Clave foránea
+            as: 'Subgerencia' // Alias para la relación
         });
     };
 
     return Cargo;
-
 };

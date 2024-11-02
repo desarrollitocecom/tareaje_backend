@@ -15,22 +15,31 @@ module.exports = (sequelize) => {
             type: DataTypes.TEXT,
             allowNull: false
         },
-        state:{
+        id_empleado: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'Empleados',
+                key: 'id',
+            }
+        },
+        state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        }
+        },
     },{
         tableName: 'Descansos',
         timestamps: true
     });
 
-    Descanso.associate = (db) => {
-        Descanso.belongsTo(db.Empleado, {
-            foreignKey: 'id_dni',
-            as: 'empleado', // Alias más claro
+    Descanso.associate = (models) => {
+        Descanso.belongsTo(models.Empleado, { 
+            foreignKey: 'id_empleado', 
+            as: 'empleado' 
         });
     };
+    
 
     return Descanso;
 };

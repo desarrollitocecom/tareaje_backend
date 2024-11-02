@@ -19,7 +19,12 @@ module.exports = (sequelize) => {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        }
+        },
+        state: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
     }, {
         tableName: 'Vacaciones',
         timestamps: true
@@ -27,10 +32,13 @@ module.exports = (sequelize) => {
 
     Vacacion.associate = (db) => {
         Vacacion.belongsTo(db.Empleado, {
-            foreignKey: 'id_dni',
-            as: 'empleado', // Alias más claro
+            foreignKey: 'id_empleado',
+            as: 'empleado',
         });
+        
+
     };
+    
 
     return Vacacion;
 };

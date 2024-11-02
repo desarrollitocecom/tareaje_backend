@@ -10,12 +10,13 @@ module.exports = (sequelize) => {
         nombre: {
             type: DataTypes.STRING,
             allowNull: false
+           
         },
-        state:{
+        state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        }
+        },
     }, {
         tableName: 'GradoDeEstudios',
         timestamps: true

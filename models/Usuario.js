@@ -1,4 +1,5 @@
 const { DataTypes } = require("sequelize");
+const argon2 = require('argon2');
 
 module.exports = (sequelize) => {
     const Usuario = sequelize.define('Usuario', {
@@ -22,52 +23,47 @@ module.exports = (sequelize) => {
             validate: {
                 isEmail: true
             },
-            unique: true 
+            unique: true
         },
         token: {
             type: DataTypes.STRING(500), // Token
-            allowNull: true
+            allowNull: true,
+            defaultValue: null
         },
-        state:{
+        state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        }
+        },
     }, {
         tableName: 'Usuarios',
-        timestamps: true
+        timestamps: true,
+        hooks: { // encripta la contraseña al guardarla y al cambiarla
+            beforeCreate: async (usuario) => {
+                usuario.contraseña = await argon2.hash(usuario.contraseña);
+            },
+            beforeUpdate: async (usuario) => {
+                if (usuario.changed('contraseña')) {
+                    usuario.contraseña = await argon2.hash(usuario.contraseña);
+                }
+            }
+        }
     });
 
-    Usuario.associate = (db) => {
 
+    Usuario.associate = (db) => {
+        // Usuario - Empleado (1 a 1)
         Usuario.belongsTo(db.Empleado, {
-            foreignKey: {
-                name: 'id_dni',
-                allowNull: false,
-                unique: true // Asegura que cada usuario solo pueda tener un empleado
-            },
+            foreignKey: { name: 'id_empleado', allowNull: true, unique: true },
             as: 'empleado',
         });
-
-        db.Empleado.hasOne(db.Usuario, {
-            foreignKey: {
-                name: 'id_dni',
-                allowNull: true,
-            },
-            as: 'usuario'
-        });
-
+    
+        // Usuario - Rol (Muchos a uno)
         Usuario.belongsTo(db.Rol, {
-            foreignKey: {
-                name: 'id_rol',
-                allowNull: false
-            },
+            foreignKey: { name: 'id_rol', allowNull: false },
             as: 'rol'
         });
-
     };
-
-
 
     return Usuario;
 };

@@ -1,11 +1,12 @@
 const { DataTypes } = require("sequelize");
 
+
 module.exports = (sequelize) => {
     const Empleado = sequelize.define('Empleado', {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
-            unique: true
+            primaryKey: true
         },
         nombres: {
             type: DataTypes.STRING,
@@ -16,9 +17,9 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         dni: {
-            type: DataTypes.STRING(8),
+            type: DataTypes.STRING(8),  
             allowNull: false,
-            primaryKey: true
+            unique: true
         },
         ruc: {
             type: DataTypes.STRING,
@@ -60,6 +61,70 @@ module.exports = (sequelize) => {
             type: DataTypes.TEXT,
             allowNull: true
         },
+        id_cargo: {
+            type: DataTypes.INTEGER,
+            references: {
+                model:'Cargos',
+                key: 'id',
+            }
+        },
+        id_turno: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Turnos',
+                key: 'id',
+            }
+        },
+        id_regimen_laboral: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'RegimenLaborales',
+                key: 'id',
+            }
+        },
+        id_sexo: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Sexos',
+                key: 'id',
+            }
+        },
+        id_jurisdiccion: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Jurisdicciones',
+                key: 'id',
+            }
+        },
+        id_grado_estudios: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'GradoDeEstudios',
+                key: 'id',
+            }
+        },
+        id_subgerencia: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Subgerencias',
+                key: 'id',
+            }
+        },
+        id_lugar_trabajo:{
+            type:DataTypes.INTEGER,
+            references:{
+                model:'LugarDeTrabajo',
+                key:'id'
+            }
+
+        },
+        id_funcion: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Funciones',
+                key: 'id',
+            }
+        },
         state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
@@ -70,57 +135,21 @@ module.exports = (sequelize) => {
         timestamps: true
     });
 
-    // Asociaciones
-    
     Empleado.associate = (db) => {
-        // Relación con la tabla Cargo
-        Empleado.belongsTo(db.Cargo, {
-            foreignKey: 'id_cargo',
-            as: 'cargo'
-        });
-
-        // Relación con la tabla Turno
-        Empleado.belongsTo(db.Turno, {
-            foreignKey: 'id_turno',
-            as: 'turno'
-        });
-
-        // Relación con la tabla Régimen Laboral
-        Empleado.belongsTo(db.RegimenLaboral, {
-            foreignKey: 'id_regimen_laboral',
-            as: 'regimenLaboral'
-        });
-
-        // Relación con la tabla Sexo
-        Empleado.belongsTo(db.Sexo, {
-            foreignKey: 'id_sexo',
-            as: 'sexo'
-        });
-
-        // Relación con la tabla Jurisdiccion
-        Empleado.belongsTo(db.Jurisdiccion, {
-            foreignKey: 'id_jurisdiccion',
-            as: 'jurisdiccion'
-        });
-
-        // Relación con la tabla Grado de Estudios
-        Empleado.belongsTo(db.GradoEstudios, {
-            foreignKey: 'id_grado_estudios',
-            as: 'gradoEstudios'
-        });
-
-        // Relación con la tabla Subgerencia
-        Empleado.belongsTo(db.Subgerencia, {
-            foreignKey: 'id_subgerencia',
-            as: 'subgerencia'
-        });
-
-        // Relación con la tabla Función
-        Empleado.belongsTo(db.Funcion, {
-            foreignKey: 'id_funcion',
-            as: 'funcion'
-        });
+        Empleado.belongsTo(db.Cargo, { foreignKey: 'id_cargo', as: 'cargo' });
+        Empleado.belongsTo(db.Turno, { foreignKey: 'id_turno', as: 'turno' });
+        Empleado.belongsTo(db.RegimenLaboral, { foreignKey: 'id_regimen_laboral', as: 'regimenLaboral' });
+        Empleado.belongsTo(db.Sexo, { foreignKey: 'id_sexo', as: 'sexo' });
+        Empleado.belongsTo(db.Jurisdiccion, { foreignKey: 'id_jurisdiccion', as: 'jurisdiccion' });
+        Empleado.belongsTo(db.GradoEstudios, { foreignKey: 'id_grado_estudios', as: 'gradoEstudios' });
+        Empleado.belongsTo(db.Subgerencia, { foreignKey: 'id_subgerencia', as: 'subgerencia' });
+        Empleado.belongsTo(db.Funcion, { foreignKey: 'id_funcion', as: 'funcion' });
+        Empleado.belongsTo(db.LugarTrabajo,{foreignKey:'id_lugar_trabajo',as:'lugarTrabajo'})
+        Empleado.hasMany(db.Asistencia, { foreignKey: 'id_empleado', as: 'asistencias' });
+        Empleado.hasMany(db.Descanso, { foreignKey: 'id_empleado', as: 'descansos' });
+        Empleado.hasMany(db.Justificacion, { foreignKey: 'id_empleado', as: 'justificaciones' });
+        Empleado.hasMany(db.Vacacion, { foreignKey: 'id_empleado', as: 'vacaciones' });
     };
 
     return Empleado;
-}
+};
