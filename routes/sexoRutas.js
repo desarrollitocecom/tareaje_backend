@@ -7,14 +7,13 @@ const {
     updateSexoHandler,
     deleteSexoHandler
 } = require('../handlers/sexoHandlers');
-const permisoAutorizacion = require("../checkers/roleAuth");
 
 
 
-rutas.get('/', permisoAutorizacion(["all_system_access", "read_sexo"]), getSexosHandler)
-rutas.post('/', permisoAutorizacion(["all_system_access", "create_sexo"]), createSexoHandler);
-rutas.get('/:id', permisoAutorizacion(["all_system_access", "read_sexo"]), getSexoHandler);
-rutas.patch('/:id', permisoAutorizacion(["all_system_access", "update_sexo"]), updateSexoHandler);
-rutas.delete('/:id', permisoAutorizacion(["all_system_access", "delete_sexo"]), deleteSexoHandler);
+rutas.get('/',getSexosHandler)
+rutas.post('/', createSexoHandler);
+rutas.get('/:id',  getSexoHandler);  
+rutas.patch('/:id', updateSexoHandler);
+rutas.delete('/:id', deleteSexoHandler);
 
 module.exports = rutas;

@@ -6,14 +6,13 @@ const {
     createLugarTrabajoHandler,
     updateLugarTrabajoHandler,
     deleteLugarTrabajoHandler
-} = require('../handlers/lugarTrabajoHandlers');
-const permisoAutorizacion = require("../checkers/roleAuth");
+} = require('../handlers/lugarTrabajoHandlers')
 
 
-rutas.get('/', permisoAutorizacion(["all_system_access", "read_lugarDeTrabajo"]), getLugarTrabajosHandler)
-rutas.post('/', permisoAutorizacion(["all_system_access", "create_lugarDeTrabajo"]), createLugarTrabajoHandler);
-rutas.get('/:id', permisoAutorizacion(["all_system_access", "read_lugarDeTrabajo"]), getLugarTrabajoHandler);
-rutas.patch('/:id', permisoAutorizacion(["all_system_access", "update_lugarDeTrabajo"]), updateLugarTrabajoHandler);
-rutas.delete('/:id', permisoAutorizacion(["all_system_access", "delete_lugarDeTrabajo"]), deleteLugarTrabajoHandler);
+rutas.get('/',getLugarTrabajosHandler)
+rutas.post('/', createLugarTrabajoHandler);
+rutas.get('/:id',  getLugarTrabajoHandler);  
+rutas.patch('/:id', updateLugarTrabajoHandler);
+rutas.delete('/:id', deleteLugarTrabajoHandler);
 
 module.exports = rutas;

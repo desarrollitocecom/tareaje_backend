@@ -6,14 +6,13 @@ const {
     createRegimenLaboralHandler,
     updateRegimenLaboralHandler,
     deleteRegimenLaboralHandler
-} = require('../handlers/regimenLaboralHandlers');
-const permisoAutorizacion = require("../checkers/roleAuth");
+} = require('../handlers/regimenLaboralHandlers')
 
 
-rutas.get('/', permisoAutorizacion(["all_system_access", "read_regimenLaboral"]), getRegimenLaboralesHandler)
-rutas.post('/', permisoAutorizacion(["all_system_access", "create_regimenLaboral"]), createRegimenLaboralHandler);
-rutas.get('/:id', permisoAutorizacion(["all_system_access", "read_regimenLaboral"]), getRegimenLaboralHandler);
-rutas.patch('/:id', permisoAutorizacion(["all_system_access", "update_regimenLaboral"]), updateRegimenLaboralHandler);
-rutas.delete('/:id', permisoAutorizacion(["all_system_access", "delete_regimenLaboral"]), deleteRegimenLaboralHandler);
+rutas.get('/',getRegimenLaboralesHandler)
+rutas.post('/', createRegimenLaboralHandler);
+rutas.get('/:id',  getRegimenLaboralHandler);  
+rutas.patch('/:id', updateRegimenLaboralHandler);
+rutas.delete('/:id', deleteRegimenLaboralHandler);
 
 module.exports = rutas;

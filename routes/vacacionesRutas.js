@@ -7,13 +7,12 @@ const {
     deleteVacacionesHandler,
     updateVacacionesHandler
 } = require('../handlers/vacacionesHandlers');
-const permisoAutorizacion = require("../checkers/roleAuth");
 
-rutas.post('/', permisoAutorizacion(["all_system_access", "create_vacacion"]), createVacacionesHandler);
-rutas.get('/', permisoAutorizacion(["all_system_access", "read_vacacion"]), getVacacionesHandler);
-rutas.get('/:id', permisoAutorizacion(["all_system_access", "read_vacacion"]), getVacacionHandler);
-rutas.patch('/:id', permisoAutorizacion(["all_system_access", "update_vacacion"]), updateVacacionesHandler);
-rutas.delete('/:id', permisoAutorizacion(["all_system_access", "delete_vacacion"]), deleteVacacionesHandler);
+rutas.post('/', createVacacionesHandler);
+rutas.get('/',getVacacionesHandler);
+rutas.get('/:id',getVacacionHandler);
+rutas.patch('/:id',updateVacacionesHandler);
+rutas.delete('/:id',deleteVacacionesHandler)
 
 
 module.exports = rutas;

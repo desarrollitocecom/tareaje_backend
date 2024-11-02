@@ -23,15 +23,20 @@ const getVacacionHandler = async (req, res) => {
   }
 };
 const getVacacionesHandler = async (req, res) => {
-  const { page = 1 , pageSize = 20 } = req.query;
+  const {page,limit}=req.query;
   try {
-    const respuesta = await getVacaciones(page, pageSize);
-    if (!respuesta) {
-      return res.status(204).json(
-       { message:'No se encuentran empleados',
-        data:[]}
+    const respuesta = await getVacaciones(Number(page),Number(limit));
+    if(response.length === 0 || page>limit){
+      return res.status(200).json(
+          {message:'Ya no hay mas descansos',
+           data:{
+              data:[],
+              totalPage:response.currentPage,
+              totalCount:response.totalCount
+           }   
+          }
       );
-    }
+  }
     return res.status(200).json({
       message: "Todas las Vacaciones",
       data: respuesta,

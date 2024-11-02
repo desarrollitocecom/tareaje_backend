@@ -7,13 +7,21 @@ const { getRegimenLaborales,
 
 //Handlers para obtener las RegimenLaborales
 const getRegimenLaboralesHandler = async (req, res) => {
-    const { page = 1 , pageSize = 20 } = req.query;
+const {page,limit}=req.query;
     try {
-        const response = await getRegimenLaborales(page, pageSize);
+        const response = await getRegimenLaborales(Number(page),Number(limit));
         
         // Si no hay datos, devuelve un mensaje con estado 200
-        if (!response || response.length === 0) {
-            return res.status(200).json({ message: "No hay Regimen Laborales disponibles" });
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas regimen laborales',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
 
         // Si hay datos, devuélvelos con el mensaje correspondiente

@@ -1,5 +1,5 @@
 //const {sequelize} = require("../db_connection.js")
-const {Empleado,Vacacion} =require('../db_connection')
+const { Empleado, Vacacion } = require('../db_connection')
 
 const getVacaciones = async (page = 1, limit = 20) => {
   const offset = (page - 1) * limit;
@@ -12,25 +12,25 @@ const getVacaciones = async (page = 1, limit = 20) => {
       limit,
       offset
     });
-    return { total: response.count, data: response.rows, currentPage: page } || null;
+    return { totalCount: response.count, data: response.rows, currentPage: page } || null;
   } catch (error) {
     console.error("Error al traer todas las Vacaciones", error)
     return false;
   }
 };
 
-const createVacaciones = async ({f_inicio, f_fin, id_empleado}) => {
+const createVacaciones = async ({ f_inicio, f_fin, id_empleado }) => {
 
   try {
-    
+
     const newVacaciones = await Vacacion.create({
-      f_inicio:f_inicio,
-       f_fin:f_fin,
-        id_empleado:id_empleado
+      f_inicio: f_inicio,
+      f_fin: f_fin,
+      id_empleado: id_empleado
     });
     return newVacaciones || null;
-    
-    
+
+
   } catch (error) {
     console.error({
       message: "Error al Crear nueva Vacacion",

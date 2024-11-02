@@ -2,16 +2,21 @@ const { getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado } = require('../controllers/empleadoController');
 
 const getAllEmpleadosHandlers = async (req, res) => {
-    const { page = 1 , limit = 20 } = req.query;
+    const { page, limit } = req.query;
     try {
         const response = await getAllEmpleados(Number(page), Number(limit)); // Llamamos a la función getEmpleados
-        console.log(response);
-        if (!response) return res.status(200).json(
-            {
-                message: 'No se encontraron Empleados',
-                data: {}
-            }
-        )
+        
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas Empleados',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
+        }
 
         return res.status(200).json({
             message: "Empleados obtenidos correctamente",
