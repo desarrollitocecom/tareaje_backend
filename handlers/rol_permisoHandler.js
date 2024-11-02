@@ -1,6 +1,6 @@
 
 const { createPermiso, createRol, getAllRols, getRolById, getAllPermisos, getPermisoById, getPermisosByRolId,updateRol } = require("../controllers/rol_permisoController");
-
+const jwt = require("jsonwebtoken");
 
 const createPermisoHandler = async (req, res) => {
 
@@ -27,10 +27,11 @@ const createPermisoHandler = async (req, res) => {
 
 const getRolPermisosHandler = async (req, res) => {
 
-    const { token } = req.body;
-
+    const { id } = req.params;
+    const {rol, usuario } = jwt.verify(req.user, process.env.JWT_SECRET);
+    //console.log(rol, id);
     try {
-        const permisos = await getPermisosByRolId(token);
+        const permisos = await getPermisosByRolId(rol);
 
         if (permisos === null) {
             return res.status(404).json({ message: "Rol no encontrado o sin permisos asociados", data: [] });

@@ -189,14 +189,13 @@ const deleteRol = async (id) => {
 };
 
 
-const getPermisosByRolId = async (token) => {
-    //console.log("id: ",token);
+
+
+const getPermisosByRolId = async (id_rol) => {
+    //console.log("id: ",id_rol);
     try {
         // Buscar el rol con sus permisos
-        const rol = await Rol.findOne({
-            where:{
-                token: token
-            }, 
+        const rol = await Rol.findByPk(id_rol, {
             include: {
                 model: Permiso,
                 as: 'permisos',
@@ -206,8 +205,8 @@ const getPermisosByRolId = async (token) => {
     
         // Si no existe el rol o no tiene permisos, devolvemos un array vacío
         if (!rol) return null;
-
-        return rol.permisos || [];
+        console.log(`rol ${id_rol} tiene los permisos: `,rol.permisos.map(permiso => permiso.nombre));
+        return rol.permisos.map(permiso => permiso.nombre) || [];
     } catch (error) {
         console.error("Error en getPermisosByRolId:", error.message);
         return false;
