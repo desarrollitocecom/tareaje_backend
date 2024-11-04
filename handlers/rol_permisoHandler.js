@@ -77,7 +77,12 @@ const createRolHandler = async (req, res) => {
 
 const getAllRolsHandler = async (req, res) => {
     const { page = 1, pageSize = 20 } = req.query;
-
+    if (isNaN(page) || page <= 0) {
+        return res.status(400).json({ message: "El page debe ser un numero" });
+    }
+    if (isNaN(pageSize) || pageSize <= 0) {
+        return res.status(400).json({ message: "El pageSize debe ser un numero" });
+    }
     try {
         const rols = await getAllRols(page, pageSize);
         

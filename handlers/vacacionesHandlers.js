@@ -25,7 +25,7 @@ const getVacacionHandler = async (req, res) => {
 const getVacacionesHandler = async (req, res) => {
   const { page = 1, limit = 20 } = req.query;
   try {
-    const respuesta = await getVacaciones(Number(page),Number(limit));
+    const response = await getVacaciones(Number(page),Number(limit));
     if(response.length === 0 || page>limit){
       return res.status(200).json(
           {message:'Ya no hay mas descansos',
@@ -39,7 +39,7 @@ const getVacacionesHandler = async (req, res) => {
   }
     return res.status(200).json({
       message: "Todas las Vacaciones",
-      data: respuesta,
+      data: response,
     });
   } catch (error) {
     console.error(error);

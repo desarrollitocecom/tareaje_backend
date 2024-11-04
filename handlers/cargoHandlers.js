@@ -21,6 +21,12 @@ const getCargoByIdHandler = async (req, res) => {
 // Handler para obtener todos los Cargos
 const getAllCargosHandler = async (req, res) => {
     const {page=1,limit=20}=req.query;
+    if (isNaN(page) || page <= 0) {
+        return res.status(400).json({ message: "El page debe ser un numero" });
+    }
+    if (isNaN(limit) || limit <= 0) {
+        return res.status(400).json({ message: "El limit debe ser un numero" });
+    }
     try {
         const cargos = await getAllCargos(Number(page),Number(limit));
         if(cargos.length === 0 || page>limit){

@@ -8,6 +8,12 @@ const { getTurnos,
 //Handlers para obtener los Turnos
 const getTurnosHandler = async (req, res) => {
     const {page=1,limit=20}=req.query;
+    if (isNaN(page) || page <= 0) {
+        return res.status(400).json({ message: "El page debe ser un numero" });
+    }
+    if (isNaN(limit) || limit <= 0) {
+        return res.status(400).json({ message: "El limit debe ser un numero" });
+    }
     try {
         const response = await getTurnos(Number(page),Number(limit));
         

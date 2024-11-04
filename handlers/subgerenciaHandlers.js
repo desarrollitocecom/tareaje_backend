@@ -8,6 +8,12 @@ const { getSubgerencias,
 //Handlers para obtener las Subgerenciaes
 const getSubgerenciasHandler = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
+    if (isNaN(page) || page <= 0) {
+        return res.status(400).json({ message: "El page debe ser un numero" });
+    }
+    if (isNaN(limit) || limit <= 0) {
+        return res.status(400).json({ message: "El limit debe ser un numero" });
+    }
     try {
         const response = await getSubgerencias(Number(page), Number(limit));
         if(response.length === 0 || page>limit){
