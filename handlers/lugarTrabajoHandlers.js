@@ -1,5 +1,5 @@
 const {
-     getLugarTrabajos,
+    getLugarTrabajos,
     createLugarTrabajo,
     getLugarTrabajo,
     updateLugarTrabajo,
@@ -8,17 +8,18 @@ const {
 
 //Handlers para obtener las LugarTrabajoes
 const getLugarTrabajosHandler = async (req, res) => {
-    const {page,limit}=req.query;
+    const { page = 1, limit = 20 } = req.query;
     try {
-        const response = await getLugarTrabajos(Number(page),Number(limit));
-        if(response.length === 0 || page>limit){
+        const response = await getLugarTrabajos(Number(page), Number(limit));
+        if (response.length === 0 || page > limit) {
             return res.status(200).json(
-                {message:'Ya no hay mas lugares de trabajo',
-                 data:{
-                    data:[],
-                    totalPage:response.currentPage,
-                    totalCount:response.totalCount
-                 }   
+                {
+                    message: 'Ya no hay mas lugares de trabajo',
+                    data: {
+                        data: [],
+                        totalPage: response.currentPage,
+                        totalCount: response.totalCount
+                    }
                 }
             );
         }
@@ -82,23 +83,23 @@ const createLugarTrabajoHandler = async (req, res) => {
 //handler para modificar una LugarTrabajo
 
 const updateLugarTrabajoHandler = async (req, res) => {
-    const {id} = req.params;
-    const  {nombre}  = req.body;
+    const { id } = req.params;
+    const { nombre } = req.body;
     const errores = [];
     if (!id || isNaN(id)) {
         errores.push('El ID es requerido y debe ser un Numero')
         console.log('id:' + id);
     }
-   
-    
-    if (!nombre || typeof nombre !== 'string' ) {
+
+
+    if (!nombre || typeof nombre !== 'string') {
         errores.push('El nombre es requerido y debe ser una cadena de texto válida')
     }
     if (errores.length > 0) {
         return res.status(400).json({ errores });
     }
     try {
-        const response = await updateLugarTrabajo(id, {nombre})
+        const response = await updateLugarTrabajo(id, { nombre })
         if (!response) {
             return res.status(201).json({
                 message: "El lugar trabajo no se encuentra ",
@@ -110,7 +111,7 @@ const updateLugarTrabajoHandler = async (req, res) => {
             data: response
         })
     } catch (error) {
-        res.status(404).json({ message: "Lugar de Trabajo no encontrada",error})
+        res.status(404).json({ message: "Lugar de Trabajo no encontrada", error })
     }
 };
 const deleteLugarTrabajoHandler = async (req, res) => {

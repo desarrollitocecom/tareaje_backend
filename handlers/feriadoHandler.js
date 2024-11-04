@@ -4,7 +4,7 @@ const { getAllFeriados, createFeriado, getFeriado, updateFeriado, deleteFeriado 
 
 // Handler para obtener todos los feriados con paginación
 const getAllFeriadosHandler = async (req, res) => {
-    const { page = 1, limit = 20 } = req.query;
+    const { page=1,limit=20 } = req.query;
 
     try {
         const response = await getAllFeriados(Number(page), Number(limit));

@@ -4,7 +4,7 @@ const { getAllDescansos, getDescansos, createDescansos, deleteDescanso, updateDe
 
 // Handler para obtener todos los descansos con paginación
 const getAllDescansosHandler = async (req, res) => {
-    const { page, limit } = req.query;
+    const { page=1,limit=20 } = req.query;
 
     try {
         const response = await getAllDescansos(Number(page) || 1, Number(limit) || 20);

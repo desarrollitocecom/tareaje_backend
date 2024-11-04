@@ -6,7 +6,7 @@ const { getFunciones,
 } = require('../controllers/funcionController');
 
 const getFuncionesHandler = async (req, res) => {
-    const { page , limit  } = req.query; 
+    const { page=1,limit=20  } = req.query; 
     try {
       
         const response = await getFunciones(Number(page), Number(limit));   
