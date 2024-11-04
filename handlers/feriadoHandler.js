@@ -4,18 +4,22 @@ const { getAllFeriados, createFeriado, getFeriado, updateFeriado, deleteFeriado 
 
 // Handler para obtener todos los feriados con paginación
 const getAllFeriadosHandler = async (req, res) => {
-    const { page = 1, limit = 20 } = req.query;
+    const { page=1,limit=20 } = req.query;
 
     try {
         const response = await getAllFeriados(Number(page), Number(limit));
 
-        if (!response || response.data.length === 0) {
-            return res.status(200).json({
-                message: 'No se encontraron feriados',
-                data: {}
-            });
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas Feriados',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
-
         return res.status(200).json({
             message: "Feriados obtenidos correctamente",
             data: response

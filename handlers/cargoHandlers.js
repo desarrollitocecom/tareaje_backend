@@ -12,24 +12,32 @@ const getCargoByIdHandler = async (req, res) => {
         if (!cargo) {
             return res.status(404).json({ message: 'Cargo no encontrado' });
         }
-        res.status(200).json({ data: cargo });
+       return res.status(200).json({ data: cargo });
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el cargo', details: error.message });
+       return res.status(500).json({ error: 'Error al obtener el cargo', details: error.message });
     }
 };
 
 // Handler para obtener todos los Cargos
 const getAllCargosHandler = async (req, res) => {
-    const {page,limit}=req.query;
+    const {page=1,limit=20}=req.query;
     try {
         const cargos = await getAllCargos(Number(page),Number(limit));
-        if(cargos.length === 0){
-            return res.status(200).json({message:'Ya no hay mas cargos'});
+        if(cargos.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas cargos',
+                 data:{
+                    data:[],
+                    totalPage:cargos.currentPage,
+                    totalCount:cargos.totalCount
+                 }   
+                }
+            );
         }
-        res.status(200).json({ data: cargos });
+       return res.status(200).json({ data: cargos });
 
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener los cargos', details: error.message });
+       return  res.status(500).json({ error: 'Error al obtener los cargos', details: error.message });
     }
 };
 

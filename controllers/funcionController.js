@@ -8,7 +8,7 @@ const getFunciones = async (page = 1, limit = 20) => {
             limit,
             offset
         });
-        return { total: count, data: rows , currentPage:page } || null;
+        return { totalCount: count, data: rows , currentPage:page } || null;
     } catch (error) {
         console.error('Error al obtener todas las funciones', error);
         return false;

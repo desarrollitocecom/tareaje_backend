@@ -1,4 +1,4 @@
-const { createUser, getUser, changePassword, signToken, getToken, changeUserData, getAllUsers, getUserById, deleteUser,logoutUser } = require("../controllers/usuarioController");
+const { createUser, getUser, changePassword, signToken, getToken, changeUserData, getAllUsers, getUserById, deleteUser, logoutUser } = require("../controllers/usuarioController");
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const { userSockets } = require("../sockets");
@@ -29,7 +29,7 @@ const createUserHandler = async (req, res) => {
     else if (!correoRegex.test(correo))
         errors.push("Formato de correo inválido");
 
-    console.log(errors);
+    //console.log(errors);
     if (errors.length > 0)
         return res.status(402).json({ message: "Se encontraron los siguientes errores", data: errors });
 
@@ -128,15 +128,17 @@ const loginHandler = async (req, res) => {
             expiresIn: process.env.JWT_EXPIRES_IN
         });
 
-         // Verificar si el usuario ya está conectado y forzar logout en otros dispositivos
-         const previousSocket = userSockets.get(usuario);
-         if (previousSocket) {
-             previousSocket.emit("forceLogout", { message: "Sesión cerrada en otro dispositivo", data: { usuario: usuario } });
-         }
+        // Verificar si el usuario ya está conectado y forzar logout en otros dispositivos
+        const previousSocket = userSockets.get(usuario);
+        //console.log("ususario; ",usuario);
+        //console.log("previousSocket: ",previousSocket);
+        if (previousSocket) {
+            previousSocket.emit("forceLogout", { message: "Sesión cerrada en otro dispositivo", data: { usuario: usuario } });
+        }
 
         const sesion = await signToken(usuario, token);
         if (sesion.token)
-            return res.status(200).json({ message: "Sesion iniciada", token, data: user });
+            return res.status(200).json({ message: "Sesion iniciada", token, rol: user.id_rol, data: true });
 
         return res.status(400).json({ message: "Error al iniciar la sesión", data: false });
     } catch (error) {
@@ -185,7 +187,6 @@ const getTokenHandler = async (req, res) => {
         return res.status(500).json({ message: "error en getTokenHandler", error: error.message });
     }
 
-
 };
 
 const getAllUsersHandler = async (req, res) => {
@@ -197,9 +198,10 @@ const getAllUsersHandler = async (req, res) => {
 
         // Verificar si la página solicitada está fuera de rango
         if (page > totalPages) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Página fuera de rango",
                 data: {
+                    data: [],
                     currentPage: page,
                     totalPages: totalPages,
                     totalCount: users.totalCount,
@@ -227,7 +229,9 @@ const getAllUsersHandler = async (req, res) => {
 
 const getUserByIdHandler = async (req, res) => {
 
-    const { id } = req.params;
+    const { id } = req.body;
+    //console.log("id: ",id);
+    
     try {
         const user = await getUserById(id);
         if (user)

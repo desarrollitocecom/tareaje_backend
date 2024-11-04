@@ -15,7 +15,7 @@ const loginMiddleware = async (req, res, next) => {
             return res.status(401).json({ message: "Sesión inválida o expiró debido a un inicio en otro dispositivo" });
         }
 
-        req.user = decoded; // Almacena la información del usuario en req para el próximo middleware
+        req.user = token; // Almacena la información del usuario en req para el próximo middleware
         next();
     } catch (error) {
         console.error("Error en loginMiddleware:", error.message);

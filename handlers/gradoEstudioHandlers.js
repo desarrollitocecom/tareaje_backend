@@ -8,12 +8,21 @@ const {
 
 // Handler para obtener todas las GradoEstudioes
 const getGradoEstudiosHandler = async (req, res) => {
+    const {page=1,limit=20}=req.query;
     try {
-        const response = await getGradoEstudios();
+        const response = await getGradoEstudios(Number(page),Number(limit));
         
         // Si no hay datos, devuelve un mensaje con estado 200
-        if (!response || response.length === 0) {
-            return res.status(200).json({ message: "No hay Grado de Estudios disponibles" });
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas Grados de Estudios',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
 
         // Si hay datos, devuélvelos con el mensaje correspondiente

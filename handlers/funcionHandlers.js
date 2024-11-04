@@ -6,12 +6,20 @@ const { getFunciones,
 } = require('../controllers/funcionController');
 
 const getFuncionesHandler = async (req, res) => {
-    const { page , limit  } = req.query; 
+    const { page=1,limit=20  } = req.query; 
     try {
       
         const response = await getFunciones(Number(page), Number(limit));   
-        if (!response.data.length) {
-            return res.status(204).send();
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas Funciones',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
         return res.status(200).json({
             message: 'Son las funciones',

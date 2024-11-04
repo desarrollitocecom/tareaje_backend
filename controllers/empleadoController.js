@@ -5,7 +5,7 @@ const getAllEmpleados = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
         const response = await Empleado.findAndCountAll({
-            attributes: ['nombres', 'apellidos', 'dni'],
+            attributes: ['id','nombres', 'apellidos', 'dni','celular'],
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
@@ -14,7 +14,7 @@ const getAllEmpleados = async (page = 1, limit = 20) => {
             limit,
             offset
         });
-        return { total: response.count, data: response.rows, currentPage: page } || null;
+        return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
         console.error("Error al obtener todos los empleados:", error);
         return false;

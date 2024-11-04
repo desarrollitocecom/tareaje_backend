@@ -7,10 +7,19 @@ const { getJurisdicciones,
 
 //Handlers para obtener las Jurisdicciones
 const getJurisdiccionesHandler = async (req, res) => {
+    const {page=1,limit=20}=req.query;
     try {
-        const response = await getJurisdicciones();
-        if (!response.length) {
-            res.status(204).send();
+        const response = await getJurisdicciones(Number(page),Number(limit));
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas Jurisdicciones',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
         return res.status(200).json({
             message: 'Son las Jurisdicciones',

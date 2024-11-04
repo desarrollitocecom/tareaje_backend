@@ -4,16 +4,21 @@ const { getAllDescansos, getDescansos, createDescansos, deleteDescanso, updateDe
 
 // Handler para obtener todos los descansos con paginación
 const getAllDescansosHandler = async (req, res) => {
-    const { page, limit } = req.query;
+    const { page=1,limit=20 } = req.query;
 
     try {
         const response = await getAllDescansos(Number(page) || 1, Number(limit) || 20);
         
-        if (!response || response.data.length === 0) {
-            return res.status(200).json({
-                message: 'No se encontraron descansos',
-                data: {}
-            });
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas descansos',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
 
         return res.status(200).json({

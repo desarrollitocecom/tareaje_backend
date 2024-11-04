@@ -137,17 +137,27 @@ const updatePermiso = async (id, nombre, descripcion) => {
     }
 };
 
-const updateRol = async (id, nombre, descripcion) => {
+const updateRol = async (id, nombre, descripcion, permisos = []) => { 
     try {
+       
         const rol = await Rol.findByPk(id);
         if (!rol) return null;
+
         const updates = {};
         if (nombre !== undefined) updates.nombre = nombre;
         if (descripcion !== undefined) updates.descripcion = descripcion;
+
         await rol.update(updates);
+
+        // Actualizar permisos asociados si se proporcionan
+        if (permisos.length > 0) {
+            const permisosEncontrados = await Permiso.findAll({ where: { id: permisos } });
+            await rol.setPermisos(permisosEncontrados); // Actualiza la relación del rol con los permisos
+        }
+
         return rol;
     } catch (error) {
-        console.error("Error al actualizar el rol:", error);
+        console.error("Error al actualizar el rol y sus permisos:", error);
         return false;
     }
 };
@@ -179,24 +189,22 @@ const deleteRol = async (id) => {
 };
 
 
-
-
 const getPermisosByRolId = async (id_rol) => {
-
+    //console.log("id: ",id_rol);
     try {
         // Buscar el rol con sus permisos
         const rol = await Rol.findByPk(id_rol, {
             include: {
                 model: Permiso,
                 as: 'permisos',
-                attributes: ['id', 'nombre', 'descripcion']
+                attributes: ['nombre']
             }
         });
-
+    
         // Si no existe el rol o no tiene permisos, devolvemos un array vacío
         if (!rol) return null;
-
-        return rol.permisos || [];
+        //console.log(`rol ${id_rol} tiene los permisos: `,rol.permisos.map(permiso => permiso.nombre));
+        return rol.permisos.map(permiso => permiso.nombre) || [];
     } catch (error) {
         console.error("Error en getPermisosByRolId:", error.message);
         return false;
