@@ -9,16 +9,24 @@ const { getSubgerencias,
 const getSubgerenciasHandler = async (req, res) => {
     try {
         const response = await getSubgerencias();
-        if (!response.length) {
-            res.status(204).send();
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas Subgerencias',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
         return res.status(200).json({
             message: 'Son las Subgerencias',
             data: response
         })
     } catch (error) {
-        console.error('Error al obtener todas las Subgerencias en el handlers', error)
-        return res.status(500).json({ message: "Error al obtener todas las Subgerencias en el handlers" })
+        console.error('Error al obtener todas las Subgerencias ', error)
+        return res.status(500).json({ message: "Error al obtener todas las Subgerencias " })
     }
 }
 //Handlers para obtener una Subgerencia 
@@ -34,13 +42,13 @@ const getSubgerenciaHandler = async (req, res) => {
 
         if (!response || response.length === 0) {
             return res.status(404).json({
-                message: "Función no encontrada",
+                message: "Subgerencias no encontrada",
                 data: []
             });
         }
 
         return res.status(200).json({
-            message: "Función encontrada",
+            message: "Subgerencias encontrada",
             data: response
         });
     } catch (error) {
@@ -119,7 +127,7 @@ const deleteSubgerenciaHandler = async (req, res) => {
             })
         }
         return res.status(200).json({
-            message: 'Función eliminada correctamente (estado cambiado a inactivo)'
+            message: 'Subgerencia eliminada correctamente'
         });
     } catch (error) {
         return res.status(404).json({ message: error.message });

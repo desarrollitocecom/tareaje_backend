@@ -36,6 +36,10 @@ module.exports = (sequelize) => {
                 model: 'Empleados', // Nombre de la tabla referenciada
                 key: 'id', // Clave referenciada
             }
+        },
+        photo_id:{
+            type: DataTypes.STRING,
+            allowNull: false
         }
     }, {
         tableName: 'Asistencias',

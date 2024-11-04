@@ -1,6 +1,5 @@
 const { Usuario, Rol, Empleado } = require("../db_connection");
 
-
 const createUser = async ({ usuario, contraseña, correo, id_rol, id_empleado }) => {
 
     try {
@@ -59,7 +58,8 @@ const signToken = async (usuario, jwt) => {
         const user = await getUser(usuario);
         if (user) {
             const updatedUser = await user.update({ token: jwt });
-            console.log(updatedUser.dataValues, jwt);
+            console.log(usuario,":",jwt);
+            
             return updatedUser;
         }
         return null;
@@ -143,10 +143,10 @@ const getAllUsers = async (page = 1, pageSize = 20) => {
 
 
 
-const getUserById = async (id) => {
+const getUserById = async (token) => {
     try {
         const user = await Usuario.findOne({
-            where: { id },
+            where: { token: token },
             attributes: ['id', 'usuario', 'correo', 'state', 'id_rol', 'id_empleado'],
             include: [
                 { model: Rol, as: 'rol', attributes: ['nombre'] },

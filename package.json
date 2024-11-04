@@ -13,6 +13,7 @@
 <<<<<<< HEAD
     "argon2": "^0.41.1",
     "axios": "^1.7.7",
+<<<<<<< HEAD
     "cron": "^3.1.8",
     "dotenv": "^16.4.5",
     "express": "^5.0.1",
@@ -23,6 +24,13 @@
     "express": "^5.0.1",
     "node-cron": "^3.0.3",
 >>>>>>> db748e976881fce521a3d8c6583df515361695e9
+=======
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+>>>>>>> origin/development
     "pg": "^8.13.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.4",

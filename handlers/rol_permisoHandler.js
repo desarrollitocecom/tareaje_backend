@@ -1,6 +1,6 @@
 
-const { createPermiso, createRol, getAllRols, getRolById, getAllPermisos, getPermisoById, getPermisosByRolId } = require("../controllers/rol_permisoController");
-
+const { createPermiso, createRol, getAllRols, getRolById, getAllPermisos, getPermisoById, getPermisosByRolId,updateRol } = require("../controllers/rol_permisoController");
+const jwt = require("jsonwebtoken");
 
 const createPermisoHandler = async (req, res) => {
 
@@ -27,13 +27,14 @@ const createPermisoHandler = async (req, res) => {
 
 const getRolPermisosHandler = async (req, res) => {
 
-    const { id_rol } = req.params;
-
+    const { id } = req.params;
+    const {rol, usuario } = jwt.verify(req.user, process.env.JWT_SECRET);
+    //console.log(rol, id);
     try {
-        const permisos = await getPermisosByRolId(id_rol);
+        const permisos = await getPermisosByRolId(rol);
 
         if (permisos === null) {
-            return res.status(404).json({ message: "Rol no encontrado o sin permisos asociados" });
+            return res.status(404).json({ message: "Rol no encontrado o sin permisos asociados", data: [] });
         }
 
         return res.status(200).json({
@@ -88,6 +89,7 @@ const getAllRolsHandler = async (req, res) => {
             return res.status(404).json({
                 message: "Página fuera de rango",
                 data: {
+                    data:[],
                     currentPage: page,
                     totalPages: totalPages,
                     totalCount: rols.totalCount,
@@ -136,6 +138,7 @@ const getAllPermisosHandler = async (req, res) => {
             return res.status(404).json({
                 message: "Página fuera de rango",
                 data: {
+                    data:[],
                     currentPage: page,
                     totalPages: totalPages,
                     totalCount: permisos.totalCount,
@@ -179,8 +182,8 @@ const deletePermisoHandler = async (req, res) => {
     try {
         const success = await deletePermiso(id);
         if (success)
-            return res.status(200).json({ message: "Permiso eliminado correctamente" });
-        return res.status(404).json({ message: "Permiso no encontrado" });
+            return res.status(200).json({ message: "Permiso eliminado correctamente", data: true });
+        return res.status(404).json({ message: "Permiso no encontrado", data: null });
     } catch (error) {
         console.error("Error en deletePermisoHandler:", error.message);
         return res.status(500).json({ message: "Error en deletePermisoHandler", error: error.message });
@@ -189,10 +192,10 @@ const deletePermisoHandler = async (req, res) => {
 
 const updateRolHandler = async (req, res) => {
     const { id } = req.params;
-    const updates = req.body;
+    const { nombre, descripcion, permisos} = req.body;
 
     try {
-        const rol = await updateRol(id, updates);
+        const rol = await updateRol(id, nombre, descripcion, permisos);
         if (rol)
             return res.status(200).json({ message: "Rol actualizado correctamente", data: rol });
         return res.status(404).json({ message: "Rol no encontrado", data: null });
@@ -208,8 +211,8 @@ const deleteRolHandler = async (req, res) => {
     try {
         const success = await deleteRol(id);
         if (success)
-            return res.status(200).json({ message: "Rol eliminado correctamente" });
-        return res.status(404).json({ message: "Rol no encontrado" });
+            return res.status(200).json({ message: "Rol eliminado correctamente", data: true });
+        return res.status(404).json({ message: "Rol no encontrado", data: null });
     } catch (error) {
         console.error("Error en deleteRolHandler:", error.message);
         return res.status(500).json({ message: "Error en deleteRolHandler", error: error.message });
@@ -218,10 +221,10 @@ const deleteRolHandler = async (req, res) => {
 
 const getPermisoByIdHandler = async (req, res) => {
 
-    const { id } = req.params;
+    const { token } = req.params;
 
     try {
-        const permiso = await getPermisoById(id);
+        const permiso = await getPermisoById(token);
         if (permiso)
             return res.status(200).json({ message: "Permiso obtenido correctamente", data: permiso });
         return res.status(404).json({ message: "Permiso no encontrado", data: null });

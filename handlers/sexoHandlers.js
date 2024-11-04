@@ -9,16 +9,24 @@ const { getSexos,
 const getSexosHandler = async (req, res) => {
     try {
         const response = await getSexos();
-        if (!response.length) {
-            res.status(204).send();
+        if(response.length === 0 || page>limit){
+            return res.status(200).json(
+                {message:'Ya no hay mas sexos',
+                 data:{
+                    data:[],
+                    totalPage:response.currentPage,
+                    totalCount:response.totalCount
+                 }   
+                }
+            );
         }
         return res.status(200).json({
-            message: 'Son las Sexoes',
+            message: 'Son los Sexos',
             data: response
         })
     } catch (error) {
-        console.error('Error al obtener todas las Sexoes en el handlers', error)
-        return res.status(500).json({ message: "Error al obtener todas las Sexoes en el handlers" })
+        console.error('Error al obtener todos las Sexos', error)
+        return res.status(500).json({ message: "Error al obtener todos las Sexos" })
     }
 }
 //Handlers para obtener una Sexo 
@@ -32,19 +40,19 @@ const getSexoHandler = async (req, res) => {
 
         if (!response || response.length === 0) {
             return res.status(404).json({
-                message: "Función no encontrada",
+                message: "Sexo no encontrado",
                 data: []
             });
         }
 
         return res.status(200).json({
-            message: "Función encontrada",
+            message: "Sexo encontrado",
             data: response
         });
     } catch (error) {
         console.error(error);
         return res.status(500).json({
-            message: "Error al buscar la función",
+            message: "Error al buscar el Sexo",
             error: error.message
         });
     }
@@ -121,7 +129,7 @@ const deleteSexoHandler = async (req, res) => {
             })
         }
         return res.status(200).json({
-            message: 'Función eliminada correctamente (estado cambiado a inactivo)'
+            message: 'Sexo eliminado correctamente '
         });
     } catch (error) {
         return res.status(404).json({ message: error.message });
