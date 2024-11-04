@@ -12,32 +12,41 @@ const getCargoByIdHandler = async (req, res) => {
         if (!cargo) {
             return res.status(404).json({ message: 'Cargo no encontrado' });
         }
-       return res.status(200).json({ data: cargo });
+        return res.status(200).json({ data: cargo });
     } catch (error) {
-       return res.status(500).json({ error: 'Error al obtener el cargo', details: error.message });
+        return res.status(500).json({ error: 'Error al obtener el cargo', details: error.message });
     }
 };
 
 // Handler para obtener todos los Cargos
 const getAllCargosHandler = async (req, res) => {
-    const {page,limit}=req.query;
+    const { page = 1, limit = 20 } = req.query;
+    const errores = [];
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page <= 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if(errores.length>0){
+        return res.status(400).json({ errores });
+    }
     try {
-        const cargos = await getAllCargos(Number(page),Number(limit));
-        if(cargos.length === 0 || page>limit){
+        const cargos = await getAllCargos(Number(page), Number(limit));
+        if (cargos.length === 0 || page > limit) {
             return res.status(200).json(
-                {message:'Ya no hay mas cargos',
-                 data:{
-                    data:[],
-                    totalPage:cargos.currentPage,
-                    totalCount:cargos.totalCount
-                 }   
+                {
+                    message: 'Ya no hay mas cargos',
+                    data: {
+                        data: [],
+                        totalPage: cargos.currentPage,
+                        totalCount: cargos.totalCount
+                    }
                 }
             );
         }
-       return res.status(200).json({ data: cargos });
+        return res.status(200).json({ data: cargos });
 
     } catch (error) {
-       return  res.status(500).json({ error: 'Error al obtener los cargos', details: error.message });
+        return res.status(500).json({ error: 'Error al obtener los cargos', details: error.message });
     }
 };
 
@@ -105,10 +114,10 @@ const updateCargoHandler = async (req, res) => {
     }
 };
 
-module.exports = { 
-    getCargoByIdHandler, 
-    getAllCargosHandler, 
-    createCargoHandler, 
-    deleteCargoHandler, 
-    updateCargoHandler 
+module.exports = {
+    getCargoByIdHandler,
+    getAllCargosHandler,
+    createCargoHandler,
+    deleteCargoHandler,
+    updateCargoHandler
 };

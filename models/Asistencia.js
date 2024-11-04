@@ -15,10 +15,6 @@ module.exports = (sequelize) => {
             type: DataTypes.TIME,
             allowNull: false
         },
-        photo_id: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
         estado: {
             type: DataTypes.ENUM('A', 'J', 'D', 'F', 'V', 'NA'),
             allowNull: false,

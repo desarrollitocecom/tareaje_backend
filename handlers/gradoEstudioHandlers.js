@@ -8,7 +8,15 @@ const {
 
 // Handler para obtener todas las GradoEstudioes
 const getGradoEstudiosHandler = async (req, res) => {
-    const {page,limit}=req.query;
+    const {page=1,limit=20}=req.query;
+    const errores = [];
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page <= 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if(errores.length>0){
+        return res.status(400).json({ errores });
+    }
     try {
         const response = await getGradoEstudios(Number(page),Number(limit));
         
