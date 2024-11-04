@@ -1,4 +1,3 @@
-// routes/cargoRutas.js
 const { Router } = require('express');
 const router = Router();
 
@@ -15,10 +14,10 @@ const {
 
 router.get('/', createPersonHandler);
 router.get('/', readPersonHandler);
-router.get('/dnikey/', updatePersonHandler);
-router.get('/dnikey/', deletePersonHandler);
-router.get('/dni/', getEmpleadoIdHandler);
-router.get('/id/', getPhotoHandler);
+router.get('/:dnikey', updatePersonHandler);
+router.get('/:dnikey', deletePersonHandler);
+router.get('/:dni', getEmpleadoIdHandler);
+router.get('/:id', getPhotoHandler);
 router.get('/', searchByFaceHandler);
 router.get('/', getProtocolsHandler);
 

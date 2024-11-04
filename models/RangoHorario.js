@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-    const RangoHorario = sequelize.define('Funcion', {
+    const RangoHorario = sequelize.define('RangoHorario', {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
@@ -28,12 +28,12 @@ module.exports = (sequelize) => {
                 key: 'id'
             }
         },
-        id_subgerencia: {
+        id_turno: {
             type: DataTypes.INTEGER,
             allowNull: true,
             references: {
-                model: 'Cargos', // Nombre de la tabla referenciada
-                key: 'id_subgerencia'
+                model: 'Turnos', // Nombre de la tabla referenciada
+                key: 'id'
             }
         }
     }, {
