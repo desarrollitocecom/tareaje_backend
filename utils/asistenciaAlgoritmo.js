@@ -1,4 +1,4 @@
-const { readPerson, getProtocols } = require('../controllers/axxonController');
+const { getProtocols } = require('../controllers/axxonController');
 const { createAsistencia } = require('../controllers/asistenciaController');
 
 // Rangos definidos de acuerdo a cada turno y a los cargos excepcionales : 

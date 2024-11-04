@@ -4,15 +4,33 @@ const { Empleado } = require('../models/Empleado');
 const getAsistenciaById = async (id) => {
     try {
         const asistencia = await asistencia.findOne({
-            where: {
-                id
-            },
+            where: { id },
             include: [{ model: Empleado, as: 'Empleado' }]
         });
         return asistencia;
            
     } catch (error) {
         console.error('Error al obtener la asistencia por ID: ', error);
+        throw error;
+    }
+};
+
+const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
+    const offset = (page - 1) * limit;
+    try {
+        const asistencias = await Asistencia.findAndCountAll({
+            where: { fecha },
+            include: [{ model: Asistencia, as: 'Asistencia' }],
+            limit,
+            offset
+        });
+        return {
+            total: asistencias.count,
+            data: asistencias.rows,
+            currentPage: page
+        } || null;
+    } catch (error) {
+        console.error('Error al obtener todos los asistencias:', error);
         throw error;
     }
 };
@@ -34,7 +52,7 @@ const getAllAsistencias = async (page = 1, limit = 20) => {
         console.error('Error al obtener todos los asistencias:', error);
         throw error;
     }
-}
+};
 
 const createAsistencia = async (asistencia) => {
     try {
@@ -44,7 +62,7 @@ const createAsistencia = async (asistencia) => {
         console.error('Error al crear una nueva asistencia:', error);
         throw error;
     }
-}
+};
 
 const updateAsistencia = async (id, newEstado) => {
     try {
