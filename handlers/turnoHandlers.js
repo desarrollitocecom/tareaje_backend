@@ -7,7 +7,7 @@ const { getTurnos,
 
 //Handlers para obtener los Turnos
 const getTurnosHandler = async (req, res) => {
-    const {page,limit}=req.query;
+    const {page=1,limit=20}=req.query;
     try {
         const response = await getTurnos(Number(page),Number(limit));
         

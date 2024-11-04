@@ -29,5 +29,6 @@ tareaje.use('/vacaciones',vacacionesRouter);
 tareaje.use('/auth',rol_permisoRouter);
 tareaje.use('/axxon',axxonRouter);
 tareaje.use('/descanso',descansoRouter);
+tareaje.use('/turno',turnoRouter);
 
 module.exports = tareaje;

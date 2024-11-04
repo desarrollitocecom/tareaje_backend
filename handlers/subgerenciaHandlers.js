@@ -7,8 +7,9 @@ const { getSubgerencias,
 
 //Handlers para obtener las Subgerenciaes
 const getSubgerenciasHandler = async (req, res) => {
+    const { page = 1, limit = 20 } = req.query;
     try {
-        const response = await getSubgerencias();
+        const response = await getSubgerencias(Number(page), Number(limit));
         if(response.length === 0 || page>limit){
             return res.status(200).json(
                 {message:'Ya no hay mas Subgerencias',

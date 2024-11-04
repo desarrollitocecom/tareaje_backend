@@ -23,7 +23,7 @@ const getVacacionHandler = async (req, res) => {
   }
 };
 const getVacacionesHandler = async (req, res) => {
-  const {page,limit}=req.query;
+  const { page = 1, limit = 20 } = req.query;
   try {
     const respuesta = await getVacaciones(Number(page),Number(limit));
     if(response.length === 0 || page>limit){

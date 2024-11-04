@@ -8,7 +8,7 @@ const {
 
 // Handler para obtener todas las GradoEstudioes
 const getGradoEstudiosHandler = async (req, res) => {
-    const {page,limit}=req.query;
+    const {page=1,limit=20}=req.query;
     try {
         const response = await getGradoEstudios(Number(page),Number(limit));
         

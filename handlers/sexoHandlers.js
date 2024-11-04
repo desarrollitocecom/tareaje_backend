@@ -7,8 +7,9 @@ const { getSexos,
 
 //Handlers para obtener las Sexoes
 const getSexosHandler = async (req, res) => {
+    const { page = 1, limit = 20 } = req.query;
     try {
-        const response = await getSexos();
+        const response = await getSexos(Number(page), Number(limit));
         if(response.length === 0 || page>limit){
             return res.status(200).json(
                 {message:'Ya no hay mas sexos',
