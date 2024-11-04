@@ -194,7 +194,7 @@ const getPhotoId = async (id) => {
     
     // El url en esta ocasión se maneja dentro de la función getPhotoId :
     try {
-        const response = await axios.get(`http://192.168.13.80:10000/firserver/GetImage/1/${id}`);
+        const response = await axios.get(`${AXXON_URL}/firserver/GetImage/1/${id}`);
         return response.data;
     } catch (error) {
         console.error("Error al obtener la imagen:", error);
