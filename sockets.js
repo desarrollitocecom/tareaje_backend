@@ -14,12 +14,14 @@ function initializeSocket(server) {
 
         // Evento de registro: asociamos el socket con el usuario
         socket.on("register", (userName) => {
+            console.log("registro:",userName);
             userSockets.set(userName, socket); // Asocia el ID de usuario con el socket
         });
 
         // Desconexión: eliminamos el socket del mapa
         socket.on("disconnect", () => {
             userSockets.forEach((value, key) => {
+                console.log("DESCONECTO PAPI");
                 if (value.id === socket.id) {
                     userSockets.delete(key); // Elimina el socket asociado al userName
                 }
