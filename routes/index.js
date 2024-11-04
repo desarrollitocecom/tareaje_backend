@@ -19,6 +19,7 @@ const descansoRouter=require('./descansoRouter')
 
 // Usa prefijos para organizar las rutas
 tareaje.use('/funciones', funcionRutas);
+
 tareaje.use('/sexos', sexoRutas);
 tareaje.use('/lugarestrabajos', lugarTrabajoRutas);
 tareaje.use('/subgerencias',subgerenciaRutas);

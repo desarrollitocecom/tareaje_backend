@@ -189,8 +189,6 @@ const deleteRol = async (id) => {
 };
 
 
-
-
 const getPermisosByRolId = async (id_rol) => {
     //console.log("id: ",id_rol);
     try {
@@ -205,7 +203,7 @@ const getPermisosByRolId = async (id_rol) => {
     
         // Si no existe el rol o no tiene permisos, devolvemos un array vacío
         if (!rol) return null;
-        console.log(`rol ${id_rol} tiene los permisos: `,rol.permisos.map(permiso => permiso.nombre));
+        //console.log(`rol ${id_rol} tiene los permisos: `,rol.permisos.map(permiso => permiso.nombre));
         return rol.permisos.map(permiso => permiso.nombre) || [];
     } catch (error) {
         console.error("Error en getPermisosByRolId:", error.message);
