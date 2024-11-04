@@ -11,7 +11,7 @@ const getAsistenciaById = async (id) => {
            
     } catch (error) {
         console.error('Error al obtener la asistencia por ID: ', error);
-        throw error;
+        return false;
     }
 };
 

@@ -41,6 +41,23 @@ const getAllRangosHorarios = async (page = 1, limit = 20) => {
     }
 };
 
+// Obtener todos los RangosHorario sin paginación
+const getAllRangosHorariosTotal = async () => {
+    try {
+        const rangosHorarios = await RangoHorario.findAll({
+            where: { state: true },
+            include: [
+                { model: Cargo, as: 'Cargo' },
+                { model: Turno, as: 'Turno' }
+            ]
+        });
+        return rangosHorarios;
+    } catch (error) {
+        console.error('Error al obtener todos los rangos horarios:', error);
+        return false;
+    }
+};
+
 // Crear un nuevo RangoHorario
 const createRangoHorario = async (rangoHorarioData) => {
     try {
@@ -87,6 +104,7 @@ const deleteRangoHorario = async (id) => {
 module.exports = {
     getRangoHorarioById,
     getAllRangosHorarios,
+    getAllRangosHorariosTotal,
     createRangoHorario,
     updateRangoHorario,
     deleteRangoHorario
