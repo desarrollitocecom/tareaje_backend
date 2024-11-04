@@ -130,6 +130,8 @@ const loginHandler = async (req, res) => {
 
         // Verificar si el usuario ya está conectado y forzar logout en otros dispositivos
         const previousSocket = userSockets.get(usuario);
+        //console.log("ususario; ",usuario);
+        //console.log("previousSocket: ",previousSocket);
         if (previousSocket) {
             previousSocket.emit("forceLogout", { message: "Sesión cerrada en otro dispositivo", data: { usuario: usuario } });
         }
@@ -234,7 +236,7 @@ const getAllUsersHandler = async (req, res) => {
 const getUserByIdHandler = async (req, res) => {
 
     const { id } = req.body;
-    console.log("id: ",id);
+    //console.log("id: ",id);
     
     try {
         const user = await getUserById(id);
