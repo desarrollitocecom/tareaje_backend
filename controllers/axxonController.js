@@ -1,14 +1,15 @@
 const axios = require('axios');
+const AXXON_URL = process.env;
 
 // CRUD URLs :
-const urlCreate = 'http://192.168.13.80:10000/firserver/CreatePerson';
-const urlUpdate = 'http://192.168.13.80:10000/firserver/UpdatePerson';
-const urlRead = 'http://192.168.13.80:10000/firserver/ReadPersons';
-const urlDelete = 'http://192.168.13.80:10000/firserver/DeletePersons';
+const urlCreate = `${AXXON_URL}/firserver/CreatePerson`;
+const urlUpdate = `${AXXON_URL}/firserver/UpdatePerson`;
+const urlRead = `${AXXON_URL}/firserver/ReadPersons`;
+const urlDelete = `${AXXON_URL}/firserver/DeletePersons`;
 
 // Protocols y FindFaces URLs :
-const urlProtocols = 'http://192.168.13.80:10000/firserver/GetProtocols';
-const urlFindFaces = 'http://192.168.13.80:10000/firserver/FindFaces';
+const urlProtocols = `${AXXON_URL}/firserver/GetProtocols`;
+const urlFindFaces = `${AXXON_URL}/firserver/FindFaces`;
 
 // Create Person en la Base de Datos de Axxon :
 const createPerson = async (nombres = null, apellidos = null, dni = null, cargo = null, turno = null, foto = null) => {
@@ -50,7 +51,7 @@ const createPerson = async (nombres = null, apellidos = null, dni = null, cargo 
         console.error('Se debe de emitir la consulta teniendo todos los datos solicitados...');
         return false;
     }
-}
+};
 
 // Read Person en la Base de Datos de Axxon :
 const readPerson = async () => {
@@ -81,14 +82,14 @@ const readPerson = async () => {
         console.error('Error al consulta la API ReadPerson: ', error);
         return false;
     }
-}
+};
 
 // Update Person en la Base de Datos de Axxon :
-const updatePerson = async (dni_key, nombres = null, apellidos = null, dni = null, cargo = null, turno = null) => {
+const updatePerson = async (dnikey, nombres = null, apellidos = null, dni = null, cargo = null, turno = null) => {
     
-    if(dni_key){
+    if(dnikey){
         // Consulta getEmpleadoId para determinar el Id y proceder con el update :
-        const id = await getEmpleadoId(dni_key);
+        const id = await getEmpleadoId(dnikey);
 
         if(id) {
             // Consulta formato JSON :
@@ -128,7 +129,7 @@ const updatePerson = async (dni_key, nombres = null, apellidos = null, dni = nul
         console.error('El DNI no ha sido ingresado correctamente...');
         return false;
     }
-}
+};
 
 // Delete Person en la Base de Datos de Axxon :
 const deletePerson = async (dni_key) => {
@@ -186,7 +187,7 @@ const getEmpleadoId = async (dni) => {
         console.error('Error en la función getEmpleadoId: ', error);
         return false;
     }
-}
+};
 
 // Obtener la Foto de la persona reconocida de Protocols Axxon :
 const getPhotoId = async (id) => {
@@ -199,7 +200,7 @@ const getPhotoId = async (id) => {
         console.error("Error al obtener la imagen:", error);
         return false;
     }
-}
+};
 
 // Obtener los datos de una persona si la foto es reconocida :
 const searchByFace = async (foto) => {
@@ -234,12 +235,12 @@ const searchByFace = async (foto) => {
         console.error('No se ingresó la imagen correctamente...');
         return false;
     }
-}
+};
 
-// Obtener los datos de las personas que hayan sido reconocidas en un rango:
-const getProtocols = async (fecha, rango) => {
+// Obtener los datos de las personas que hayan sido reconocidas en un rango :
+const getProtocols = async (rango) => {
     
-    if(fecha && rango){
+    if(rango){
         
         // Consulta formato JSON :
         const consulta = {
@@ -256,13 +257,14 @@ const getProtocols = async (fecha, rango) => {
             "sim_min": 1
         }
 
-        // Definición del Map: DNI - Fecha - Hora - Id Foto - Cargo - Turno
+        // Definición del Map: DNI - Fecha - Hora - Id Foto - Cargo - Turno :
         const uniqueAsistentes = new Map();
 
         // Extracción de información por consulta :
         try{
             const response = await axios.post(urlProtocols, consulta);
             const protocols = response.data.Protocols;
+            const fecha = rango[0].split('T')[0];
             protocols.forEach(protocol => {
                 if(protocol.Hits && protocol.Hits.length > 0){
                     const foto = protocol.Hits[0].id;
@@ -272,7 +274,7 @@ const getProtocols = async (fecha, rango) => {
                     const hora = protocol.timestamp.split('T')[1].split('.')[0];
                     const personInfo = {dni, fecha, hora, foto, cargo, turno};
 
-                    // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana
+                    // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana :
                     if (!uniqueAsistentes.has(dni)) {
                         uniqueAsistentes.set(dni, personInfo);  // Si no existe, lo agregamos
                     } else {
@@ -284,7 +286,7 @@ const getProtocols = async (fecha, rango) => {
                 }
             });
 
-            // Convertir el Map a un array para devolverlo
+            // Convertir el Map a un array para devolverlo :
             return Array.from(uniqueAsistentes.values());
         }
         catch (error) {
@@ -296,7 +298,7 @@ const getProtocols = async (fecha, rango) => {
         console.error('Error en la obtención de la fecha y rango...');
         return false;
     }
-}
+};
 
 module.exports = {
     createPerson,
@@ -307,4 +309,4 @@ module.exports = {
     getPhotoId,
     searchByFace,
     getProtocols
-}
+};
