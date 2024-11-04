@@ -9,7 +9,8 @@ const permisoAutorizacion = (permisosPermitidos = []) => {
         }
         const { rol } = jwt.verify(req.user, process.env.JWT_SECRET);
         const permisos = await getPermisosByRolId(rol); // Cargar permisos si no están en req.user
-
+       console.log("permisos:"+permisos);
+       
         console.log(permisosPermitidos.join(", "));
         const hasPermission = permisosPermitidos.some(permiso => permisos.includes(permiso));
           
