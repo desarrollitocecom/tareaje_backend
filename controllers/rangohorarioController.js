@@ -25,8 +25,8 @@ const getAllRangosHorarios = async (page = 1, limit = 20) => {
         const rangosHorarios = await RangoHorario.findAndCountAll({
             where: { state: true },
             include: [
-                { model: Cargo, as: 'Cargo' },
-                { model: Turno, as: 'Turno' }
+                { model: Cargo, as: 'cargo' },
+                { model: Turno, as: 'turno' }
             ],
             limit,
             offset
@@ -48,8 +48,8 @@ const getAllRangosHorariosTotal = async () => {
         const rangosHorarios = await RangoHorario.findAll({
             where: { state: true },
             include: [
-                { model: Cargo, as: 'Cargo' },
-                { model: Turno, as: 'Turno' }
+                { model: Cargo, as: 'cargo' },
+                { model: Turno, as: 'turno' }
             ]
         });
         return rangosHorarios;
