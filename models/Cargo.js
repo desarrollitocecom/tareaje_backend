@@ -28,6 +28,11 @@ module.exports = (sequelize) => {
                 key: 'id',
             }
         },
+        state:{
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        }
     }, {
         tableName: 'Cargos',
         timestamps: true
