@@ -5,6 +5,7 @@ const getAllFeriados = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit; // Cálculo del offset
     try {
         const { count, rows } = await Feriado.findAndCountAll({
+            where: { state: true },
             limit,
             offset
         });
