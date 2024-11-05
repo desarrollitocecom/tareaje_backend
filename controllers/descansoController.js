@@ -3,9 +3,9 @@ const { Descanso, Empleado } = require ("../db_connection");
 const getAllDescansos = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
-        const response = await Descanso.findAndCountAll({
-       
-            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres','apellidos'] }],
+        const response = await Descanso.findAndCountAll({ 
+            where: { state: true },
+           include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres','apellidos'] }],
             limit,
             offset
         });

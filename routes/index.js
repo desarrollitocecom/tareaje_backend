@@ -16,7 +16,7 @@ const jurisdiccionRouter=require('./jurisdiccionRouter');
 const regimenLaboralRouter=require('./regimenLaboralRouter')
 const turnoRouter=require('./turnoRouter')
 const descansoRouter=require('./descansoRouter')
-
+const feriadoRouter=require('./feriadoRouter')
 // Usa prefijos para organizar las rutas
 tareaje.use('/funciones', funcionRutas);
 
@@ -34,5 +34,5 @@ tareaje.use('/turnos',turnoRouter);
 tareaje.use('/regimenlaborales',regimenLaboralRouter);
 tareaje.use('/gradoestudios',gradoEstudioRouter);
 tareaje.use('/jurisdicciones',jurisdiccionRouter);
-
+tareaje.use('/feriados',feriadoRouter);
 module.exports = tareaje;

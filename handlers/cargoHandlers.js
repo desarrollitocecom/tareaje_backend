@@ -26,7 +26,7 @@ const getAllCargosHandler = async (req, res) => {
     if (page <= 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-    if(errores.length>0){
+    if (errores.length > 0) {
         return res.status(400).json({ errores });
     }
     try {
@@ -53,7 +53,11 @@ const getAllCargosHandler = async (req, res) => {
 // Handler para crear un nuevo Cargo
 const createCargoHandler = async (req, res) => {
     const { nombre, sueldo, id_subgerencia } = req.body;
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
 
+    if (!nombre || typeof nombre !== 'string' || !validaNombre) {
+        res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
     // Validación de campos requeridos
     if (!nombre || !sueldo || !id_subgerencia) {
         return res.status(400).json({ error: 'Todos los campos son requeridos' });

@@ -76,7 +76,8 @@ const getTurnoHandler = async (req, res) => {
 const createTurnoHandler = async (req, res) => {
     const { nombre } = req.body;
 
-    const validaNombre = /^[a-zA-Z]+( [a-zA-Z]+)*$/.test(nombre);
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+
 
 
     if (!nombre || typeof nombre !== 'string' || !validaNombre)

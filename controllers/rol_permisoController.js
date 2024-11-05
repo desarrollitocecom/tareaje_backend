@@ -194,6 +194,7 @@ const getPermisosByRolId = async (id_rol) => {
     try {
         // Buscar el rol con sus permisos
         const rol = await Rol.findByPk(id_rol, {
+            
             include: {
                 model: Permiso,
                 as: 'permisos',

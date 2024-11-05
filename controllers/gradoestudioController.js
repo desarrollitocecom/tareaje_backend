@@ -5,6 +5,7 @@ const getGradoEstudios = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
         const { count, rows } = await GradoEstudios.findAndCountAll({
+            where: { state: true },
             limit,
             offset
         });
