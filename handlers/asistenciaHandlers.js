@@ -9,12 +9,23 @@ const {
 // Handler Obtener Asistencia por Id :
 const getAsistenciaByIdHandler = async (req,res) => {
     const { id } = req.params;
-    if (!id || isNaN(id)){
-        return res.status(400).json({ message: 'El parámetro ID es requerido y debe ser un Integer' });
+    if (!id){
+        return res.status(400).json({ message: 'El parámetro ID es requerido' });
     }
     try {
-        const data = await getAsistenciaById(id);
-        return res.status(200).json(data);
+        const asistencia = await getAsistenciaById(id);
+        if(asistencia){
+            return res.status(200).json({
+                message: 'Asistencia obtenida correctamente',
+                data: asistencia
+            });
+        }
+        else{
+            return res.status(400).json({
+                message: 'La asistencia no fue encontrada para este ID',
+                data: null
+            });
+        }
     } catch (error) {
         return res.status(500).json({
             message: 'Error al obtener la asistencia de esa persona',
@@ -25,7 +36,7 @@ const getAsistenciaByIdHandler = async (req,res) => {
 
 // Handler Obtener Asistencias por Fecha :
 const getAsistenciaDiariaHandler = async (req, res) => {
-    const { fecha } = req.params;
+    const { fecha } = req.body;
     const { page=1, limit=20 } = req.query;
     const errores = [];
     if (isNaN(page)) errores.push('El page debe ser un entero');
@@ -61,7 +72,7 @@ const getAsistenciaDiariaHandler = async (req, res) => {
 
 // Handler Obtener Asistencias por Rango :
 const getAsistenciaRangoHandler = async (req, res) => {
-    const { inicio, fin } = req.params;
+    const { inicio, fin } = req.body;
     const { page = 1, limit = 20 } = req.query;
     const errores = [];
     if (isNaN(page)) errores.push('El page debe ser un entero');
@@ -132,7 +143,7 @@ const getAllAsistenciasHandler = async (req, res) => {
 const updateAsistenciaHandler = async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body;
-    if (!id || isNaN(id)){
+    if (!id){
         return res.status(400).json({ message: 'El parámetro ID es requerido y debe ser un entero' });
     }
     if (!estado) {

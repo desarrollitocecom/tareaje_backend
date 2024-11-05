@@ -5,7 +5,14 @@ const { Op } = require('sequelize');
 const getAsistenciaById = async (id) => {
     try {
         const asistencia = await asistencia.findByPk(id);
-        return asistencia;       
+        if(asistencia){
+            console.log('Asistencia obtenida correctamente...');
+            return asistencia;
+        }
+        else{
+            console.error('No se encontró la asistencia...');
+            return null;
+        }
     } catch (error) {
         console.error('Error al obtener la asistencia por ID: ', error);
         return false;
@@ -116,7 +123,14 @@ const createAsistencia = async ({fecha, hora, estado, id_empleado, photo_id}) =>
     }
     try {
         const newAsistencia = await Asistencia.create({fecha, hora, estado, id_empleado, photo_id});
-        return newAsistencia;
+        if(newAsistencia){
+            console.log('Asistencia creada con éxito...');
+            return newAsistencia;
+        }
+        else{
+            console.error('No se pudo crear la asistencia...');
+            return null;
+        }
     } catch (error) {
         console.error('Error al crear una nueva asistencia:', error);
         return false;
@@ -138,7 +152,7 @@ const updateAsistencia = async (id, newEstado) => {
             }
         );
         if (numUpdated === 0) {
-            console.log('No se encontró asistencia para actualizar o ya está actualizada');
+            console.error('No se encontró asistencia para actualizar o ya está actualizada');
             return false;
         }
         console.log('Estado de asistencia actualizado correctamente');
