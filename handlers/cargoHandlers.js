@@ -50,25 +50,49 @@ const getAllCargosHandler = async (req, res) => {
     }
 };
 
-// Handler para crear un nuevo Cargo
 const createCargoHandler = async (req, res) => {
     const { nombre, sueldo, id_subgerencia } = req.body;
+    const errores = [];
+
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-
-    if (!nombre || typeof nombre !== 'string' || !validaNombre) {
-        res.status(400).json({ error: 'Todos los campos son requeridos' });
-    }
-    // Validación de campos requeridos
-    if (!nombre || !sueldo || !id_subgerencia) {
-        return res.status(400).json({ error: 'Todos los campos son requeridos' });
-    }
-    if (typeof sueldo !== 'number' || isNaN(sueldo)) {
-        return res.status(400).json({ error: 'El campo sueldo debe ser un número válido' });
+    if (!validaNombre) {
+        errores.push('El campo nombre contiene caracteres inválidos');
     }
 
+    if (!sueldo) {
+        errores.push('El campo sueldo es requerido');
+    } 
+    if (isNaN(sueldo)) {
+        errores.push('El campo sueldo debe ser un número válido');
+    }
+    if (sueldo <= 0) {
+        errores.push('El campo sueldo debe ser mayor a 0');
+    }
+
+    if (!id_subgerencia) {
+        errores.push('El campo id_subgerencia es requerido');
+    }
+    if (isNaN(id_subgerencia)) {
+        errores.push('El campo id_subgerencia debe ser un número válido');
+    }
+
+    if (errores.length > 0) {
+        return res.status(400).json({ errores });
+    }
 
     try {
-        const newCargo = await createCargo({ nombre, sueldo, id_subgerencia });
+        const subgerenciaExiste = await Subgerencia.findByPk(id_subgerencia);
+        if (!subgerenciaExiste) {
+            return res.status(404).json({ error: 'La subgerencia con el ID proporcionado no existe' });
+        }
+
+        const newCargo = await createCargo({ nombre, sueldo: Number(sueldo), id_subgerencia: Number(id_subgerencia) });
         res.status(201).json({ message: 'Cargo creado exitosamente', data: newCargo });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el cargo', details: error.message });
@@ -93,18 +117,39 @@ const deleteCargoHandler = async (req, res) => {
 const updateCargoHandler = async (req, res) => {
     const { id } = req.params;
     const { nombre, sueldo, id_subgerencia } = req.body;
+    const errores = [];
 
-    // Validación: Asegúrate de que sueldo sea un número válido y no un valor NaN o string
-    if (sueldo !== undefined && (typeof sueldo !== 'number' || isNaN(sueldo))) {
-        return res.status(400).json({ error: 'El campo sueldo debe ser un número válido' });
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre contiene caracteres inválidos');
     }
 
-    // Validación: Asegúrate de que id_subgerencia corresponde a una subgerencia existente
-    if (id_subgerencia !== undefined) {
+    if (!sueldo) {
+        errores.push('El campo sueldo es requerido');
+    } 
+    if (isNaN(sueldo)) {
+        errores.push('El campo sueldo debe ser un número válido');
+    }
+    if (sueldo <= 0) {
+        errores.push('El campo sueldo debe ser mayor a 0');
+    }
+
+    if (!id_subgerencia || isNaN((id_subgerencia))) {
+        errores.push('El campo id_subgerencia debe ser un número válido');
+    } else {
         const subgerenciaExists = await Subgerencia.findByPk(id_subgerencia);
         if (!subgerenciaExists) {
-            return res.status(400).json({ error: 'El id_subgerencia debe corresponder a una subgerencia existente' });
+            errores.push('El id_subgerencia debe corresponder a una subgerencia existente');
         }
+    }
+    if (errores.length > 0) {
+        return res.status(400).json({ errores });
     }
 
     try {
@@ -117,6 +162,7 @@ const updateCargoHandler = async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar el cargo', details: error.message });
     }
 };
+
 
 module.exports = {
     getCargoByIdHandler,
