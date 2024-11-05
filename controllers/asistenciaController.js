@@ -126,7 +126,7 @@ const createAsistencia = async ({fecha, hora, estado, id_empleado, photo_id}) =>
 // Actualizar la Asistencia de una persona :
 const updateAsistencia = async (id, newEstado) => {
     try {
-        const asistencia = await Asistencia.findByPk(id); 
+        const asistencia = await Asistencia.findByPk(id);
         if (!asistencia) {
             console.error('No se encontró la asistencia con el ID proporcionado...');
             return false;
