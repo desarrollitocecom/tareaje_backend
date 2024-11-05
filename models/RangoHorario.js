@@ -8,11 +8,11 @@ module.exports = (sequelize) => {
             primaryKey: true
         },
         inicio: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.TIME,
             allowNull: false,
         },
         fin: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.TIME,
             allowNull: false
         },
         state: {
@@ -37,8 +37,14 @@ module.exports = (sequelize) => {
             }
         }
     }, {
-        tableName: 'RangosHorario',
+        tableName: 'RangoHorarios',
         timestamps: true
     });
+
+    RangoHorario.associate = (models) => {
+        RangoHorario.belongsTo(models.Cargo, { foreignKey: 'id_cargo', as: 'cargo' });
+        RangoHorario.belongsTo(models.Turno, { foreignKey: 'id_turno', as: 'turno' });
+    };
+
     return RangoHorario;
 };

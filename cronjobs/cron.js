@@ -1,13 +1,15 @@
 const cron = require('node-cron');
-const registroAsistencia = require('../utils/asistenciaAlgoritmo');
+const { createAsistenciasRango } = require('../utils/asistenciaAlgorithm');
 
-const horas = ['07:06', '08:06', '15:06', '19:06', '23:06'];
+const minutos = ['06'];
 
 function configurarCronJobs() {
-    horas.forEach(hora => {
-        const [hour, minute] = hora.split(':');
-        cron.schedule(`${minute} ${hour} * * *`, () => {
-            registroAsistencia();
+    const dia = new Date();
+    const hora = dia.getHours;
+    const diaString = dia.toISOString().split('T')[0];
+    minutos.forEach(minute => {
+        cron.schedule(`${minute} * * * *`, () => { // `*` en la posición de hora significa que se ejecuta cada hora
+            createAsistenciasRango(diaString, hora);
         });
     });
 }

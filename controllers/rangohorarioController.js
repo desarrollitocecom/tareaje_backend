@@ -3,13 +3,7 @@ const { RangoHorario, Turno, Cargo } = require('../db_connection');
 // Obtener un RangoHorario por ID con su Turno
 const getRangoHorarioById = async (id) => {
     try {
-        const rangoHorario = await RangoHorario.findOne({
-            where: { id },
-            include: [
-                { model: Cargo, as: 'Cargo' },
-                { model: Turno, as: 'Turno' }
-            ]
-        });
+        const rangoHorario = await RangoHorario.findByPk(id);
         return rangoHorario;
     } catch (error) {
         console.error('Error al obtener el rango horario por ID:', error);
@@ -58,6 +52,41 @@ const getAllRangosHorariosTotal = async () => {
     }
 };
 
+const getCargoTurnoIdsByInicio = async (hora_inicio) => {
+    try {
+        const cargosConTurnos = await RangoHorario.findAll({
+            attributes: [],
+            where: {
+                inicio: hora_inicio,
+                state: true
+            },
+            include: [
+                {
+                    model: Cargo,
+                    as: 'cargo',
+                    attributes: ['id']
+                },
+                {
+                    model: Turno,
+                    as: 'turno',
+                    attributes: ['id']
+                }
+            ]
+        });
+
+        // Mapea el resultado para obtener solo los IDs
+        const ids = cargosConTurnos.map((rango) => ({
+            cargoId: rango.cargo.id,
+            turnoId: rango.turno.id
+        }));
+
+        return ids;
+    } catch (error) {
+        console.error('Error al obtener los IDs de cargos y turnos por hora de inicio:', error);
+        return false;
+    }
+};
+
 // Crear un nuevo RangoHorario
 const createRangoHorario = async (rangoHorarioData) => {
     try {
@@ -97,7 +126,7 @@ const deleteRangoHorario = async (id) => {
         return rangoHorario;
     } catch (error) {
         console.error('Error al eliminar el rango horario:', error);
-        throw error;
+        return false
     }
 };
 
@@ -105,6 +134,7 @@ module.exports = {
     getRangoHorarioById,
     getAllRangosHorarios,
     getAllRangosHorariosTotal,
+    getCargoTurnoIdsByInicio,
     createRangoHorario,
     updateRangoHorario,
     deleteRangoHorario
