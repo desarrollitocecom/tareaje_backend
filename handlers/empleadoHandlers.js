@@ -2,7 +2,15 @@ const { getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado } = require('../controllers/empleadoController');
 
 const getAllEmpleadosHandlers = async (req, res) => {
-    const { page, limit } = req.query;
+    const { page=1,limit=20 } = req.query;
+    const errores = [];
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page <= 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if(errores.length>0){
+        return res.status(400).json({ errores });
+    }
     try {
         const response = await getAllEmpleados(Number(page), Number(limit)); // Llamamos a la función getEmpleados
         

@@ -23,9 +23,17 @@ const getVacacionHandler = async (req, res) => {
   }
 };
 const getVacacionesHandler = async (req, res) => {
-  const {page,limit}=req.query;
+  const { page = 1, limit = 20 } = req.query;
+  const errores = [];
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page <= 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if(errores.length>0){
+        return res.status(400).json({ errores });
+    }
   try {
-    const respuesta = await getVacaciones(Number(page),Number(limit));
+    const response = await getVacaciones(Number(page),Number(limit));
     if(response.length === 0 || page>limit){
       return res.status(200).json(
           {message:'Ya no hay mas descansos',
@@ -39,7 +47,7 @@ const getVacacionesHandler = async (req, res) => {
   }
     return res.status(200).json({
       message: "Todas las Vacaciones",
-      data: respuesta,
+      data: response,
     });
   } catch (error) {
     console.error(error);

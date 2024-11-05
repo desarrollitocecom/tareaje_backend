@@ -5,7 +5,7 @@ const getAllEmpleados = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
         const response = await Empleado.findAndCountAll({
-            attributes: ['nombres', 'apellidos', 'dni'],
+            attributes: ['id','nombres', 'apellidos', 'dni','celular'],
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
@@ -172,9 +172,38 @@ const getEmpleadoByDni = async (dni) => {
         return false;
     }
 };
+
+const getEmpleadoDNIByCargoTurno = async (cargo, turno) => {
+    try {
+        const empleados = await Empleado.findAll({
+            attributes: ['dni'],
+            include: [
+                { 
+                    model: Cargo, 
+                    as: 'cargo', 
+                    attributes: [],
+                    where: { nombre: cargo }
+                },
+                { 
+                    model: Turno, 
+                    as: 'turno', 
+                    attributes: [],
+                    where: { nombre: turno }
+                }
+            ]
+        });
+        const dnis = empleados.map(empleado => empleado.dni);
+        return dnis;
+    } catch (error) {
+        console.error('Error al obtener los empleados por cargo y turno:', error);
+        return false;
+    }
+};
+
 module.exports = {
     getEmpleadoByDni,
     getAllEmpleados,
+    getEmpleadoDNIByCargoTurno,
     getEmpleado,
     createEmpleado,
     deleteEmpleado,

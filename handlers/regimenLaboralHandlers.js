@@ -7,19 +7,29 @@ const { getRegimenLaborales,
 
 //Handlers para obtener las RegimenLaborales
 const getRegimenLaboralesHandler = async (req, res) => {
-const {page,limit}=req.query;
+    const { page = 1, limit = 20 } = req.query;
+    const errores = [];
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page <= 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if(errores.length>0){
+        return res.status(400).json({ errores });
+    }
+
     try {
-        const response = await getRegimenLaborales(Number(page),Number(limit));
-        
+        const response = await getRegimenLaborales(Number(page), Number(limit));
+
         // Si no hay datos, devuelve un mensaje con estado 200
-        if(response.length === 0 || page>limit){
+        if (response.length === 0 || page > limit) {
             return res.status(200).json(
-                {message:'Ya no hay mas regimen laborales',
-                 data:{
-                    data:[],
-                    totalPage:response.currentPage,
-                    totalCount:response.totalCount
-                 }   
+                {
+                    message: 'Ya no hay mas regimen laborales',
+                    data: {
+                        data: [],
+                        totalPage: response.currentPage,
+                        totalCount: response.totalCount
+                    }
                 }
             );
         }
@@ -85,20 +95,20 @@ const createRegimenLaboralHandler = async (req, res) => {
 //handler para modificar una RegimenLaboral
 
 const updateRegimenLaboralHandler = async (req, res) => {
-    const {id} = req.params;
-    const  {nombre}  = req.body;
+    const { id } = req.params;
+    const { nombre } = req.body;
     const errores = [];
     if (!id || isNaN(id)) {
         errores.push('El ID es requerido y debe ser un Numero')
     }
-    if (!nombre || typeof nombre !== 'string' ) {
+    if (!nombre || typeof nombre !== 'string') {
         errores.push('El nombre es requerido y debe ser una cadena de texto válida')
     }
     if (errores.length > 0) {
         return res.status(400).json({ errores });
     }
     try {
-        const response = await updateRegimenLaboral(id, {nombre})
+        const response = await updateRegimenLaboral(id, { nombre })
         if (!response) {
             return res.status(201).json({
                 message: "El Regimen Laboral no se encuentra ",
@@ -110,7 +120,7 @@ const updateRegimenLaboralHandler = async (req, res) => {
             data: response
         })
     } catch (error) {
-        res.status(404).json({ message: "Regimen Laboral no encontrado",error})
+        res.status(404).json({ message: "Regimen Laboral no encontrado", error })
     }
 };
 const deleteRegimenLaboralHandler = async (req, res) => {
@@ -127,7 +137,7 @@ const deleteRegimenLaboralHandler = async (req, res) => {
         if (!response) {
             return res.status(200).json({
                 message: `No se encontró el Regimen Laboral con ID : ${id}`,
-                data:{}
+                data: {}
             })
         }
         return res.status(200).json({

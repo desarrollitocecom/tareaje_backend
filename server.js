@@ -26,7 +26,7 @@ app.get("/", (req, res) => {
 
 server.listen(PORT_TAREAJE, () => {
   console.log(`TAREAJE: Server is running on port ${PORT_TAREAJE}`);
-  sequelize.sync({ force: false })
+  sequelize.sync({ alter: false })
     .then(() => console.log("Database is connected"))
     .catch(err => console.error("Error connecting to the database:", err));
 });
