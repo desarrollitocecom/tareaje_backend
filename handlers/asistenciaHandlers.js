@@ -1,17 +1,19 @@
-const { 
-    createAsistencia,
+const {
     getAsistenciaById,
+    getAsistenciaDiaria,
+    getAsistenciaRango,
+    getAllAsistencias,
     updateAsistencia
 } = require('../controllers/asistenciaController');
 
-// Handler ReadPerson :
+// Handler Obtener Asistencia por Id :
 const getAsistenciaByIdHandler = async (req,res) => {
     const { id } = req.params;
     if (!id || isNaN(id)){
         return res.status(400).json({ message: 'El parámetro ID es requerido y debe ser un Integer' });
     }
     try {
-        const data = await getAsistenciaById(dni);
+        const data = await getAsistenciaById(id);
         return res.status(200).json(data);
     } catch (error) {
         return res.status(500).json({
@@ -21,53 +23,119 @@ const getAsistenciaByIdHandler = async (req,res) => {
     }
 };
 
-// Handler CreateAsistencia :
-const createAsistenciaHandler = async (req, res) => {
-    const { fecha, hora, dni, foto, estado, id_empleado } = req.body;
-    if (!fecha || typeof(fecha) !== 'string'){
-        return res.status(400).json({ message: 'El parámetro FECHA es requerido y debe ser un String' });
-    }
-    if (!hora || typeof(hora) !== 'string'){
-        return res.status(400).json({ message: 'El parámetro HORA es requerido y debe ser un String' });
-    }
-    if (!dni || typeof(foto) !== 'string'){
-        return res.status(400).json({ message: 'El parámetro FOTO es requerido y debe ser un String' });
-    }
-    if (!estado || typeof(estado) !== 'string'){
-        return res.status(400).json({ message: 'El parámetro ESTADO es requerido y debe ser un String' });
-    }
-    if (!id_empleado || isNaN(id_empleado)){
-        return res.status(400).json({ message: 'El parámetro ID EMPLEADO es requerido y debe ser un String' });
+// Handler Obtener Asistencias por Fecha :
+const getAsistenciaDiariaHandler = async (req, res) => {
+    const { fecha } = req.params;
+    const { page=1, limit=20 } = req.query;
+    const errores = [];
+    if (isNaN(page)) errores.push('El page debe ser un entero');
+    if (page <= 0) errores.push('El page debe ser un entero mayor a cero');
+    if (isNaN(limit)) errores.push('El limit debe ser un entero');
+    if (limit <= 0) errores.push('El limit debe ser un entero mayor a cero');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El formato para el parámetro FECHA es incorrecto');
+    if(errores.length > 0){
+        return res.status(400).json({ errores });
     }
     try {
-        const result = await createAsistencia(fecha, hora, dni, foto, estado, id_empleado);
-        if (result) {
-            res.status(200).json({ 
-                message: 'Asistencia creada con éxito',
-                success: result
-            });
-        } else {
-            res.status(404).json({ 
-                message: 'No se pudo crear la asistencia',
-                success: result
+        const response = await getAsistenciaDiaria(Number(page), Number(limit), fecha);
+        if(response.length === 0 || page > limit){
+            return res.status(200).json({ 
+                message:'No hay más asistencias...',
+                data:{
+                    data: [],
+                    totalPage: response.currentPage,
+                    totalCount: response.totalCount
+                }   
             });
         }
-    } catch (error) {
-        res.status(500).json({
-            message: 'Error al crear asistencia',
-            error: error.message
+        return res.status(200).json({
+            message: 'Mostrando asistencias...',
+            data: response
         });
+        
+    } catch (error) {
+        console.error('Error al obtener todas las asistencias por día en el handler', error);
+        return res.status(500).json({ message: "Error al obtener todas las asistencias por día en el handler" });
     }
 };
 
-// Handler UpdatePerson :
+// Handler Obtener Asistencias por Rango :
+const getAsistenciaRangoHandler = async (req, res) => {
+    const { inicio, fin } = req.params;
+    const { page = 1, limit = 20 } = req.query;
+    const errores = [];
+    if (isNaN(page)) errores.push('El page debe ser un entero');
+    if (page <= 0) errores.push('El page debe ser un entero mayor a cero');
+    if (isNaN(limit)) errores.push('El limit debe ser un entero');
+    if (limit <= 0) errores.push('El limit debe ser un entero mayor a cero');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(inicio)) errores.push('El formato para el parámetro INICIO es incorrecto');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fin)) errores.push('El formato para el parámetro FIN es incorrecto');
+    if(errores.length > 0){
+        return res.status(400).json({ errores });
+    }
+    try {
+        const response = await getAsistenciaRango(Number(page), Number(limit), inicio, fin);
+        if(response.length === 0 || page > limit){
+            return res.status(200).json({ 
+                message:'No hay más asistencias en este rango...',
+                data:{
+                    data: [],
+                    totalPage: response.currentPage,
+                    totalCount: response.totalCount
+                }   
+            });
+        }
+        return res.status(200).json({
+            message: 'Mostrando asistencias en este rango...',
+            data: response
+        });
+        
+    } catch (error) {
+        return res.status(500).json({ message: 'Error al obtener todas las asistencias por día en el handler' });
+    }
+};
+
+// Handler Obtener todas las Asistencias :
+const getAllAsistenciasHandler = async (req, res) => {
+    const { page = 1, limit = 20 } = req.query;
+    const errores = [];
+    if (isNaN(page)) errores.push('El page debe ser un entero');
+    if (page <= 0) errores.push('El page debe ser un entero mayor a cero');
+    if (isNaN(limit)) errores.push('El limit debe ser un entero');
+    if (limit <= 0) errores.push('El limit debe ser un entero mayor a cero');
+    if(errores.length > 0){
+        return res.status(400).json({ errores });
+    }
+    try {
+        const response = await getAllAsistencias(Number(page), Number(limit));
+        if(response.length === 0 || page > limit){
+            return res.status(200).json({ 
+                message:'No hay más asistencias en este rango...',
+                data:{
+                    data: [],
+                    totalPage: response.currentPage,
+                    totalCount: response.totalCount
+                }   
+            });
+        }
+        return res.status(200).json({
+            message: 'Mostrando asistencias en este rango...',
+            data: response
+        });
+        
+    } catch (error) {
+        return res.status(500).json({ message: 'Error al obtener todas las asistencias por día en el handler' });
+    }
+};
+
+// Handler Actualizar Asistencia :
 const updateAsistenciaHandler = async (req, res) => {
     const { id } = req.params;
-    const { fecha, estado } = req.body;
+    const { estado } = req.body;
     if (!id || isNaN(id)){
-        return res.status(400).json({ message: 'El parámetro ID es requerido y debe ser un Integer' });
+        return res.status(400).json({ message: 'El parámetro ID es requerido y debe ser un entero' });
     }
-    if (estado !== null && typeof estado !== 'string') {
+    if (!estado) {
         return res.status(400).json({ message: 'El parámetro ESTADO debe ser un String' });
     }
     try {
@@ -92,7 +160,9 @@ const updateAsistenciaHandler = async (req, res) => {
 };
 
 module.exports = {
-    createAsistenciaHandler,
     getAsistenciaByIdHandler,
+    getAsistenciaDiariaHandler,
+    getAsistenciaRangoHandler,
+    getAllAsistenciasHandler,
     updateAsistenciaHandler
 };

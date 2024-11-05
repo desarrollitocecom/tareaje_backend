@@ -5,14 +5,14 @@ const {
     getRangoHorarioByIdHandler,
     getAllRangosHorariosHandler,
     createRangoHorarioHandler,
-    deleteRangoHorarioHandler,
-    updateRangoHorarioHandler
+    updateRangoHorarioHandler,
+    deleteRangoHorarioHandler
 } = require('../handlers/rangohorarioHandlers');
 
-router.get('/', getAllRangosHorariosHandler);
 router.get('/:id', getRangoHorarioByIdHandler);
+router.get('/', getAllRangosHorariosHandler);
 router.post('/', createRangoHorarioHandler);
-router.delete('/:id', deleteRangoHorarioHandler);
 router.patch('/:id', updateRangoHorarioHandler);
+router.delete('/:id', deleteRangoHorarioHandler);
 
 module.exports = router;

@@ -3,12 +3,16 @@ const router = Router();
 
 const {
     getAsistenciaByIdHandler,
-    createAsistenciaHandler,
+    getAsistenciaDiariaHandler,
+    getAsistenciaRangoHandler,
+    getAllAsistenciasHandler,
     updateAsistenciaHandler
 } = require('../handlers/asistenciaHandlers');
 
-router.get('/', getAsistenciaByIdHandler);
-router.post('/', createAsistenciaHandler);
+router.get('/:id', getAsistenciaByIdHandler);
+router.get('/', getAsistenciaDiariaHandler);
+router.get('/', getAsistenciaRangoHandler);
+router.get('/', getAllAsistenciasHandler);
 router.patch('/:id', updateAsistenciaHandler);
 
 module.exports = router;
