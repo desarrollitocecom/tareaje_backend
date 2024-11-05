@@ -4,14 +4,7 @@ const { RangoHorario, Turno, Cargo } = require('../db_connection');
 const getRangoHorarioById = async (id) => {
     try {
         const rangoHorario = await RangoHorario.findByPk(id);
-        if(rangoHorario) {
-            console.error('RangoHorario obtenido correctamente...');
-            return rangoHorario;
-        }
-        else{
-            console.error('Para este Id no esta asociado un RangoHorario');
-            return null;
-        }
+        return rangoHorario || null;
     } catch (error) {
         console.error('Error al obtener el rango horario por ID:', error);
         return false;
@@ -25,8 +18,8 @@ const getAllRangosHorarios = async (page = 1, limit = 20) => {
         const rangosHorarios = await RangoHorario.findAndCountAll({
             where: { state: true },
             include: [
-                { model: Cargo, as: 'Cargo' },
-                { model: Turno, as: 'Turno' }
+                { model: Cargo, as: 'cargo' },
+                { model: Turno, as: 'turno' }
             ],
             limit,
             offset
@@ -48,11 +41,11 @@ const getAllRangosHorariosTotal = async () => {
         const rangosHorarios = await RangoHorario.findAll({
             where: { state: true },
             include: [
-                { model: Cargo, as: 'Cargo' },
-                { model: Turno, as: 'Turno' }
+                { model: Cargo, as: 'cargo' },
+                { model: Turno, as: 'turno' }
             ]
         });
-        return rangosHorarios;
+        return rangosHorarios || null;
     } catch (error) {
         console.error('Error al obtener todos los rangos horarios:', error);
         return false;
@@ -88,7 +81,7 @@ const getCargoTurnoIdsByInicio = async (hora_inicio) => {
             turnoId: rango.turno.id
         }));
 
-        return ids;
+        return ids || [];
     } catch (error) {
         console.error('Error al obtener los IDs de cargos y turnos por hora de inicio:', error);
         return false;
@@ -139,7 +132,7 @@ const deleteRangoHorario = async (id) => {
         }
         rangoHorario.state = false;
         await rangoHorario.save();
-        return rangoHorario;
+        return rangoHorario || null;
     } catch (error) {
         console.error('Error al eliminar el rango horario:', error);
         return false
