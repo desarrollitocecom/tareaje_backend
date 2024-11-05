@@ -20,11 +20,6 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: true
         },
-        state: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,
-            defaultValue: true
-        },
     }, {
         tableName: 'Vacaciones',
         timestamps: true
