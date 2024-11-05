@@ -21,6 +21,9 @@ const createPersonHandler = async (req, res) => {
     if (!dni || typeof(dni) !== 'string'){
         return res.status(400).json({ message: 'El parámetro DNI es requerido y debe ser un String' });
     }
+    if (dni.length !== 8) {
+        return res.status(400).json({ message: 'El parámetro DNI debe tener 8 caracteres' });
+    }
     if (!cargo || typeof(cargo) !== 'string'){
         return res.status(400).json({ message: 'El parámetro CARGO es requerido y debe ser un String' });
     }
@@ -52,7 +55,7 @@ const createPersonHandler = async (req, res) => {
 };
 
 // Handler ReadPerson :
-const readPersonHandler = async (req,res) => {
+const readPersonHandler = async (res) => {
     try {
         const data = await readPerson();
         return res.status(200).json(data);
@@ -66,12 +69,12 @@ const readPersonHandler = async (req,res) => {
 
 // Handler UpdatePerson :
 const updatePersonHandler = async (req, res) => {
-    const { dni_key } = req.params;
+    const { dnikey } = req.params;
     const { nombres, apellidos, dni, cargo, turno } = req.body;
-    if (!dni_key || typeof(dni_key) !== 'string'){
+    if (!dnikey || typeof(dnikey) !== 'string'){
         return res.status(400).json({ message: 'El parámetro DNI KEY es requerido y debe ser un String' });
     }
-    if (dni_key.length !== 8) {
+    if (dnikey.length !== 8) {
         return res.status(400).json({ message: 'El parámetro DNI KEY debe tener 8 caracteres' });
     }
     if (nombres !== null && typeof nombres !== 'string') {
@@ -93,7 +96,7 @@ const updatePersonHandler = async (req, res) => {
         return res.status(400).json({ message: 'El parámetro TURNO debe ser un String' });
     }
     try {
-        const result = await updatePerson(dni_key, nombres, apellidos, dni, cargo, turno);
+        const result = await updatePerson(dnikey, nombres, apellidos, dni, cargo, turno);
         if (result) {
             return res.status(200).json({
                 message: 'Usuario actualizado con éxito',
@@ -115,15 +118,15 @@ const updatePersonHandler = async (req, res) => {
 
 // Handler DeletePerson :
 const deletePersonHandler = async (req, res) => {
-    const { dni_key } = req.params;
-    if(!dni_key || typeof(dni_key) !== 'string'){
+    const { dnikey } = req.params;
+    if(!dnikey || typeof(dnikey) !== 'string'){
         return res.status(400).json({ message: 'El parámetro DNI es requerido y debe ser un String' });
     }
-    if (dni_key.length !== 8) {
+    if (dnikey.length !== 8) {
         return res.status(400).json({ message: 'El parámetro DNI debe tener 8 caracteres' });
     }
     try {
-        const result = await deletePerson(dni_key);
+        const result = await deletePerson(dnikey);
         if (result) {
             return res.status(200).json({
                 message: 'Usuario eliminado con éxito',
@@ -200,9 +203,9 @@ const searchByFaceHandler = async (req, res) => {
 
 // Handler GetProtocols :
 const getProtocolsHandler = async (req, res) => {
-    const { fecha, rango } = req.body;
+    const {rango } = req.body;
     try {
-        const protocols = await getProtocols(fecha, rango);
+        const protocols = await getProtocols(rango);
         if (protocols && protocols.length > 0) return res.json(protocols);
         else return res.status(404).json({ success: false, message: 'No se encontraron protocolos.' });
     } catch (error) {
