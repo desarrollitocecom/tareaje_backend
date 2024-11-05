@@ -15,7 +15,7 @@ module.exports = (sequelize) => {
             type: DataTypes.DATEONLY,
             allowNull: false
         },
-        state: {
+        state:{
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true

@@ -62,10 +62,10 @@ const getFeriadoHandler = async (req, res) => {
 // Handler para crear un nuevo feriado
 const createFeriadoHandler = async (req, res) => {
     const { nombre, fecha } = req.body;
-
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
     // Validar nombre
-    if (!nombre || typeof nombre !== 'string' || nombre.length > 255) {
-        return res.status(400).json({ message: "Nombre inválido o demasiado largo" });
+    if (!nombre || typeof nombre !== 'string' || nombre.length > 255|| !validaNombre) {
+        return res.status(400).json({ message: "Nombre inválido" });
     }
 
     // Validar fecha en formato YYYY-MM-DD

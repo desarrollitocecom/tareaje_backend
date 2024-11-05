@@ -76,8 +76,8 @@ const getGradoEstudioHandler = async (req, res) => {
 // Handler para crear una nueva GradoEstudio
 const createGradoEstudioHandler = async (req, res) => {
     const { nombre } = req.body;
-
-    if (!nombre || typeof nombre !== 'string' || !/^[a-zA-Z]+( [a-zA-Z]+)*$/.test(nombre)) {
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!nombre || typeof nombre !== 'string' || !validaNombre) {
         return res.status(400).json({ error: 'El nombre es requerido y debe contener solo letras y espacios' });
     }
 
