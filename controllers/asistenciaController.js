@@ -116,14 +116,7 @@ const createAsistencia = async ({fecha, hora, estado, id_empleado, photo_id}) =>
     }
     try {
         const newAsistencia = await Asistencia.create({fecha, hora, estado, id_empleado, photo_id});
-        if(newAsistencia){
-            console.log('Asistencia creada con éxito...');
-            return newAsistencia;
-        }
-        else{
-            console.error('No se pudo crear la asistencia...');
-            return null;
-        }
+        return newAsistencia || null;
     } catch (error) {
         console.error('Error al crear una nueva asistencia:', error);
         return false;
