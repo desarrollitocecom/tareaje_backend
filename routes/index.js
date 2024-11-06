@@ -14,9 +14,13 @@ const axxonRouter = require("./axxonRouter");
 const gradoEstudioRouter=require("./gradoEstudioRouter");
 const jurisdiccionRouter=require('./jurisdiccionRouter');
 const regimenLaboralRouter=require('./regimenLaboralRouter')
-const turnoRouter=require('./turnoRouter')
-const descansoRouter=require('./descansoRouter')
-const feriadoRouter=require('./feriadoRouter')
+const turnoRouter=require('./turnoRouter');
+const descansoRouter=require('./descansoRouter');
+const feriadoRouter=require('./feriadoRouter');
+const asistenciaRouter=require('./asistenciaRouter');
+const rangoHorarioRouter=require('./rangoHorarioRouter');
+
+
 // Usa prefijos para organizar las rutas
 tareaje.use('/funciones', funcionRutas);
 
@@ -35,4 +39,7 @@ tareaje.use('/regimenlaborales',regimenLaboralRouter);
 tareaje.use('/gradoestudios',gradoEstudioRouter);
 tareaje.use('/jurisdicciones',jurisdiccionRouter);
 tareaje.use('/feriados',feriadoRouter);
+tareaje.use('/asistencias',asistenciaRouter);
+tareaje.use('/rangohorarios',rangoHorarioRouter);
+
 module.exports = tareaje;
