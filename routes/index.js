@@ -17,7 +17,7 @@ const regimenLaboralRouter=require('./regimenLaboralRouter')
 const turnoRouter=require('./turnoRouter');
 const descansoRouter=require('./descansoRouter');
 const feriadoRouter=require('./feriadoRouter');
-const asistenciaRouter=require('./asignacionRouter');
+const asistenciaRouter=require('./asistenciaRouter');
 const rangoHorarioRouter=require('./rangoHorarioRouter');
 
 
