@@ -4,7 +4,7 @@ const { Op } = require('sequelize');
 // Obtener la asistencias por id :
 const getAsistenciaById = async (id) => {
     try {
-        const asistencia = await asistencia.findByPk(id);
+        const asistencia = await Asistencia.findByPk(id);
         return asistencia || null;
     } catch (error) {
         console.error('Error al obtener la asistencia por ID: ', error);
