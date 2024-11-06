@@ -71,57 +71,83 @@ const getSexoHandler = async (req, res) => {
 
 const createSexoHandler = async (req, res) => {
     const { nombre } = req.body;
+    const errores = [];
 
+    if (!nombre ) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
+    }
 
-
-    if (!nombre || typeof nombre !== 'string' || !validaNombre)
-        return res.status(400).json({ error: 'El nombre es requerido y debe ser una cadena de texto válida y tener solo letras' });
+    if (errores.length > 0) {
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
+    }
 
     try {
-        const nuevaSexo = await createSexo({ nombre })
-
-        res.status(201).json(nuevaSexo);
+        const nuevaSexo = await createSexo({ nombre });
+                if (!nuevaSexo) {
+            return res.status(500).json({ message: 'Error al crear el sexo' });
+        }
+        return res.status(201).json({
+            message: 'Sexo creado exitosamente',
+            data: nuevaSexo
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ messaje: 'Error del server' })
+        console.error('Error al crear el sexo:', error);
+        return res.status(500).json({ message: 'Error al crear el sexo', error });
     }
-}
-//handler para modificar una Sexo
+};
 
 const updateSexoHandler = async (req, res) => {
     const { id } = req.params;
     const { nombre } = req.body;
     const errores = [];
-    if (!id || isNaN(id)) {
-        errores.push('El ID es requerido y debe ser un Numero')
-        console.log('id:' + id);
-    }
-    console.log("name" + nombre);
 
-    if (!nombre || typeof nombre !== 'string') {
-        errores.push('El nombre es requerido y debe ser una cadena de texto válida')
+    if (!id) {
+        errores.push('El campo ID es requerido');
     }
+    if (isNaN(id)) {
+        errores.push('El campo ID debe ser un número válido');
+    }
+
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
+    }
+
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
-    try {
-        const response = await updateSexo(id, { nombre })
-        if (!response) {
-            return res.status(201).json({
-                message: "El sexo no se encuentra ",
-                data: {}
-            })
-        }
 
+    try {
+        const response = await updateSexo(id, { nombre });
+        if (!response) {
+            return res.status(404).json({
+                message: "El sexo no se encuentra",
+                data: {}
+            });
+        }
         return res.status(200).json({
-            message: "Reguistro modificado",
+            message: "Registro modificado",
             data: response
-        })
+        });
     } catch (error) {
-       return res.status(404).json({ message: "Sexo no encontrada", error })
+        console.error('Error al modificar el sexo:', error);
+        return res.status(500).json({ message: "Error al modificar el sexo", error });
     }
 };
+
 const deleteSexoHandler = async (req, res) => {
     const id = req.params.id;
     // Validación del ID

@@ -123,7 +123,7 @@ const getAllUsers = async (page = 1, pageSize = 20) => {
             ],
             limit,
             offset,
-            order: [['createdAt', 'DESC']],
+            order: [['id', 'ASC']],
         });
 
         // Calcular el número total de páginas basado en el total de registros y el tamaño de la página

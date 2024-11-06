@@ -76,56 +76,80 @@ const getGradoEstudioHandler = async (req, res) => {
 // Handler para crear una nueva GradoEstudio
 const createGradoEstudioHandler = async (req, res) => {
     const { nombre } = req.body;
+    const errores = [];
+
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!nombre || typeof nombre !== 'string' || !validaNombre) {
-        return res.status(400).json({ error: 'El nombre es requerido y debe contener solo letras y espacios' });
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
+    }
+
+    if (errores.length > 0) {
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {
         const nuevaGradoEstudio = await createGradoEstudio({ nombre });
         return res.status(201).json({
-            message: 'GradoEstudio creada exitosamente',
+            message: 'Grado de Estudio creado exitosamente',
             data: nuevaGradoEstudio
         });
     } catch (error) {
-        console.error('Error al crear la GradoEstudio:', error);
-        return res.status(500).json({ message: 'Error al crear la GradoEstudio' });
+        console.error('Error al crear el Grado de Estudio:', error);
+        return res.status(500).json({ message: 'Error al crear el Grado de Estudio', error });
     }
 };
 
-// Handler para modificar una GradoEstudio
 const updateGradoEstudioHandler = async (req, res) => {
-    const {id} = req.params;
-    const  {nombre}  = req.body;
+    const { id } = req.params;
+    const { nombre } = req.body;
     const errores = [];
-    if (!id || isNaN(id)) {
-        errores.push('El ID es requerido y debe ser un Numero')
-        console.log('id:' + id);
+
+    if (!id) {
+        errores.push('El campo ID es requerido');
     }
-   
-    
-    if (!nombre || typeof nombre !== 'string' ) {
-        errores.push('El nombre es requerido y debe ser una cadena de texto válida')
+    if (isNaN(id)) {
+        errores.push('El campo ID debe ser un número válido');
     }
+
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
+    }
+
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
+
     try {
-        const response = await updateGradoEstudio(id, {nombre})
+        const response = await updateGradoEstudio(id, { nombre });
         if (!response) {
-            return res.status(201).json({
-                message: "El Grado de Estudio no se encuentra ",
+            return res.status(404).json({
+                message: "El Grado de Estudio no se encuentra",
                 data: {}
-            })
+            });
         }
         return res.status(200).json({
             message: "Registro modificado",
             data: response
-        })
+        });
     } catch (error) {
-        res.status(404).json({ message: "Grado de Estudio no encontrado",error})
+        console.error('Error al modificar el Grado de Estudio:', error);
+        return res.status(500).json({ message: "Error al modificar el Grado de Estudio", error });
     }
- };
+};
+
 
 // Handler para eliminar una GradoEstudio (cambiar estado a inactivo)
 const deleteGradoEstudioHandler = async (req, res) => {

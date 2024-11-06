@@ -16,7 +16,7 @@ rutas.get('/:id', getFeriadoHandler);
 
 rutas.post('/', createFeriadoHandler);
 
-rutas.put('/:id', updateFeriadoHandler);
+rutas.patch('/:id', updateFeriadoHandler);
 
 rutas.delete('/:id', deleteFeriadoHandler);
 

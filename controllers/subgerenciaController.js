@@ -7,7 +7,8 @@ const getSubgerencias=async (page = 1, limit = 20) => {
         const  { count, rows }=await Subgerencia.findAndCountAll({
             where: { state: true },
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return { totalCount: count, data: rows , currentPage:page } || null;
     } catch (error) {
