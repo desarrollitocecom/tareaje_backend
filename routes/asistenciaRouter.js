@@ -10,9 +10,9 @@ const {
 } = require('../handlers/asistenciaHandlers');
 
 router.get('/:id', getAsistenciaByIdHandler);
-router.get('/', getAsistenciaDiariaHandler);
-router.get('/', getAsistenciaRangoHandler);
 router.get('/', getAllAsistenciasHandler);
+router.get('/diaria/:fecha', getAsistenciaDiariaHandler);
+router.post('/', getAsistenciaRangoHandler);
 router.patch('/:id', updateAsistenciaHandler);
 
 module.exports = router;
