@@ -1,7 +1,4 @@
-// handlers/cargoHandler.js
 const { getCargoById, getAllCargos, createCargo, deleteCargo, updateCargo } = require('../controllers/cargoController');
-const { Subgerencia } = require('../db_connection');
-// Handler para obtener un Cargo por ID
 const getCargoByIdHandler = async (req, res) => {
     const { id } = req.params
     if (!id || isNaN(id)) {
@@ -50,52 +47,35 @@ const getAllCargosHandler = async (req, res) => {
     }
 };
 
+// Handler para crear un nuevo Cargo
 const createCargoHandler = async (req, res) => {
     const { nombre, sueldo, id_subgerencia } = req.body;
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
     const errores = [];
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre contiene caracteres inválidos');
-    }
-
-    if (!sueldo) {
-        errores.push('El campo sueldo es requerido');
-    } 
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto')
+    if (!validaNombre) errores.push('el nombre debe estar sin números ni caracteres especiales')
+    if (!nombre && !sueldo && !id_subgerencia) errores.push('todos los campos son requeridos')
+    if (typeof sueldo !== 'number') errores.push('el sueldo debe ser un numero')
     if (isNaN(sueldo)) {
-        errores.push('El campo sueldo debe ser un número válido');
-    }
-    if (sueldo <= 0) {
-        errores.push('El campo sueldo debe ser mayor a 0');
-    }
-
-    if (!id_subgerencia) {
-        errores.push('El campo id_subgerencia es requerido');
+        errores.push('El sueldo debe ser un numero')
+    } else if (sueldo <= 0) {
+        errores.push('El sueldo no debe tener cantidades negativas')
     }
     if (isNaN(id_subgerencia)) {
-        errores.push('El campo id_subgerencia debe ser un número válido');
+        errores.push('El id_subgerencia debe ser un numero')
+    } else if (id_subgerencia <= 0) {
+        errores.push('El id_subgerencia no debe tener cantidades negativas')
     }
-
-    if (errores.length > 0) {
-        return res.status(400).json({ errores });
-    }
+    if (errores.length > 0)
+        return res.status(400).json({ message:'Se encontraron los siguientes errores',errores });
 
     try {
-        const subgerenciaExiste = await Subgerencia.findByPk(id_subgerencia);
-        if (!subgerenciaExiste) {
-            return res.status(404).json({ error: 'La subgerencia con el ID proporcionado no existe' });
-        }
-
-        const newCargo = await createCargo({ nombre, sueldo: Number(sueldo), id_subgerencia: Number(id_subgerencia) });
-        res.status(201).json({ message: 'Cargo creado exitosamente', data: newCargo });
+        const newCargo = await createCargo({ nombre, sueldo, id_subgerencia });
+        return res.status(201).json({ message: 'Cargo creado exitosamente', data: newCargo });
     } catch (error) {
-        res.status(500).json({ error: 'Error al crear el cargo', details: error.message });
+        return res.status(500).json({ error: 'Error al crear el cargo', details: error.message });
     }
 };
 
@@ -118,39 +98,29 @@ const updateCargoHandler = async (req, res) => {
     const { id } = req.params;
     const { nombre, sueldo, id_subgerencia } = req.body;
     const errores = [];
-
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre contiene caracteres inválidos');
-    }
-
-    if (!sueldo) {
-        errores.push('El campo sueldo es requerido');
-    } 
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);   
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto')
+    if (!validaNombre) errores.push('el nombre debe estar sin números ni caracteres especiales')
+    if (!nombre && !sueldo && !id_subgerencia) errores.push('todos los campos son requeridos')
+    if (typeof sueldo !== 'number') errores.push('el sueldo debe ser un numero')
     if (isNaN(sueldo)) {
-        errores.push('El campo sueldo debe ser un número válido');
+        errores.push('El sueldo debe ser un numero')
+    } else if (sueldo <= 0) {
+        errores.push('El sueldo no debe tener cantidades negativas')
     }
-    if (sueldo <= 0) {
-        errores.push('El campo sueldo debe ser mayor a 0');
+    if (isNaN(id_subgerencia)) {
+        errores.push('El id_subgerencia debe ser un numero')
+    } else if (id_subgerencia <= 0) {
+        errores.push('El id_subgerencia no debe tener cantidades negativas')
     }
-
-    if (!id_subgerencia || isNaN((id_subgerencia))) {
-        errores.push('El campo id_subgerencia debe ser un número válido');
-    } else {
-        const subgerenciaExists = await Subgerencia.findByPk(id_subgerencia);
-        if (!subgerenciaExists) {
-            errores.push('El id_subgerencia debe corresponder a una subgerencia existente');
-        }
+    if (isNaN(id)) {
+        errores.push('El id debe ser un numero')
+    } else if (id <= 0) {
+        errores.push('El id no debe tener cantidades negativas')
     }
-    if (errores.length > 0) {
-        return res.status(400).json({ errores });
-    }
+    if (errores.length > 0)
+        return res.status(400).json({ message:'Se encontraron los siguientes errores',errores });
 
     try {
         const updatedCargo = await updateCargo(id, { nombre, sueldo, id_subgerencia });
@@ -162,7 +132,6 @@ const updateCargoHandler = async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar el cargo', details: error.message });
     }
 };
-
 
 module.exports = {
     getCargoByIdHandler,

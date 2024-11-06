@@ -62,15 +62,31 @@ const getFeriadoHandler = async (req, res) => {
 // Handler para crear un nuevo feriado
 const createFeriadoHandler = async (req, res) => {
     const { nombre, fecha } = req.body;
+    const errores = [];
+
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
+    if (nombre.length > 255) {
+        errores.push('El campo nombre no debe exceder los 255 caracteres');
+    }
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    // Validar nombre
-    if (!nombre || typeof nombre !== 'string' || nombre.length > 255|| !validaNombre) {
-        return res.status(400).json({ message: "Nombre inválido" });
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
     }
 
-    // Validar fecha en formato YYYY-MM-DD
-    if (!fecha || isNaN(Date.parse(fecha))) {
-        return res.status(400).json({ message: "Fecha inválida" });
+    if (!fecha) {
+        errores.push('El campo fecha es requerido');
+    }
+    if (isNaN(Date.parse(fecha))) {
+        errores.push('El campo fecha debe estar en un formato válido (YYYY-MM-DD)');
+    }
+
+    if (errores.length > 0) {
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {
@@ -85,7 +101,7 @@ const createFeriadoHandler = async (req, res) => {
         });
     } catch (error) {
         console.error("Error al crear feriado:", error);
-        res.status(500).json({ error: "Error interno del servidor al crear el feriado." });
+        res.status(500).json({ error: "Error interno del servidor al crear el feriado.", details: error.message });
     }
 };
 
@@ -93,17 +109,35 @@ const createFeriadoHandler = async (req, res) => {
 const updateFeriadoHandler = async (req, res) => {
     const id = parseInt(req.params.id);
     const { nombre, fecha } = req.body;
+    const errores = [];
 
     if (isNaN(id) || id <= 0) {
-        return res.status(400).json({ message: "ID inválido" });
+        errores.push('El campo ID es inválido o debe ser un número positivo');
     }
 
-    if (nombre && (typeof nombre !== 'string' || nombre.length > 255)) {
-        return res.status(400).json({ message: "Nombre inválido o demasiado largo" });
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
+    if (nombre.length > 255) {
+        errores.push('El campo nombre no debe exceder los 255 caracteres');
+    }
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
     }
 
-    if (fecha && isNaN(Date.parse(fecha))) {
-        return res.status(400).json({ message: "Fecha inválida" });
+    if (!fecha) {
+        errores.push('El campo fecha es requerido');
+    }
+    if (isNaN(Date.parse(fecha))) {
+        errores.push('El campo fecha debe estar en un formato válido (YYYY-MM-DD)');
+    }
+
+    if (errores.length > 0) {
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {
@@ -118,7 +152,7 @@ const updateFeriadoHandler = async (req, res) => {
         });
     } catch (error) {
         console.error("Error al actualizar feriado:", error);
-        res.status(500).json({ error: "Error interno del servidor al actualizar el feriado." });
+        res.status(500).json({ error: "Error interno del servidor al actualizar el feriado.", details: error.message });
     }
 };
 
