@@ -36,8 +36,8 @@ const getAsistenciaByIdHandler = async (req,res) => {
 
 // Handler Obtener Asistencias por Fecha :
 const getAsistenciaDiariaHandler = async (req, res) => {
-    const { fecha } = req.body;
-    const { page=1, limit=20 } = req.query;
+    const { fecha } = req.params;
+    const { page = 1, limit = 20 } = req.query;
     const errores = [];
     if (isNaN(page)) errores.push('El page debe ser un entero');
     if (page <= 0) errores.push('El page debe ser un entero mayor a cero');

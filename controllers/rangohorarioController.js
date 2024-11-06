@@ -3,7 +3,12 @@ const { RangoHorario, Turno, Cargo } = require('../db_connection');
 // Obtener un RangoHorario por ID con su Turno
 const getRangoHorarioById = async (id) => {
     try {
-        const rangoHorario = await RangoHorario.findByPk(id);
+        const rangoHorario = await RangoHorario.findByPk(id, {
+            include: [
+                { model: Cargo, as: 'cargo' },
+                { model: Turno, as: 'turno' }
+            ]
+        });
         return rangoHorario || null;
     } catch (error) {
         console.error('Error al obtener el rango horario por ID:', error);
