@@ -274,64 +274,62 @@ const searchByFace = async (foto) => {
 };
 
 // Obtener los datos de las personas que hayan sido reconocidas en un rango :
-const getProtocols = async (inicio, fin) => {
+const getProtocols = async (inicio, final) => {
     
-    if(inicio && fin){
+    if(!inicio) return false;
+    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(inicio)) return false;
+    if(!final) return false;
+    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(final)) return false;
         
-        // Consulta formato JSON :
-        const consulta = {
-            "server_id": "1",
-            "onlineRefresh": 1,
-            "genders": [0, 1, 2],
-            "dateTimeFrom": rango[0],
-            "dateTimeTo": rango[1],
-            "cameraIds": ["1"],
-            "minAge": 0,
-            "maxAge": 1000,
-            "page": 1,
-            "pageSize": 5000,
-            "sim_min": 1
-        }
+    // Consulta formato JSON :
+    const consulta = {
+        "server_id": "1",
+        "onlineRefresh": 1,
+        "genders": [0, 1, 2],
+        "dateTimeFrom": inicio,
+        "dateTimeTo": final,
+        "cameraIds": ["1"],
+        "minAge": 0,
+        "maxAge": 1000,
+        "page": 1,
+        "pageSize": 5000,
+        "sim_min": 1
+    }
 
-        // Definición del Map: DNI - Fecha - Hora - Id Foto - Cargo - Turno :
-        const uniqueAsistentes = new Map();
+    // Definición del Map: DNI - Fecha - Hora - Id Foto - Cargo - Turno :
+    const uniqueAsistentes = new Map();
 
-        // Extracción de información por consulta :
-        try{
-            const response = await axios.post(urlProtocols, consulta);
-            const protocols = response.data.Protocols;
-            const fecha = rango[0].split('T')[0];
-            protocols.forEach(protocol => {
-                if(protocol.Hits && protocol.Hits.length > 0){
-                    const foto = protocol.Hits[0].id;
-                    const dni = protocol.Hits[0].patronymic;
-                    const cargo = protocol.Hits[0].department;
-                    const turno = protocol.Hits[0].comment;
-                    const hora = protocol.timestamp.split('T')[1].split('.')[0];
-                    const personInfo = {dni, fecha, hora, foto, cargo, turno};
+    // Extracción de información por consulta :
+    try{
+        const response = await axios.post(urlProtocols, consulta);
+        const protocols = response.data.Protocols;
+        const fecha = inicio.split('T')[0];
+        protocols.forEach(protocol => {
+            if(protocol.Hits && protocol.Hits.length > 0){
+                const foto = protocol.Hits[0].id;
+                const dni = protocol.Hits[0].patronymic;
+                const cargo = protocol.Hits[0].department;
+                const turno = protocol.Hits[0].comment;
+                const hora = protocol.timestamp.split('T')[1].split('.')[0];
+                const personInfo = {dni, fecha, hora, foto, cargo, turno};
 
-                    // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana :
-                    if (!uniqueAsistentes.has(dni)) {
-                        uniqueAsistentes.set(dni, personInfo);  // Si no existe, lo agregamos
-                    } else {
-                        const existingPerson = uniqueAsistentes.get(dni);
-                        if (new Date('1970-01-01T' + personInfo.hora) < new Date('1970-01-01T' + existingPerson.hora)) {
-                            uniqueAsistentes.set(dni, personInfo);  // Si la nueva hora es más temprana, actualizamos el registro
-                        }
+                // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana :
+                if (!uniqueAsistentes.has(dni)) {
+                    uniqueAsistentes.set(dni, personInfo);  // Si no existe, lo agregamos
+                } else {
+                    const existingPerson = uniqueAsistentes.get(dni);
+                    if (new Date('1970-01-01T' + personInfo.hora) < new Date('1970-01-01T' + existingPerson.hora)) {
+                        uniqueAsistentes.set(dni, personInfo);  // Si la nueva hora es más temprana, actualizamos el registro
                     }
                 }
-            });
+            }
+        });
 
-            // Convertir el Map a un array para devolverlo :
-            return Array.from(uniqueAsistentes.values());
-        }
-        catch (error) {
-            console.error('Error al consulta la API Protocols: ', error);
-            return false;
-        }
+        // Convertir el Map a un array para devolverlo :
+        return Array.from(uniqueAsistentes.values());
     }
-    else{
-        console.error('Error en la obtención de la fecha y rango...');
+    catch (error) {
+        console.error('Error al consulta la API Protocols: ', error);
         return false;
     }
 };

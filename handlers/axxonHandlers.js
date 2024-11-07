@@ -255,12 +255,12 @@ const getProtocolsHandler = async (req, res) => {
 
     const { inicio, final } = req.body;
     if(!inicio) return res.status(400).json({ message: 'El parámetro FECHA HORA INICIO es obligatorio'});
-    if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(inicio)){
+    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(inicio)){
         return res.status(400).json({ message: 'La FECHA HORA INICIO debe cumplir con el siguiente formato YYYY-MM-DDTHH:MM:SS.sss'});
 
     }
     if(!final) return res.status(400).json({ message: 'El parámetro FECHA HORA FINAL es obligatorio'});
-    if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(final)){
+    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(final)){
         return res.status(400).json({ message: 'La FECHA HORA FINAL debe cumplir con el siguiente formato YYYY-MM-DDTHH:MM:SS.sss'});
 
     }

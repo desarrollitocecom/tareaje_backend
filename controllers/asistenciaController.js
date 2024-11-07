@@ -73,7 +73,6 @@ const getAllAsistencias = async (page = 1, limit = 20) => {
     }
 };
 
-// Crear la Asistencia obtenida desde el algoritmo correspondiente :
 const createAsistencia = async ({fecha, hora, estado, id_empleado, photo_id}) => {
     
     // Validaciones para crear de forma correcta la asistencia correspondiente :
