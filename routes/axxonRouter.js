@@ -12,13 +12,13 @@ const {
     getProtocolsHandler
 } = require('../handlers/axxonHandlers');
 
-router.get('/', createPersonHandler);
+router.post('/create/', createPersonHandler);
 router.get('/', readPersonHandler);
-router.get('/:dnikey', updatePersonHandler);
-router.get('/:dnikey', deletePersonHandler);
+router.post('/update/', updatePersonHandler);
+router.get('/delete/:dni', deletePersonHandler);
 router.get('/:dni', getEmpleadoIdHandler);
-router.get('/:id', getPhotoHandler);
-router.get('/', searchByFaceHandler);
-router.get('/', getProtocolsHandler);
+router.get('/photo/:id', getPhotoHandler);
+router.get('/face/:foto', searchByFaceHandler);
+router.post('/protocol/', getProtocolsHandler);
 
 module.exports = router;
