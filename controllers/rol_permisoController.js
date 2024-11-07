@@ -76,7 +76,7 @@ const getRolById = async (id) => {
             include: {
                 model: Permiso,
                 as: 'permisos',
-                attributes: ['id', 'nombre', 'descripcion']
+                attributes: ['id', 'nombre']
             }
         });
         return rol || null;
