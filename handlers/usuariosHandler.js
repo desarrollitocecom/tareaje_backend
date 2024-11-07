@@ -238,8 +238,7 @@ const getAllUsersHandler = async (req, res) => {
 
 const getUserByIdHandler = async (req, res) => {
 
-    const { id } = req.body;
-    //console.log("id: ",id);
+    const { id } = req.params;
 
     try {
         const user = await getUserById(id);
