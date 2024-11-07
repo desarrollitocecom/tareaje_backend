@@ -238,10 +238,10 @@ const getAllUsersHandler = async (req, res) => {
 
 const getUserByIdHandler = async (req, res) => {
 
-    const { id } = req.params;
+    const { token } = req.body;
 
     try {
-        const user = await getUserById(id);
+        const user = await getUserById(token);
         if (user)
             return res.status(200).json({ message: "Usuario encontrado", data: user });
         return res.status(404).json({ message: "Usuario no encontrado", data: false });
