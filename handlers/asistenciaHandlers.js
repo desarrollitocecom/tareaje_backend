@@ -3,6 +3,7 @@ const {
     getAsistenciaDiaria,
     getAsistenciaRango,
     getAllAsistencias,
+    createAsistencia,
     updateAsistencia
 } = require('../controllers/asistenciaController');
 
@@ -139,6 +140,59 @@ const getAllAsistenciasHandler = async (req, res) => {
     }
 };
 
+// Handler Creación de Asistencia (SOLO ES DE PRUEBA) :
+const createAsistenciaHandler = async () => {
+
+    const { fecha, hora, estado, id_empleado, photo_id } = req.body;
+    if(!fecha){
+        return res.status(400).json({ message: 'El parámetro FECHA es obligatorio' });
+    }
+    if(!hora){
+        return res.status(400).json({ message: 'El parámetro HORA es obligatorio' });
+    }
+    if(!estado){
+        return res.status(400).json({ message: 'El parámetro ESTADO es obligatorio' });
+    }
+    if(!id_empleado) {
+        return res.status(400).json({ message: 'El parámetro ID EMPLEADO es obligatorio' });
+    }
+    if(!photo_id){
+        return res.status(400).json({ message: 'El parámetro PHOTO ID es obligatorio' });
+    }
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(fecha)){
+        return res.status(400).json({ message: 'El parámetro FECHA necesita el formato YYYY-MM-HH' });
+    }
+    if(!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(hora)){
+        return res.status(400).json({ message: 'El parámetro HORA necesita el formato HH:MM:SS.sss' });
+    }
+    if(!["A", "F", "DM", "DO", "V", "DF", "LSG", "LCG", "LF", "PE"].includes(estado)){
+        return res.status(400).json({ message: 'El parámetro ESTADO ingresado no es el correcto' });
+    }
+    if(isNaN(id_empleado)){
+        return res.status(400).json({ message: 'El parámetro ID EMPLEADO debe ser un entero' });
+    }
+
+    try {
+        const result = await createAsistencia(fecha, hora, estado, id_empleado, photo_id);
+        if (result) {
+            return res.status(200).json({
+                message: 'Usuario actualizado con éxito',
+                success: result
+            });
+        } else {
+            return res.status(400).json({
+                message: 'No se pudo actualizar al usuario',
+                success: result
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error en la consulta',
+            error: error.message
+        });
+    }
+}
+
 // Handler Actualizar Asistencia :
 const updateAsistenciaHandler = async (req, res) => {
     const { id } = req.params;
@@ -175,5 +229,6 @@ module.exports = {
     getAsistenciaDiariaHandler,
     getAsistenciaRangoHandler,
     getAllAsistenciasHandler,
-    updateAsistenciaHandler
+    updateAsistenciaHandler,
+    createAsistenciaHandler
 };

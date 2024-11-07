@@ -73,49 +73,58 @@ const getAllAsistencias = async (page = 1, limit = 20) => {
     }
 };
 
-const createAsistencia = async ({fecha, hora, estado, id_empleado, photo_id}) => {
+// Crear Asistencia desde el algorimo (SIN HANDLER) :
+const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
     
     // Validaciones para crear de forma correcta la asistencia correspondiente :
     const respuestaFalta = 'Es necesario que exista el parámetro'
     if(!fecha){
         console.error(`${respuestaFalta} FECHA`);
-        return null;
+        return false;
     }
     if(!hora){
         console.error(`${respuestaFalta} HORA`);
-        return null;
+        return false;
     }
     if(!estado){
         console.error(`${respuestaFalta} ESTADO`);
-        return null;
+        return false;
     }
     if(!id_empleado){
         console.error(`${respuestaFalta} ID EMPLEADO`);
-        return null;
+        return false;
     }
     if(!photo_id){
         console.error(`${respuestaFalta} PHOTO ID`);
-        return null;
+        return false;
     }
     if(!/^\d{4}-\d{2}-\d{2}$/.test(fecha)){
         console.error('El formato para la FECHA es incorrecto');
-        return null;
+        return false;
     }
     if(!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(hora)){
         console.error('El formato para la HORA es incorrecto');
-        return null;
+        return false;
     }
     if(!["A", "F", "DM", "DO", "V", "DF", "LSG", "LCG", "LF", "PE"].includes(estado)){
         console.error('El estado ingresado no es el correspondiente');
-        return null;
+        return false;
     }
     if(isNaN(id_empleado)){
         console.error('El formato para el ID EMPLEADO debe ser un entero');
-        return null;
+        return false;
     }
+
     try {
-        const newAsistencia = await Asistencia.create({fecha, hora, estado, id_empleado, photo_id});
-        return newAsistencia || null;
+        const nuevaAsistencia = await Asistencia.create({ fecha, hora, estado, id_empleado, photo_id });
+        if(nuevaAsistencia){
+            console.log('Asistencia creada exitosamente');
+            return true;
+        }
+        else{
+            console.warn('Resultado nulo: No se pudo crear la asistencia');
+            return false;
+        }
     } catch (error) {
         console.error('Error al crear una nueva asistencia:', error);
         return false;
