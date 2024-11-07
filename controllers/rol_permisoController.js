@@ -56,11 +56,11 @@ const getAllRols = async (page = 1, pageSize = 20) => {
             offset,
             order: [['nombre', 'DESC']]
         });
-        console.log(page, response.count);
+        //console.log(page, response.count);
         return {
             data: response.rows,
             currentPage: page,
-            totalCount: response.count,
+            totalCount: response.rows.length,
         };
     } catch (error) {
         console.error('Error al obtener los roles:', error);
@@ -101,7 +101,7 @@ const getAllPermisos = async (page = 1, pageSize = 20) => {
         return {
             data: response.rows,
             currentPage: page,
-            totalCount: response.count,
+            totalCount: response.rows.length,
         };
     } catch (error) {
         console.error("Error en getAllPermisos ", error.message);
