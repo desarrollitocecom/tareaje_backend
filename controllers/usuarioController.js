@@ -58,8 +58,8 @@ const signToken = async (usuario, jwt) => {
         const user = await getUser(usuario);
         if (user) {
             const updatedUser = await user.update({ token: jwt });
-            console.log(usuario,":",jwt);
-            
+            console.log(usuario, ":", jwt);
+
             return updatedUser;
         }
         return null;
@@ -117,9 +117,10 @@ const getAllUsers = async (page = 1, pageSize = 20) => {
 
         const response = await Usuario.findAndCountAll({
             attributes: ['id', 'usuario', 'correo', 'state', 'id_rol', 'id_empleado'],
+            where: { state: true },
             include: [
                 { model: Rol, as: 'rol', attributes: ['nombre'] },
-                { model: Empleado, as:'empleado', attributes: ['nombres', 'apellidos'] }
+                { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos'] }
             ],
             limit,
             offset,
