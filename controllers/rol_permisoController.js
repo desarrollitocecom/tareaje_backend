@@ -72,6 +72,7 @@ const getAllRols = async (page = 1, pageSize = 20) => {
 const getRolById = async (id) => {
     try {
         const rol = await Rol.findByPk(id, {
+           
             include: {
                 model: Permiso,
                 as: 'permisos',
@@ -137,9 +138,9 @@ const updatePermiso = async (id, nombre, descripcion) => {
     }
 };
 
-const updateRol = async (id, nombre, descripcion, permisos = []) => { 
+const updateRol = async (id, nombre, descripcion, permisos = []) => {
     try {
-       
+
         const rol = await Rol.findByPk(id);
         if (!rol) return null;
 
@@ -194,14 +195,14 @@ const getPermisosByRolId = async (id_rol) => {
     try {
         // Buscar el rol con sus permisos
         const rol = await Rol.findByPk(id_rol, {
-            
+
             include: {
                 model: Permiso,
                 as: 'permisos',
                 attributes: ['nombre']
             }
         });
-    
+
         // Si no existe el rol o no tiene permisos, devolvemos un array vacío
         if (!rol) return null;
         //console.log(`rol ${id_rol} tiene los permisos: `,rol.permisos.map(permiso => permiso.nombre));

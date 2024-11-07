@@ -7,10 +7,11 @@ const {
     updateEmpleadoHandler,
     deleteEmpleadoHandler
 } = require('../handlers/empleadoHandlers');
+const permisoAutorizacion = require("../checkers/roleAuth");
 
-rutas.get('/', getAllEmpleadosHandlers);
-rutas.post('/', createEmpleadoHandler);
-rutas.get('/:id', getEmpleadoHandler);
-rutas.patch('/:id', updateEmpleadoHandler);
-rutas.delete('/:id', deleteEmpleadoHandler);
+rutas.get('/',permisoAutorizacion(["all_system_access", "read_empleado"]), getAllEmpleadosHandlers);
+rutas.post('/',permisoAutorizacion(["all_system_access", "create_empleado"]), createEmpleadoHandler);
+rutas.get('/:id',permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoHandler);
+rutas.patch('/:id',permisoAutorizacion(["all_system_access", "update_empleado"]), updateEmpleadoHandler);
+rutas.delete('/:id',permisoAutorizacion(["all_system_access", "delete_empleado"]), deleteEmpleadoHandler);
 module.exports = rutas;
