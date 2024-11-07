@@ -1,5 +1,5 @@
 const { getProtocols } = require('../controllers/axxonController');
-const { getEmpleadoDNIByCargoTurno } = require('../controllers/empleadoController');
+const { getEmpleadoIdDniByCargoTurno } = require('../controllers/empleadoController');
 const { getAllRangosHorariosTotal, getCargoTurnoIdsByInicio } = require('../controllers/rangohorarioController');
 const { createAsistencia } = require('../controllers/asistenciaController');
 
@@ -42,8 +42,10 @@ const consultaAxxonProtocols = async (dia, hora) => {
     const result = confirmarHoraCJ(hora);
     if(result){
         const rango = determinarRango(dia, hora);
+        const inicio = rango[0];
+        const final = rango[1];
         try {
-            const consulta = await getProtocols(rango);
+            const consulta = await getProtocols(inicio, final);
             return consulta;
         } catch (error) {
             console.error('Error al consultar Axxon Protocols...');
@@ -55,13 +57,14 @@ const consultaAxxonProtocols = async (dia, hora) => {
     }
 };
 
+// Asociar la consulta de GetProtocols con RangoHorarios y Empleados
 const registrarAsistenciaFalta = async (dia, hora) => {
     try {
         const consulta = await consultaAxxonProtocols(dia, hora);
         const cargosTurnos = await getCargoTurnoIdsByInicio(hora);
         const dnis = [];
         cargosTurnos.forEach(async ct => {
-            const totalCargoTurnoDNI = await getEmpleadoDNIByCargoTurno(ct.cargoId, ct.turnoId);
+            const totalCargoTurnoDNI = await getEmpleadoIdDniByCargoTurno(ct.cargoId, ct.turnoId);
             totalCargoTurnoDNI.forEach(dni => {
                 dnis.push(dni);
             });
@@ -77,6 +80,7 @@ const registrarAsistenciaFalta = async (dia, hora) => {
     }
 }
 
+// Crear la asistencia (SOLO EL ALGORITMO LO PUDE HACER) :
 const createAsistenciasRango = async (dia, hora) => {
     try {
         const asistencias = await registrarAsistenciaFalta(dia, hora);
