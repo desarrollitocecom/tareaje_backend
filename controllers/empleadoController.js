@@ -12,7 +12,8 @@ const getAllEmpleados = async (page = 1, limit = 20) => {
                 { model: Turno, as: 'turno', attributes: ['nombre'] }
             ],
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {

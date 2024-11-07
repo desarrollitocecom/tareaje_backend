@@ -191,13 +191,13 @@ const getTokenHandler = async (req, res) => {
 
 const getAllUsersHandler = async (req, res) => {
     const { page = 1, pageSize = 20 } = req.query;
-   
+
     const errores = [];
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page <= 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(pageSize)) errores.push("El pageSize debe ser un numero");
     if (pageSize <= 0) errores.push("El pageSize debe ser mayor a 0 ");
-    if(errores.length>0){
+    if (errores.length > 0) {
         return res.status(400).json({ errores });
     }
 
@@ -240,7 +240,7 @@ const getUserByIdHandler = async (req, res) => {
 
     const { id } = req.body;
     //console.log("id: ",id);
-    
+
     try {
         const user = await getUserById(id);
         if (user)
@@ -255,7 +255,7 @@ const getUserByIdHandler = async (req, res) => {
 
 const deleteUserHandler = async (req, res) => {
 
-    const { usuario } = req.body;
+    const { usuario } = req.params;
     try {
         const user = await deleteUser(usuario);
         if (user) {

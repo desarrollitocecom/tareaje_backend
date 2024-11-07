@@ -26,7 +26,8 @@ const getAllCargos = async (page = 1, limit = 20) => {
             where: { state: true },
             include: [{ model: Subgerencia, as: 'Subgerencia' }],
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return {
             totalCount: cargos.count,

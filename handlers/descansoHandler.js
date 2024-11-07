@@ -64,19 +64,33 @@ const getDescansosHandler = async (req, res) => {
 // Handler para crear un descanso
 const createDescansosHandler = async (req, res) => {
     const { fecha, observacion, id_empleado } = req.body;
+    const errores = [];
 
-    if (!fecha || isNaN(Date.parse(fecha))) {
-        return res.status(400).json({ message: "Fecha inválida" });
+    if (!fecha) {
+        errores.push('El campo fecha es requerido');
+    } 
+    if (isNaN(Date.parse(fecha))) {
+        errores.push('El campo fecha debe estar en un formato válido (YYYY-MM-DD)');
     }
 
-    if (!observacion || typeof observacion !== 'string') {
-        return res.status(400).json({ message: "Observación inválida" });
+    if (!observacion) {
+        errores.push('El campo observación es requerido');
+    } 
+    
+    if (typeof observacion !== 'string') {
+        errores.push('El campo observación debe ser una cadena de texto');
     }
 
-    if (!id_empleado || isNaN(id_empleado) || id_empleado <= 0) {
-        return res.status(400).json({ message: "ID de empleado inválido" });
+    if (!id_empleado) {
+        errores.push('El campo ID de empleado es requerido');
+    } 
+    if (isNaN(id_empleado) || id_empleado <= 0) {
+        errores.push('El campo ID de empleado debe ser un número positivo');
     }
 
+    if (errores.length > 0) {
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
+    }
     try {
         const response = await createDescansos({ fecha, observacion, id_empleado });
         if (!response) {
@@ -97,21 +111,35 @@ const createDescansosHandler = async (req, res) => {
 const updateDescansoHandler = async (req, res) => {
     const id = parseInt(req.params.id);
     const { fecha, observacion, id_empleado } = req.body;
+    const errores = [];
 
     if (isNaN(id) || id <= 0) {
-        return res.status(400).json({ message: "ID inválido" });
+        errores.push('El campo ID es inválido o debe ser un número positivo');
     }
 
-    if (fecha && isNaN(Date.parse(fecha))) {
-        return res.status(400).json({ message: "Fecha inválida" });
+    if (!fecha) {
+        errores.push('El campo fecha es requerido');
+    } 
+    if (isNaN(Date.parse(fecha))) {
+        errores.push('El campo fecha debe estar en un formato válido (YYYY-MM-DD)');
     }
 
-    if (observacion && typeof observacion !== 'string') {
-        return res.status(400).json({ message: "Observación inválida" });
+    if (!observacion) {
+        errores.push('El campo observación es requerido');
+    } 
+    if (typeof observacion !== 'string') {
+        errores.push('El campo observación debe ser una cadena de texto');
     }
 
-    if (id_empleado && (isNaN(id_empleado) || id_empleado <= 0)) {
-        return res.status(400).json({ message: "ID de empleado inválido" });
+    if (!id_empleado) {
+        errores.push('El campo ID de empleado es requerido');
+    } 
+    if (isNaN(id_empleado) || id_empleado <= 0) {
+        errores.push('El campo ID de empleado debe ser un número positivo');
+    }
+
+    if (errores.length > 0) {
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {

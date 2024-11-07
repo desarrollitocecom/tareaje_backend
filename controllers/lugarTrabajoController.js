@@ -7,7 +7,8 @@ const getLugarTrabajos = async (page = 1, limit = 20) => {
         const { count, rows } = await LugarTrabajo.findAndCountAll({
             where: { state: true },
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return { totalCount: count, data: rows, currentPage: page } || null;
     } catch (error) {
@@ -33,8 +34,8 @@ const getLugarTrabajo = async (id) => {
 //Crea una nueva LugarTrabajo
 const createLugarTrabajo = async ({ nombre }) => {
     try {
-        const LugarTrabajo = await LugarTrabajo.create({ nombre });
-        return LugarTrabajo
+        const lugarTrabajo = await LugarTrabajo.create({ nombre });
+        return lugarTrabajo
 
     } catch (error) {
         console.error('Error al crear una nueva LugarTrabajo', error)
