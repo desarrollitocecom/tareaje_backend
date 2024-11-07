@@ -8,6 +8,4 @@ router.get("/", permisoAutorizacion(["all_system_access", "read_usuarios"]), get
 router.get("/:id", permisoAutorizacion(["all_system_access", "read_usuarios"]), getUserByIdHandler);
 router.delete("/:usuario", permisoAutorizacion(["all_system_access", "delete_usuarios"]), deleteUserHandler);
 
-router.delete("/:usuario", permisoAutorizacion(["all_system_access", "delete_usuarios"]), deleteUserHandler);
-
 module.exports = router;
