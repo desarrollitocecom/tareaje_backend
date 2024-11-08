@@ -18,7 +18,7 @@ router.post('/update/', updatePersonHandler);
 router.get('/delete/:dni', deletePersonHandler);
 router.get('/:dni', getEmpleadoIdHandler);
 router.get('/photo/:id', getPhotoHandler);
-router.get('/face/:foto', searchByFaceHandler);
+router.post('/face/', searchByFaceHandler);
 router.post('/protocol/', getProtocolsHandler);
 
 module.exports = router;

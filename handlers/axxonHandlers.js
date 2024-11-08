@@ -13,10 +13,10 @@ const {
 const createPersonHandler = async (req, res) => {
 
     const { nombres, apellidos, dni, cargo, turno, foto } = req.body;
-    if (!nombres || typeof(nombres) !== 'string'){
+    if (!nombres){
         return res.status(400).json({ message: 'El parámetro NOMBRES es requerido y debe ser un String' });
     }
-    if (!apellidos || typeof(apellidos) !== 'string'){
+    if (!apellidos){
         return res.status(400).json({ message: 'El parámetro APELLIDOS es requerido y debe ser un String' });
     }
     if (!dni || typeof(dni) !== 'string'){
@@ -57,7 +57,7 @@ const createPersonHandler = async (req, res) => {
 };
 
 // Handler ReadPerson (SOLO DE PRUEBA) :
-const readPersonHandler = async (res) => {
+const readPersonHandler = async (req, res) => {
 
     try {
         const data = await readPerson();
@@ -71,7 +71,7 @@ const readPersonHandler = async (res) => {
             return res.status(400).json({
                 message: 'No se obtuvo ningún dato de ReadPerson',
                 data: null
-            })
+            });
         }
     } catch (error) {
         return res.status(500).json({
@@ -223,21 +223,21 @@ const getPhotoHandler = async (req, res) => {
 // Handler SearchByFace (ESTE SI ES NECESARIO) :
 const searchByFaceHandler = async (req, res) => {
 
-    const { foto } = req.params;
-    if(!foto || typeof(foto) !== 'string'){
-        return res.status(400).json({ message: 'El parámetro FOTO es requerido y debe ser un String' });
+    const { foto } = req.body;
+    if(!foto){
+        return res.status(400).json({ message: 'El parámetro FOTO es requerido' });
     }
     
     try {
         const personInfo = await searchByFace(foto);
         if (personInfo){
-            return res.json({
+            return res.status(200).json({
                 message: 'Persona reconocida exitosamente',
                 data: personInfo
             });
         }
         else{
-            return res.status(404).json({
+            return res.status(400).json({
                 message: 'Persona no reconocida',
                 success: false
             });
@@ -266,7 +266,7 @@ const getProtocolsHandler = async (req, res) => {
     }
 
     try {
-        const protocols = await getProtocols(rango);
+        const protocols = await getProtocols(inicio, final);
         if (protocols && protocols.length > 0){
             return res.status(200).json({
                 message: 'Datos obtenidos exitosamente de Protocols',

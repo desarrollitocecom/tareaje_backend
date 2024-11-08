@@ -104,10 +104,10 @@ const readPerson = async () => {
 };
 
 // Update Person en la Base de Datos de Axxon (SIN HANDLER):
-const updatePerson = async (nombres = null, dni, apellidos = null, cargo = null, turno = null) => {
+const updatePerson = async (nombres = null, apellidos = null, dni, cargo = null, turno = null) => {
     
     if(!dni){
-        console.error('El parámetro DNI KEY es obligatorio ...');
+        console.error('El parámetro DNI es obligatorio ...');
         return false;
     }
     if(dni.length !== 8){
@@ -125,10 +125,10 @@ const updatePerson = async (nombres = null, dni, apellidos = null, cargo = null,
             "id": id
         };
 
-        if (nombres) consulta.name = nombres;
-        if (apellidos) consulta.surname = apellidos;
-        if (cargo) consulta.department = cargo;
-        if (turno) consulta.comment = turno;
+        if (nombres.lenght > 0) consulta.name = nombres;
+        if (apellidos.lenght > 0) consulta.surname = apellidos;
+        if (cargo.lenght > 0) consulta.department = cargo;
+        if (turno.lenght > 0) consulta.comment = turno;
         
         try {
             const response = await axios.post(urlUpdate, consulta);

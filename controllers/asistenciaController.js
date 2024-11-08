@@ -32,6 +32,52 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
     }
 };
 
+const getAsistenciaDiariaEmpleados = async (page = 1, limit = 20, fecha) => {
+    const offset = (page - 1) * limit;
+    try {
+        const asistencias = await Asistencia.findAndCountAll({
+            where: { fecha },
+            limit,
+            offset,
+            include: [
+                {
+                    model: Empleado,
+                    as: 'empleado',
+                    attributes: ['apellido', 'dni'],
+                    include: [
+                        {
+                            model: Turno,
+                            as: 'turno',
+                            attributes: ['nombre']
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // Mapeamos el resultado para estructurar la información de asistencia y empleado
+        const result = asistencias.rows.map(asistencia => ({
+            fecha: asistencia.fecha,
+            hora: asistencia.hora,
+            estado: asistencia.estado,
+            id_empleado: asistencia.id_empleado,
+            photo_id: asistencia.photo_id,
+            apellido: asistencia.empleado.apellido,
+            dni: asistencia.empleado.dni,
+            turno: asistencia.empleado.turno ? asistencia.empleado.turno.nombre : null
+        }));
+
+        return {
+            total: asistencias.count,
+            data: result,
+            currentPage: page
+        };
+    } catch (error) {
+        console.error('Error al obtener las asistencias de un día determinado:', error);
+        return false;
+    }
+};
+
 // Obtener las asistencias de un determinado rango :
 const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin) => {
     const offset = (page - 1) * limit;
