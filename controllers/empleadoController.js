@@ -174,10 +174,10 @@ const getEmpleadoByDni = async (dni) => {
     }
 };
 
-const getEmpleadoDNIByCargoTurno = async (cargo, turno) => {
+const getEmpleadoIdDniByCargoTurno = async (cargo, turno) => {
     try {
         const empleados = await Empleado.findAll({
-            attributes: ['dni'],
+            attributes: ['id', 'dni'],
             include: [
                 { 
                     model: Cargo, 
@@ -193,8 +193,11 @@ const getEmpleadoDNIByCargoTurno = async (cargo, turno) => {
                 }
             ]
         });
-        const dnis = empleados.map(empleado => empleado.dni);
-        return dnis;
+        const result = empleados.map(empleado => ({
+            id: empleado.id,
+            dni: empleado.dni
+        }));
+        return result;
     } catch (error) {
         console.error('Error al obtener los empleados por cargo y turno:', error);
         return false;
@@ -204,7 +207,7 @@ const getEmpleadoDNIByCargoTurno = async (cargo, turno) => {
 module.exports = {
     getEmpleadoByDni,
     getAllEmpleados,
-    getEmpleadoDNIByCargoTurno,
+    getEmpleadoIdDniByCargoTurno,
     getEmpleado,
     createEmpleado,
     deleteEmpleado,

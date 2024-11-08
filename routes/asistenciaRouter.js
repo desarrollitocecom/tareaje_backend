@@ -6,7 +6,8 @@ const {
     getAsistenciaDiariaHandler,
     getAsistenciaRangoHandler,
     getAllAsistenciasHandler,
-    updateAsistenciaHandler
+    updateAsistenciaHandler,
+    createAsistenciaHandler
 } = require('../handlers/asistenciaHandlers');
 const permisoAutorizacion = require("../checkers/roleAuth");
 
