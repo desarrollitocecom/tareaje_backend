@@ -66,8 +66,10 @@ const getAsistenciaDiariaHandler = async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error al obtener todas las asistencias por día en el handler', error);
-        return res.status(500).json({ message: "Error al obtener todas las asistencias por día en el handler" });
+        return res.status(500).json({
+            message: "Error al obtener todas las asistencias por día en el handler",
+            error: error.message
+        });
     }
 };
 

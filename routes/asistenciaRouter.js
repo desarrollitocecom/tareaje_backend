@@ -4,6 +4,7 @@ const router = Router();
 const {
     getAsistenciaByIdHandler,
     getAsistenciaDiariaHandler,
+    getAsistenciaDiariaEmpleadosHandler,
     getAsistenciaRangoHandler,
     getAllAsistenciasHandler,
     updateAsistenciaHandler,

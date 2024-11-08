@@ -1,4 +1,4 @@
-const { Asistencia } = require('../db_connection');
+const { Asistencia, Empleado, Cargo, Turno } = require('../db_connection');
 const { Op } = require('sequelize');
 
 // Obtener la asistencias por id :
@@ -14,25 +14,7 @@ const getAsistenciaById = async (id) => {
 
 // Obtener las asistencias de un día determinado :
 const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
-    const offset = (page - 1) * limit;
-    try {
-        const asistencias = await Asistencia.findAndCountAll({
-            where: { fecha },
-            limit,
-            offset
-        });
-        return {
-            total: asistencias.count,
-            data: asistencias.rows,
-            currentPage: page
-        } || null;
-    } catch (error) {
-        console.error('Error al obtener las asistencias de un día determinado:', error);
-        return false;
-    }
-};
-
-const getAsistenciaDiariaEmpleados = async (page = 1, limit = 20, fecha) => {
+    
     const offset = (page - 1) * limit;
     try {
         const asistencias = await Asistencia.findAndCountAll({
@@ -43,8 +25,13 @@ const getAsistenciaDiariaEmpleados = async (page = 1, limit = 20, fecha) => {
                 {
                     model: Empleado,
                     as: 'empleado',
-                    attributes: ['apellido', 'dni'],
+                    attributes: ['nombres', 'apellidos', 'dni'],
                     include: [
+                        {
+                            model: Cargo,
+                            as: 'cargo',
+                            attributes: ['nombre']
+                        },
                         {
                             model: Turno,
                             as: 'turno',
@@ -55,15 +42,17 @@ const getAsistenciaDiariaEmpleados = async (page = 1, limit = 20, fecha) => {
             ]
         });
 
-        // Mapeamos el resultado para estructurar la información de asistencia y empleado
+        // Mapeo del resultado para estructurar de asistencia y empleado
         const result = asistencias.rows.map(asistencia => ({
             fecha: asistencia.fecha,
             hora: asistencia.hora,
             estado: asistencia.estado,
             id_empleado: asistencia.id_empleado,
             photo_id: asistencia.photo_id,
-            apellido: asistencia.empleado.apellido,
+            nombres: asistencia.empleado.nombres,
+            apellidos: asistencia.empleado.apellidos,
             dni: asistencia.empleado.dni,
+            cargo: asistencia.empleado.cargo ? asistencia.empleado.cargo.nombre : null,
             turno: asistencia.empleado.turno ? asistencia.empleado.turno.nombre : null
         }));
 
@@ -78,22 +67,57 @@ const getAsistenciaDiariaEmpleados = async (page = 1, limit = 20, fecha) => {
     }
 };
 
-// Obtener las asistencias de un determinado rango :
+// Obtener asistencias en un rango de horarios :
 const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin) => {
+    
     const offset = (page - 1) * limit;
+
+    const dias = [];
+    let fechaDate = new Date(inicio);
+    while (fechaDate <= new Date(fin)) {
+        dias.push(new Date(fechaDate).toISOString().split('T')[0]);
+        fechaDate.setDate(fechaDate.getDate() + 1);
+    }
+
     try {
-        const asistencias = await Asistencia.findAndCountAll({
+        const empleados = await Empleado.findAndCountAll({
+            limit,
+            offset,
+            include: [
+                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+                { model: Turno, as: 'turno', attributes: ['nombre'] }
+            ]
+        });
+
+        const asistencias = await Asistencia.findAll({
             where: {
                 fecha: { [Op.between]: [inicio, fin] }
             },
-            limit,
-            offset
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id'] }]
         });
-        return {
-            total: asistencias.count,
-            data: asistencias.rows,
-            currentPage: page
-        } || null;
+
+        // Mapeo de las asistencias por empleado y fecha :
+        const asistenciaMap = {};
+        asistencias.forEach(asistencia => {
+            const { id_empleado, fecha, estado } = asistencia;
+            if (!asistenciaMap[id_empleado]) asistenciaMap[id_empleado] = {};
+            asistenciaMap[id_empleado][fecha] = estado;
+        });
+
+        const result = empleados.rows.map(empleado => ({
+            id_empleado: empleado.id,
+            nombres: empleado.nombres,
+            apellidos: empleado.apellidos,
+            dni: empleado.dni,
+            cargo: empleado.cargo ? empleado.cargo.nombre : null,
+            turno: empleado.turno ? empleado.turno.nombre : null,
+            estados: dias.map(fecha => ({
+                fecha,
+                asistencia: asistenciaMap[empleado.id]?.[fecha] || null
+            }))
+        }));
+
+        return result || null;
     } catch (error) {
         console.error('Error al obtener las asistencias de un rango de fechas:', error);
         return false;

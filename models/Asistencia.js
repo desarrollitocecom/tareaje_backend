@@ -41,5 +41,9 @@ module.exports = (sequelize) => {
         ],
     });
 
+    Asistencia.associate = (models) => {
+        Asistencia.belongsTo(models.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+    };
+
     return Asistencia;
 };
