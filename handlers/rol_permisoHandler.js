@@ -1,5 +1,5 @@
 
-const { createPermiso, createRol, getAllRols, getRolById, getAllPermisos, getPermisoById, getPermisosByRolId,updateRol } = require("../controllers/rol_permisoController");
+const { createPermiso, createRol, getAllRols, getRolById, getAllPermisos, getPermisoById, getPermisosByRolId, updateRol, deleteRol, deletePermiso, updatePermiso } = require("../controllers/rol_permisoController");
 const jwt = require("jsonwebtoken");
 
 const createPermisoHandler = async (req, res) => {
@@ -28,7 +28,7 @@ const createPermisoHandler = async (req, res) => {
 const getRolPermisosHandler = async (req, res) => {
 
     const { id } = req.params;
-    const {rol, usuario } = jwt.verify(req.user, process.env.JWT_SECRET);
+    const { rol, usuario } = jwt.verify(req.user, process.env.JWT_SECRET);
     //console.log(rol, id);
     try {
         const permisos = await getPermisosByRolId(rol);
@@ -82,12 +82,12 @@ const getAllRolsHandler = async (req, res) => {
     if (page <= 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(pageSize)) errores.push("El pageSize debe ser un numero");
     if (pageSize <= 0) errores.push("El pageSize debe ser mayor a 0 ");
-    if(errores.length>0){
+    if (errores.length > 0) {
         return res.status(400).json({ errores });
     }
     try {
         const rols = await getAllRols(page, pageSize);
-        
+
         // Calcular el total de páginas
         const totalPages = Math.ceil(rols.totalCount / pageSize);
 
@@ -96,7 +96,7 @@ const getAllRolsHandler = async (req, res) => {
             return res.status(404).json({
                 message: "Página fuera de rango",
                 data: {
-                    data:[],
+                    data: [],
                     currentPage: page,
                     totalPages: totalPages,
                     totalCount: rols.totalCount,
@@ -145,7 +145,7 @@ const getAllPermisosHandler = async (req, res) => {
             return res.status(404).json({
                 message: "Página fuera de rango",
                 data: {
-                    data:[],
+                    data: [],
                     currentPage: page,
                     totalPages: totalPages,
                     totalCount: permisos.totalCount,
@@ -184,6 +184,7 @@ const updatePermisoHandler = async (req, res) => {
 };
 
 const deletePermisoHandler = async (req, res) => {
+
     const { id } = req.params;
 
     try {
@@ -199,7 +200,7 @@ const deletePermisoHandler = async (req, res) => {
 
 const updateRolHandler = async (req, res) => {
     const { id } = req.params;
-    const { nombre, descripcion, permisos} = req.body;
+    const { nombre, descripcion, permisos } = req.body;
 
     try {
         const rol = await updateRol(id, nombre, descripcion, permisos);

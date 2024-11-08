@@ -11,6 +11,7 @@ const {
     searchByFaceHandler,
     getProtocolsHandler
 } = require('../handlers/axxonHandlers');
+const permisoAutorizacion = require("../checkers/roleAuth");
 
 router.post('/create/', createPersonHandler);
 router.get('/', readPersonHandler);
