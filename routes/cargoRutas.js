@@ -14,6 +14,6 @@ rutas.get('/:id', getCargoByIdHandler);
 rutas.get('/', getAllCargosHandler);
 rutas.post('/', createCargoHandler);
 rutas.delete('/:id', deleteCargoHandler);
-rutas.put('/:id', updateCargoHandler);
+rutas.patch('/:id', updateCargoHandler);
 
 module.exports = rutas;
