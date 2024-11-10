@@ -238,8 +238,9 @@ const getAllUsersHandler = async (req, res) => {
 
 const getUserByIdHandler = async (req, res) => {
 
-    const { token } = req.body;
-
+    //const { token } = req.body;
+    const token = req.headers.authorization.split("___")[1];
+    
     try {
         const user = await getUserById(token);
         if (user)
