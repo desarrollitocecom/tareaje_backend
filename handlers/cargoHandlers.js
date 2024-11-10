@@ -47,9 +47,16 @@ const getAllCargosHandler = async (req, res) => {
     }
 };
 
-// Handler para crear un nuevo Cargo
 const createCargoHandler = async (req, res) => {
     const { nombre, sueldo, id_subgerencia } = req.body;
+    const errores = [];
+
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
     const errores = [];
 
@@ -97,30 +104,19 @@ const deleteCargoHandler = async (req, res) => {
 const updateCargoHandler = async (req, res) => {
     const { id } = req.params;
     const { nombre, sueldo, id_subgerencia } = req.body;
-    const errores = [];
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);   
-    if (!nombre) errores.push('El campo nombre es requerido');
-    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto')
-    if (!validaNombre) errores.push('el nombre debe estar sin números ni caracteres especiales')
-    if (!nombre && !sueldo && !id_subgerencia) errores.push('todos los campos son requeridos')
-    if (typeof sueldo !== 'number') errores.push('el sueldo debe ser un numero')
-    if (isNaN(sueldo)) {
-        errores.push('El sueldo debe ser un numero')
-    } else if (sueldo <= 0) {
-        errores.push('El sueldo no debe tener cantidades negativas')
+
+    // Validación: Asegúrate de que sueldo sea un número válido y no un valor NaN o string
+    if (sueldo !== undefined && (typeof sueldo !== 'number' || isNaN(sueldo))) {
+        return res.status(400).json({ error: 'El campo sueldo debe ser un número válido' });
     }
-    if (isNaN(id_subgerencia)) {
-        errores.push('El id_subgerencia debe ser un numero')
-    } else if (id_subgerencia <= 0) {
-        errores.push('El id_subgerencia no debe tener cantidades negativas')
+
+    // Validación: Asegúrate de que id_subgerencia corresponde a una subgerencia existente
+    if (id_subgerencia !== undefined) {
+        const subgerenciaExists = await Subgerencia.findByPk(id_subgerencia);
+        if (!subgerenciaExists) {
+            return res.status(400).json({ error: 'El id_subgerencia debe corresponder a una subgerencia existente' });
+        }
     }
-    if (isNaN(id)) {
-        errores.push('El id debe ser un numero')
-    } else if (id <= 0) {
-        errores.push('El id no debe tener cantidades negativas')
-    }
-    if (errores.length > 0)
-        return res.status(400).json({ message:'Se encontraron los siguientes errores',errores });
 
     try {
         const updatedCargo = await updateCargo(id, { nombre, sueldo, id_subgerencia });
@@ -132,6 +128,7 @@ const updateCargoHandler = async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar el cargo', details: error.message });
     }
 };
+
 
 module.exports = {
     getCargoByIdHandler,

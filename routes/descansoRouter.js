@@ -11,7 +11,7 @@ const {
 rutas.get("/", getAllDescansosHandler);
 rutas.get("/:id", getDescansosHandler);
 rutas.post("/", createDescansosHandler);
-rutas.put("/:id", updateDescansoHandler);
+rutas.patch("/:id", updateDescansoHandler);
 rutas.delete("/:id", deleteDescansoHandler);
 
 module.exports=rutas;

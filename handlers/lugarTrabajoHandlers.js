@@ -72,55 +72,81 @@ const getLugarTrabajoHandler = async (req, res) => {
 
 const createLugarTrabajoHandler = async (req, res) => {
     const { nombre } = req.body;
+    const errores = [];
+
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
+    }
 
-
-    if (!nombre || typeof nombre !== 'string' || !validaNombre)
-        return res.status(400).json({ error: 'El nombre es requerido y debe ser una cadena de texto válida y tener solo letras' });
+    if (errores.length > 0) {
+        return res.status(400).json({ errores });
+    }
 
     try {
-        const nuevaLugarTrabajo = await createLugarTrabajo({ nombre })
-
-        res.status(201).json(nuevaLugarTrabajo);
+        const nuevaLugarTrabajo = await createLugarTrabajo({ nombre });
+        return res.status(201).json({
+            message: 'Lugar de Trabajo creado exitosamente',
+            data: nuevaLugarTrabajo
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ messaje: 'Error del server' })
+        console.error('Error al crear el Lugar de Trabajo:', error);
+        return res.status(500).json({ message: 'Error al crear el Lugar de Trabajo', error });
     }
-}
-//handler para modificar una LugarTrabajo
+};
 
+// Handler para modificar un Lugar de Trabajo
 const updateLugarTrabajoHandler = async (req, res) => {
     const { id } = req.params;
     const { nombre } = req.body;
     const errores = [];
-    if (!id || isNaN(id)) {
-        errores.push('El ID es requerido y debe ser un Numero')
-        console.log('id:' + id);
+
+    if (!id) {
+        errores.push('El campo ID es requerido');
+    }
+    if (isNaN(id)) {
+        errores.push('El campo ID debe ser un número válido');
     }
 
-
-    if (!nombre || typeof nombre !== 'string') {
-        errores.push('El nombre es requerido y debe ser una cadena de texto válida')
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
     }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
+    }
+
     if (errores.length > 0) {
         return res.status(400).json({ errores });
     }
+
     try {
-        const response = await updateLugarTrabajo(id, { nombre })
+        const response = await updateLugarTrabajo(id, { nombre });
         if (!response) {
-            return res.status(201).json({
-                message: "El lugar trabajo no se encuentra ",
+            return res.status(404).json({
+                message: "El Lugar de Trabajo no se encuentra",
                 data: {}
-            })
+            });
         }
         return res.status(200).json({
             message: "Registro modificado",
             data: response
-        })
+        });
     } catch (error) {
-        res.status(404).json({ message: "Lugar de Trabajo no encontrada", error })
+        console.error('Error al modificar el Lugar de Trabajo:', error);
+        return res.status(500).json({ message: "Error al modificar el Lugar de Trabajo", error });
     }
 };
+
 const deleteLugarTrabajoHandler = async (req, res) => {
     const id = req.params.id;
     // Validación del ID
