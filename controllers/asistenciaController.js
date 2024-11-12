@@ -186,7 +186,13 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
     }
 
     try {
-        const nuevaAsistencia = await Asistencia.create({ fecha, hora, estado, id_empleado, photo_id });
+        const nuevaAsistencia = await Asistencia.create({
+            fecha: fecha,
+            hora: hora,
+            estado: estado,
+            id_empleado: id_empleado,
+            photo_id: photo_id
+        });
         if(nuevaAsistencia){
             console.log('Asistencia creada exitosamente');
             return true;
