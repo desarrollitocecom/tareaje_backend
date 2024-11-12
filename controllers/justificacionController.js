@@ -1,4 +1,4 @@
-const { Justificacion } = require('../db_connection');
+const { Justificacion, Asistencia } = require('../db_connection');
 
 // Obtener la justificación por ID :
 const getJustificacionById = async (id) => {
@@ -43,7 +43,16 @@ const createJustificacion = async (documentos, descripcion, id_asistencia, id_em
             id_asistencia: id_asistencia,
             id_empleado: id_empleado
         });
-        return newJustificacion || null;
+        if(newJustificacion){
+            await Asistencia.update(
+                { estado: "A" },
+                {
+                    where: { id: id_asistencia } // Actualiza desde el ID de la asistencia
+                }
+            );
+            return newJustificacion;
+        }
+        else return null;
     } catch (error) {
         console.error('Error al crear una nueva asistencia:', error);
         return false;
