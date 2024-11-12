@@ -174,25 +174,17 @@ const getEmpleadoByDni = async (dni) => {
     }
 };
 
-const getEmpleadoIdDniByCargoTurno = async (cargo, turno) => {
+// Obtención del empleado (ID, DNI) según el ID de Cargo y Turno :
+const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
     try {
         const empleados = await Empleado.findAll({
             attributes: ['id', 'dni'],
-            include: [
-                { 
-                    model: Cargo, 
-                    as: 'cargo', 
-                    attributes: [],
-                    where: { nombre: cargo }
-                },
-                { 
-                    model: Turno, 
-                    as: 'turno', 
-                    attributes: [],
-                    where: { nombre: turno }
-                }
-            ]
+            where: {
+                id_cargo: id_cargo,
+                id_turno: id_turno
+            }
         });
+        if(!empleados || empleados.length === 0) return null;
         const result = empleados.map(empleado => ({
             id: empleado.id,
             dni: empleado.dni

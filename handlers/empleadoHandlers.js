@@ -1,5 +1,5 @@
 const { getAllEmpleados, getEmpleado, createEmpleado,
-    updateEmpleado, deleteEmpleado } = require('../controllers/empleadoController');
+    updateEmpleado, deleteEmpleado, getEmpleadoIdDniByCargoTurno } = require('../controllers/empleadoController');
 
 const getAllEmpleadosHandlers = async (req, res) => {
     const { page=1,limit=20 } = req.query;
@@ -236,6 +236,33 @@ const deleteEmpleadoHandler = async (req, res) => {
 
 };
 
+const getEmpleadoIdDniByCargoTurnoHandler = async (req, res) => {
+    
+    const { cargo, turno } = req.body;
+    if(!cargo) return res.status(400).json({ message: "El cargo es obligatorio" });
+    if(!turno) return res.status(400).json({ message: "El turno es obligatorio" });
+
+    try {
+        const response = await getEmpleadoIdDniByCargoTurno(cargo, turno);
+        if(!response || response.length === 0){
+            return res.status(400).json({
+                message: "No hay nada",
+                data: null
+            });
+        }
+        return res.status(200).json({
+            message: 'Mostrando empleados...',
+            data: response
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error al obtener todas las asistencias por día en el handler",
+            error: error.message
+        });
+    }
+}
+
 
 module.exports = {
     getAllEmpleadosHandlers,
@@ -243,5 +270,5 @@ module.exports = {
     createEmpleadoHandler,
     updateEmpleadoHandler,
     deleteEmpleadoHandler,
-    
+    getEmpleadoIdDniByCargoTurnoHandler
 };

@@ -19,6 +19,7 @@ const descansoRouter=require('./descansoRouter');
 const feriadoRouter=require('./feriadoRouter');
 const asistenciaRouter=require('./asistenciaRouter');
 const rangoHorarioRouter=require('./rangoHorarioRouter');
+const justificacionRouter = require('./justificacionRouter');
 
 
 // Usa prefijos para organizar las rutas
@@ -40,5 +41,6 @@ router.use('/jurisdicciones',jurisdiccionRouter);
 router.use('/feriados',feriadoRouter);
 router.use('/asistencias',asistenciaRouter);
 router.use('/rangohorarios',rangoHorarioRouter);
+router.use('/justificaciones',justificacionRouter);
 
 module.exports = router;
