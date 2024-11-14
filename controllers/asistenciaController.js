@@ -99,9 +99,9 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin) => {
         // Mapeo de las asistencias por empleado y fecha :
         const asistenciaMap = {};
         asistencias.forEach(asistencia => {
-            const { id_empleado, fecha, estado } = asistencia;
+            const { id, id_empleado, fecha, estado} = asistencia;
             if (!asistenciaMap[id_empleado]) asistenciaMap[id_empleado] = {};
-            asistenciaMap[id_empleado][fecha] = estado;
+            asistenciaMap[id_empleado][fecha] = { estado, id};
         });
 
         const result = empleados.rows.map(empleado => ({
@@ -111,10 +111,14 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin) => {
             dni: empleado.dni,
             cargo: empleado.cargo ? empleado.cargo.nombre : null,
             turno: empleado.turno ? empleado.turno.nombre : null,
-            estados: dias.map(fecha => ({
-                fecha,
-                asistencia: asistenciaMap[empleado.id]?.[fecha] || null
-            }))
+            estados: dias.map(fecha => {
+                const asistencia = asistenciaMap[empleado.id]?.[fecha];
+                return {
+                    fecha,
+                    asistencia: asistencia ? asistencia.estado : null,
+                    id_asistencia: asistencia ? asistencia.id : null
+                };
+            })
         }));
 
         return result || null;
@@ -186,7 +190,13 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
     }
 
     try {
-        const nuevaAsistencia = await Asistencia.create({ fecha, hora, estado, id_empleado, photo_id });
+        const nuevaAsistencia = await Asistencia.create({
+            fecha: fecha,
+            hora: hora,
+            estado: estado,
+            id_empleado: id_empleado,
+            photo_id: photo_id
+        });
         if(nuevaAsistencia){
             console.log('Asistencia creada exitosamente');
             return true;

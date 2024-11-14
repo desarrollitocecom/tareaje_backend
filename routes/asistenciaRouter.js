@@ -16,5 +16,6 @@ router.get('/', permisoAutorizacion(["all_system_access", "read_asistencia"]), g
 router.get('/diaria/:fecha', permisoAutorizacion(["all_system_access", "read_asistencia"]), getAsistenciaDiariaHandler);
 router.post('/', permisoAutorizacion(["all_system_access", "read_asistencia"]), getAsistenciaRangoHandler);
 router.patch('/:id', permisoAutorizacion(["all_system_access", "update_asistencia"]), updateAsistenciaHandler);
+router.post('/create/', permisoAutorizacion(["all_system_access", "create_asistencia"]), createAsistenciaHandler);
 
 module.exports = router;

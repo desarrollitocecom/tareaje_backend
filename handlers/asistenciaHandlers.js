@@ -143,7 +143,7 @@ const getAllAsistenciasHandler = async (req, res) => {
 };
 
 // Handler Creación de Asistencia (SOLO ES DE PRUEBA) :
-const createAsistenciaHandler = async () => {
+const createAsistenciaHandler = async (req, res) => {
 
     const { fecha, hora, estado, id_empleado, photo_id } = req.body;
     if(!fecha){
@@ -178,7 +178,7 @@ const createAsistenciaHandler = async () => {
         const result = await createAsistencia(fecha, hora, estado, id_empleado, photo_id);
         if (result) {
             return res.status(200).json({
-                message: 'Usuario actualizado con éxito',
+                message: 'Usuario creado con éxito',
                 success: result
             });
         } else {
