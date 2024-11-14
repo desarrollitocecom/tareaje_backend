@@ -152,6 +152,8 @@ const changeUserDataHandler = async (req, res) => {
     const { usuario, correo, id_rol } = req.body;
     const errors = [];
 
+    if(!usuario)
+        errors.push("El nombre de usuario es requerido");
     if (!correo)
         errors.push("El correo es requerido");
     if (!correoRegex.test(correo))
