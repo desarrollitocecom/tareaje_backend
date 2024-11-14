@@ -13,6 +13,6 @@ router.get("/permiso/:id",permisoAutorizacion(["all_system_access", "read_permis
 router.patch("/permiso",permisoAutorizacion(["all_system_access", "update_permiso"]), updatePermisoHandler);
 router.patch("/rol/:id",permisoAutorizacion(["all_system_access", "update_rol"]), updateRolHandler);
 router.delete("/permiso",permisoAutorizacion(["all_system_access", "delete_permiso"]), deletePermisoHandler);
-router.delete("/rol",permisoAutorizacion(["all_system_access", "delete_rol"]), deleteRolHandler);
+router.delete("/rol/:id",permisoAutorizacion(["all_system_access", "delete_rol"]), deleteRolHandler);
 
 module.exports = router;

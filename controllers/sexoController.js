@@ -5,8 +5,10 @@ const getSexos=async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit; 
     try {
         const  { count, rows }=await Sexo.findAndCountAll({
+            where: { state: true },
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return { totalCount: count, data: rows , currentPage:page } || null;
     } catch (error) {

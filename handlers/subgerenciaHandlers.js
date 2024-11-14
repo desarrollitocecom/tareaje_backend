@@ -72,53 +72,80 @@ const getSubgerenciaHandler = async (req, res) => {
 
 const createSubgerenciaHandler = async (req, res) => {
     const { nombre } = req.body;
+    const errores = [];
 
-    const validaNombre = /^[a-zA-Z]+( [a-zA-Z]+)*$/.test(nombre);
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
+    }
 
-
-    if (!nombre || typeof nombre !== 'string' || !validaNombre)
-        return res.status(400).json({ error: 'El nombre es requerido y debe ser una cadena de texto válida y tener solo letras' });
+    if (errores.length > 0) {
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
+    }
 
     try {
-        const nuevaSubgerencia = await createSubgerencia({ nombre })
-
-        res.status(201).json(nuevaSubgerencia);
+        const nuevaSubgerencia = await createSubgerencia({ nombre });
+        return res.status(201).json({
+            message: 'Subgerencia creada exitosamente',
+            data: nuevaSubgerencia
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ messaje: 'Error del server' })
+        console.error('Error al crear la subgerencia:', error);
+        return res.status(500).json({ message: 'Error al crear la subgerencia', error });
     }
-}
-//handler para modificar una Subgerencia
+};
 
 const updateSubgerenciaHandler = async (req, res) => {
-    const {id} = req.params;
-    const  {nombre}  = req.body;
+    const { id } = req.params;
+    const { nombre } = req.body;
     const errores = [];
-    if (!id || isNaN(id)) {
-        errores.push('El ID es requerido y debe ser un Numero')
+
+    if (!id) {
+        errores.push('El campo ID es requerido');
     }
-    if (!nombre || typeof nombre !== 'string' ) {
-        errores.push('El nombre es requerido y debe ser una cadena de texto válida')
+    if (isNaN(id)) {
+        errores.push('El campo ID debe ser un número válido');
     }
+
+    if (!nombre) {
+        errores.push('El campo nombre es requerido');
+    }
+    if (typeof nombre !== 'string') {
+        errores.push('El campo nombre debe ser una cadena de texto');
+    }
+    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
+    if (!validaNombre) {
+        errores.push('El campo nombre debe contener solo letras y espacios');
+    }
+
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
+
     try {
-        const response = await updateSubgerencia(id, {nombre})
+        const response = await updateSubgerencia(id, { nombre });
         if (!response) {
-            return res.status(201).json({
-                message: "La Subgerencia no se encuentra ",
+            return res.status(404).json({
+                message: "La Subgerencia no se encuentra",
                 data: {}
-            })
+            });
         }
         return res.status(200).json({
             message: "Registro modificado",
             data: response
-        })
+        });
     } catch (error) {
-        res.status(404).json({ message: "Subgerencia no encontrada",error})
+        console.error('Error al modificar la subgerencia:', error);
+        return res.status(500).json({ message: "Error al modificar la subgerencia", error });
     }
 };
+
 const deleteSubgerenciaHandler = async (req, res) => {
     const id = req.params.id;
     // Validación del ID

@@ -7,12 +7,13 @@ const {
     updateSubgerenciaHandler,
     deleteSubgerenciaHandler
 } = require('../handlers/subgerenciaHandlers');
+const permisoAutorizacion = require("../checkers/roleAuth");
 
-rutas.get('/',getSubgerenciasHandler)
-rutas.post('/', createSubgerenciaHandler);
-rutas.get('/:id',  getSubgerenciaHandler);  
-rutas.patch('/:id', updateSubgerenciaHandler);
-rutas.delete('/:id', deleteSubgerenciaHandler);
+rutas.get('/',permisoAutorizacion(["all_system_access", "read_cargo"]),getSubgerenciasHandler)
+rutas.post('/',permisoAutorizacion(["all_system_access", "create_cargo"]), createSubgerenciaHandler);
+rutas.get('/:id',permisoAutorizacion(["all_system_access", "read_cargo"]),  getSubgerenciaHandler);  
+rutas.patch('/:id',permisoAutorizacion(["all_system_access", "update_cargo"]), updateSubgerenciaHandler);
+rutas.delete('/:id',permisoAutorizacion(["all_system_access", "delete_cargo"]), deleteSubgerenciaHandler);
 
 
 module.exports = rutas;

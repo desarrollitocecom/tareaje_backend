@@ -3,11 +3,12 @@ const { Descanso, Empleado } = require ("../db_connection");
 const getAllDescansos = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
-        const response = await Descanso.findAndCountAll({
-       
-            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres','apellidos'] }],
+        const response = await Descanso.findAndCountAll({ 
+            where: { state: true },
+           include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres','apellidos','dni'], }],
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
@@ -22,7 +23,7 @@ const getDescansos = async (id) => {
             include: [{ 
                 model: Empleado, 
                 as: 'empleado', 
-                attributes: ['id', 'nombres','apellidos'] }]
+                attributes: ['id', 'nombres','apellidos']             }]
         })
         return response || null
     } catch (error) {

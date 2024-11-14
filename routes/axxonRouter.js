@@ -11,14 +11,15 @@ const {
     searchByFaceHandler,
     getProtocolsHandler
 } = require('../handlers/axxonHandlers');
+const permisoAutorizacion = require("../checkers/roleAuth");
 
-router.get('/', createPersonHandler);
-router.get('/', readPersonHandler);
-router.get('/:dnikey', updatePersonHandler);
-router.get('/:dnikey', deletePersonHandler);
-router.get('/:dni', getEmpleadoIdHandler);
-router.get('/:id', getPhotoHandler);
-router.get('/', searchByFaceHandler);
-router.get('/', getProtocolsHandler);
+// router.post('/create/', createPersonHandler);
+// router.get('/', readPersonHandler);
+// router.post('/update/', updatePersonHandler);
+// router.get('/delete/:dni', deletePersonHandler);
+// router.get('/:dni', getEmpleadoIdHandler);
+router.get('/photo/:id', getPhotoHandler);
+router.post('/face/', searchByFaceHandler);
+// router.post('/protocol/', getProtocolsHandler);
 
 module.exports = router;

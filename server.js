@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const bodyParser = require('body-parser');
 const http = require("http");
 const { sequelize } = require("./db_connection");
 const tareajeRutas = require("./routes/index");
@@ -10,6 +11,9 @@ const usuariosRouter = require("./routes/loginRouter");
 const cors = require("cors");
 
 const app = express();
+
+app.use(bodyParser.json({ limit: '100mb' }));
+app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 app.use(cors());
 app.use(express.json());
 app.use("/login", usuariosRouter); // no aplica authMiddleware para el manejo de usuarios

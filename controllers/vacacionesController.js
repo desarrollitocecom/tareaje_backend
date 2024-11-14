@@ -5,12 +5,14 @@ const getVacaciones = async (page = 1, limit = 20) => {
   const offset = (page - 1) * limit;
   try {
     const response = await Vacacion.findAndCountAll({
+      where: { state: true },
       include: [{
         model: Empleado,
         as: "empleado"
       }],
       limit,
-      offset
+      offset,
+      order: [['id', 'ASC']]
     });
     return { totalCount: response.count, data: response.rows, currentPage: page } || null;
   } catch (error) {

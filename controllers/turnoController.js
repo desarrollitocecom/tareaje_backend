@@ -5,8 +5,10 @@ const getTurnos=async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit; 
     try {
         const  { count, rows }=await Turno.findAndCountAll({
+            where: { state: true },
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
