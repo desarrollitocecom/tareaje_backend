@@ -49,14 +49,9 @@ const getAllCargosHandler = async (req, res) => {
 
 const createCargoHandler = async (req, res) => {
     const { nombre, sueldo, id_subgerencia } = req.body;
-    const errores = [];
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
+
+
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
     const errores = [];
 
