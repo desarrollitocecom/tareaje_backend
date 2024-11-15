@@ -11,7 +11,7 @@ const getCargoByIdHandler = async (req, res) => {
         }
         return res.status(200).json({ data: cargo });
     } catch (error) {
-        return res.status(500).json({ error: 'Error al obtener el cargo', details: error.message });
+        return res.status(500).json({ error: 'Error al obtener el cargo', data: error.message });
     }
 };
 
@@ -43,7 +43,7 @@ const getAllCargosHandler = async (req, res) => {
         return res.status(200).json({ data: cargos });
 
     } catch (error) {
-        return res.status(500).json({ error: 'Error al obtener los cargos', details: error.message });
+        return res.status(500).json({ error: 'Error al obtener los cargos', data: error.message });
     }
 };
 
@@ -75,7 +75,7 @@ const createCargoHandler = async (req, res) => {
         const newCargo = await createCargo({ nombre, sueldo, id_subgerencia });
         return res.status(201).json({ message: 'Cargo creado exitosamente', data: newCargo });
     } catch (error) {
-        return res.status(500).json({ error: 'Error al crear el cargo', details: error.message });
+        return res.status(500).json({ error: 'Error al crear el cargo', data: error.message });
     }
 };
 
@@ -120,7 +120,7 @@ const updateCargoHandler = async (req, res) => {
         errores.push('El id no debe tener cantidades negativas')
     }
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({message:"Estos son los siguientes errores encontrados", data:errores });
     }
 
     try {

@@ -5,7 +5,7 @@ const getAllEmpleados = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
         const response = await Empleado.findAndCountAll({
-            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'status'],
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state'],
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
@@ -41,8 +41,8 @@ const getEmpleado = async (id) => {
             ]
 
         });
-        if (!response) return null;
-        response.setDataValue('estado', response.state ? "Trabajando" : "Cesado");
+       
+        
         return response || null
     } catch (error) {
         console.error("Error al obtener un empleado en el controlador:", error);

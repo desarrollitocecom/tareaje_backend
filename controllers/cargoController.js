@@ -13,7 +13,7 @@ const getCargoById = async (id) => {
         return cargo;
            
     } catch (error) {
-        console.error('Error al obtener el cargo por ID:', error);
+        console.error('Error al obtener el cargo por ID:',error);
         throw error;
     }
 };
