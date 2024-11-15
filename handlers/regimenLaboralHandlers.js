@@ -90,7 +90,7 @@ const createRegimenLaboralHandler = async (req, res) => {
     }
 
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {
@@ -129,7 +129,7 @@ const updateRegimenLaboralHandler = async (req, res) => {
     }
 
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {

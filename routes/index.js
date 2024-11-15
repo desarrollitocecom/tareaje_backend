@@ -1,5 +1,6 @@
 const { Router } = require("express");
-const tareaje = Router();
+const router = Router();
+
 const funcionRutas = require("./funcionRutas");
 const sexoRutas = require('./sexoRutas');
 const lugarTrabajoRutas = require('./lugarTrabajoRutas');
@@ -8,31 +9,38 @@ const cargoRutas=require('./cargoRutas');
 const empleadosRutas=require('./empleadoRutas')
 const vacacionesRouter=require('./vacacionesRutas')
 const usuariosRouter = require("./usuariosRouter");
-
 const rol_permisoRouter = require("./rol_permisosRouter");
 const axxonRouter = require("./axxonRouter");
 const gradoEstudioRouter=require("./gradoEstudioRouter");
 const jurisdiccionRouter=require('./jurisdiccionRouter');
 const regimenLaboralRouter=require('./regimenLaboralRouter')
-const turnoRouter=require('./turnoRouter')
-const descansoRouter=require('./descansoRouter')
-const feriadoRouter=require('./feriadoRouter')
-// Usa prefijos para organizar las rutas
-tareaje.use('/funciones', funcionRutas);
+const turnoRouter=require('./turnoRouter');
+const descansoRouter=require('./descansoRouter');
+const feriadoRouter=require('./feriadoRouter');
+const asistenciaRouter=require('./asistenciaRouter');
+const rangoHorarioRouter=require('./rangoHorarioRouter');
+const justificacionRouter = require('./justificacionRouter');
 
-tareaje.use('/sexos', sexoRutas);
-tareaje.use('/lugarestrabajos', lugarTrabajoRutas);
-tareaje.use('/subgerencias',subgerenciaRutas);
-tareaje.use('/cargos',cargoRutas);
-tareaje.use('/empleados',empleadosRutas);
-tareaje.use('/users', usuariosRouter);
-tareaje.use('/vacaciones',vacacionesRouter);
-tareaje.use('/auth',rol_permisoRouter);
-tareaje.use('/axxon',axxonRouter);
-tareaje.use('/descansos',descansoRouter);
-tareaje.use('/turnos',turnoRouter);
-tareaje.use('/regimenlaborales',regimenLaboralRouter);
-tareaje.use('/gradoestudios',gradoEstudioRouter);
-tareaje.use('/jurisdicciones',jurisdiccionRouter);
-tareaje.use('/feriados',feriadoRouter);
-module.exports = tareaje;
+
+// Usa prefijos para organizar las rutas
+router.use('/funciones', funcionRutas);
+router.use('/sexos', sexoRutas);
+router.use('/lugarestrabajos', lugarTrabajoRutas);
+router.use('/subgerencias',subgerenciaRutas);
+router.use('/cargos',cargoRutas);
+router.use('/empleados',empleadosRutas);
+router.use('/users', usuariosRouter);
+router.use('/vacaciones',vacacionesRouter);
+router.use('/auth',rol_permisoRouter);
+router.use('/axxon',axxonRouter);
+router.use('/descansos',descansoRouter);
+router.use('/turnos',turnoRouter);
+router.use('/regimenlaborales',regimenLaboralRouter);
+router.use('/gradoestudios',gradoEstudioRouter);
+router.use('/jurisdicciones',jurisdiccionRouter);
+router.use('/feriados',feriadoRouter);
+router.use('/asistencias',asistenciaRouter);
+router.use('/rangohorarios',rangoHorarioRouter);
+router.use('/justificaciones',justificacionRouter);
+
+module.exports = router;

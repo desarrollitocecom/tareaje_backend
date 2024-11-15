@@ -84,7 +84,7 @@ const createJurisdiccionHandler = async (req, res) => {
     }
 
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {
@@ -124,7 +124,7 @@ const updateJurisdiccionHandler = async (req, res) => {
     }
 
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {

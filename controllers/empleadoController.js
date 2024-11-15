@@ -12,7 +12,8 @@ const getAllEmpleados = async (page = 1, limit = 20) => {
                 { model: Turno, as: 'turno', attributes: ['nombre'] }
             ],
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
@@ -175,9 +176,33 @@ const getEmpleadoByDni = async (dni) => {
         return false;
     }
 };
+
+// Obtención del empleado (ID, DNI) según el ID de Cargo y Turno :
+const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
+    try {
+        const empleados = await Empleado.findAll({
+            attributes: ['id', 'dni'],
+            where: {
+                id_cargo: id_cargo,
+                id_turno: id_turno
+            }
+        });
+        if(!empleados || empleados.length === 0) return null;
+        const result = empleados.map(empleado => ({
+            id: empleado.id,
+            dni: empleado.dni
+        }));
+        return result;
+    } catch (error) {
+        console.error('Error al obtener los empleados por cargo y turno:', error);
+        return false;
+    }
+};
+
 module.exports = {
     getEmpleadoByDni,
     getAllEmpleados,
+    getEmpleadoIdDniByCargoTurno,
     getEmpleado,
     createEmpleado,
     deleteEmpleado,

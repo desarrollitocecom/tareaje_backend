@@ -86,7 +86,7 @@ const createLugarTrabajoHandler = async (req, res) => {
     }
 
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {
@@ -126,7 +126,7 @@ const updateLugarTrabajoHandler = async (req, res) => {
     }
 
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {
@@ -164,7 +164,7 @@ const deleteLugarTrabajoHandler = async (req, res) => {
             })
         }
         return res.status(200).json({
-            message: 'Función eliminada correctamente '
+            message: 'Lugares de Trabajo eliminado correctamente '
         });
     } catch (error) {
         return res.status(404).json({ message: error.message });

@@ -11,7 +11,8 @@ const getVacaciones = async (page = 1, limit = 20) => {
         as: "empleado"
       }],
       limit,
-      offset
+      offset,
+      order: [['id', 'ASC']]
     });
     return { totalCount: response.count, data: response.rows, currentPage: page } || null;
   } catch (error) {

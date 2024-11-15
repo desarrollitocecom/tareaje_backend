@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         estado: {
-            type: DataTypes.ENUM('A', 'J', 'D', 'F', 'V', 'NA'),
+            type: DataTypes.ENUM("A", "F", "DM", "DO", "V", "DF", "LSG", "LCG", "LF", "PE"),
             allowNull: false,
         },
         id_empleado: {
@@ -40,6 +40,10 @@ module.exports = (sequelize) => {
             { name: 'idx_asistencia_fecha_id_empleado', fields: ['fecha', 'id_empleado'] },
         ],
     });
+
+    Asistencia.associate = (models) => {
+        Asistencia.belongsTo(models.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+    };
 
     return Asistencia;
 };

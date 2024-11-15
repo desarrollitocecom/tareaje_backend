@@ -7,7 +7,8 @@ const getLugarTrabajos = async (page = 1, limit = 20) => {
         const { count, rows } = await LugarTrabajo.findAndCountAll({
             where: { state: true },
             limit,
-            offset
+            offset,
+            order: [['id', 'ASC']]
         });
         return { totalCount: count, data: rows, currentPage: page } || null;
     } catch (error) {
@@ -33,8 +34,8 @@ const getLugarTrabajo = async (id) => {
 //Crea una nueva LugarTrabajo
 const createLugarTrabajo = async ({ nombre }) => {
     try {
-        const LugarTrabajo = await LugarTrabajo.create({ nombre });
-        return LugarTrabajo
+        const lugarTrabajo = await LugarTrabajo.create({ nombre });
+        return lugarTrabajo
 
     } catch (error) {
         console.error('Error al crear una nueva LugarTrabajo', error)
@@ -44,10 +45,10 @@ const createLugarTrabajo = async ({ nombre }) => {
 //elimina la LugarTrabajo o canbia el estado
 const deleteLugarTrabajo = async (id) => {
     try {
-        const LugarTrabajo = await LugarTrabajo.findByPk(id);
-        LugarTrabajo.state = false;
-        await LugarTrabajo.save();
-        return LugarTrabajo || null
+        const lugarTrabajo = await LugarTrabajo.findByPk(id);
+        lugarTrabajo.state = false;
+        await lugarTrabajo.save();
+        return lugarTrabajo || null
     } catch (error) {
         console.error('Error al canbiar de estado al eliminar LugarTrabajo');
         return false;
@@ -58,10 +59,10 @@ const deleteLugarTrabajo = async (id) => {
 const updateLugarTrabajo = async (id, nuevaLugarTrabajo) => {
     if (id && nuevaLugarTrabajo)
         try {
-            const LugarTrabajo = await LugarTrabajo.findOne({ where: { id } });
-            if (LugarTrabajo)
-                await LugarTrabajo.update(nuevaLugarTrabajo);
-            return LugarTrabajo || null;
+            const lugarTrabajo = await LugarTrabajo.findOne({ where: { id } });
+            if (lugarTrabajo)
+                await lugarTrabajo.update(nuevaLugarTrabajo);
+            return lugarTrabajo || null;
 
 
         } catch (error) {

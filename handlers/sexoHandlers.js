@@ -73,7 +73,7 @@ const createSexoHandler = async (req, res) => {
     const { nombre } = req.body;
     const errores = [];
 
-    if (!nombre) {
+    if (!nombre ) {
         errores.push('El campo nombre es requerido');
     }
     if (typeof nombre !== 'string') {
@@ -85,11 +85,14 @@ const createSexoHandler = async (req, res) => {
     }
 
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {
         const nuevaSexo = await createSexo({ nombre });
+                if (!nuevaSexo) {
+            return res.status(500).json({ message: 'Error al crear el sexo' });
+        }
         return res.status(201).json({
             message: 'Sexo creado exitosamente',
             data: nuevaSexo
@@ -124,7 +127,7 @@ const updateSexoHandler = async (req, res) => {
     }
 
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
 
     try {

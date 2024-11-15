@@ -90,10 +90,17 @@ const createFuncionHandler = async (req, res) => {
 
     try {
         const nuevaFuncion = await createFuncion({ nombre });
-        res.status(201).json(nuevaFuncion);
+        if (!nuevaFuncion) {
+            return res.status(500).json({ message: "Error al crear la función" });
+        }
+    
+        return res.status(201).json({
+            message: "Función creada exitosamente",
+            data: nuevaFuncion
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ mensaje: 'Error del servidor', error });
+        console.error("Error al crear función:", error);
+        return res.status(500).json({ message: "Error interno del servidor al crear la función.", error });
     }
 };
 

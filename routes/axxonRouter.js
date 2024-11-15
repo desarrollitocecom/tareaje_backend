@@ -1,10 +1,25 @@
-// routes/cargoRutas.js
 const { Router } = require('express');
 const router = Router();
 
-const { readPersonHandler } = require('../handlers/axxonHandlers');
+const { 
+    createPersonHandler,
+    readPersonHandler,
+    updatePersonHandler,
+    deletePersonHandler,
+    getEmpleadoIdHandler,
+    getPhotoHandler,
+    searchByFaceHandler,
+    getProtocolsHandler
+} = require('../handlers/axxonHandlers');
+const permisoAutorizacion = require("../checkers/roleAuth");
 
-router.get('/', readPersonHandler);
-
+// router.post('/create/', createPersonHandler);
+// router.get('/', readPersonHandler);
+// router.post('/update/', updatePersonHandler);
+// router.get('/delete/:dni', deletePersonHandler);
+// router.get('/:dni', getEmpleadoIdHandler);
+router.get('/photo/:id', getPhotoHandler);
+router.post('/face/', searchByFaceHandler);
+// router.post('/protocol/', getProtocolsHandler);
 
 module.exports = router;
