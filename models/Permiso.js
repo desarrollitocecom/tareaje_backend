@@ -35,4 +35,7 @@ module.exports = (sequelize) => {
     };
 
     return Permiso;
+
+
+    
 };

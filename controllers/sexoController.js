@@ -17,7 +17,7 @@ const getSexos=async (page = 1, limit = 20) => {
     }
 }
 
-//trae una Sexo especifica por id
+//trae un Sexo especifica por id
 const getSexo = async (id) => {
     try {
         const response = await Sexo.findOne({where: {

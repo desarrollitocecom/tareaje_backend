@@ -152,6 +152,8 @@ const changeUserDataHandler = async (req, res) => {
     const { usuario, correo, id_rol } = req.body;
     const errors = [];
 
+    if(!usuario)
+        errors.push("El nombre de usuario es requerido");
     if (!correo)
         errors.push("El correo es requerido");
     if (!correoRegex.test(correo))
@@ -238,8 +240,9 @@ const getAllUsersHandler = async (req, res) => {
 
 const getUserByIdHandler = async (req, res) => {
 
-    const { token } = req.body;
-
+    //const { token } = req.body;
+    const token = req.headers.authorization.split("___")[1];
+    
     try {
         const user = await getUserById(token);
         if (user)

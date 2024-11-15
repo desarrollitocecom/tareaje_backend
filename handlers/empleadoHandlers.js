@@ -2,26 +2,27 @@ const { getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado, getEmpleadoIdDniByCargoTurno } = require('../controllers/empleadoController');
 
 const getAllEmpleadosHandlers = async (req, res) => {
-    const { page=1,limit=20 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
     const errores = [];
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page <= 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-    if(errores.length>0){
+    if (errores.length > 0) {
         return res.status(400).json({ errores });
     }
     try {
         const response = await getAllEmpleados(Number(page), Number(limit)); // Llamamos a la función getEmpleados
-        
-        if(response.length === 0 || page>limit){
+
+        if (response.length === 0 || page > limit) {
             return res.status(200).json(
-                {message:'Ya no hay mas Empleados',
-                 data:{
-                    data:[],
-                    totalPage:response.currentPage,
-                    totalCount:response.totalCount
-                 }   
+                {
+                    message: 'Ya no hay mas Empleados',
+                    data: {
+                        data: [],
+                        totalPage: response.currentPage,
+                        totalCount: response.totalCount
+                    }
                 }
             );
         }
@@ -206,7 +207,7 @@ const updateEmpleadoHandler = async (req, res) => {
     if (errores.length > 0)
         return res.status(400).json({ errores });
     try {
-        const response = await updateEmpleado(id, {
+        const response = await updateEmpleado({id, 
             nombres, apellidos, dni, ruc, hijos, edad,
             f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
