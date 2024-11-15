@@ -115,12 +115,12 @@ const createEmpleadoHandler = async (req, res) => {
     if (errores.length > 0)
         return res.status(400).json({ errores });
     try {
-        const newEmpleado = await createEmpleado({
+        const newEmpleado = await createEmpleado(
             nombres, apellidos, dni, ruc, hijos, edad,
             f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
-        });
+        );
         if (!newEmpleado) return res.status(200).json({ message: 'No se encuentra empleado', data: [] })
         return res.status(200).json({ message: 'Nuevo Empleado Creado', data: newEmpleado })
     } catch (error) {
