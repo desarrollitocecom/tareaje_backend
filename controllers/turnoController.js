@@ -9,6 +9,7 @@ const getTurnos=async (page = 1, limit = 20) => {
             limit,
             offset,
             order: [['id', 'ASC']]
+
         });
         return { total: count, data: rows , currentPage:page } || null;
     } catch (error) {
