@@ -13,13 +13,13 @@ const {
 } = require('../handlers/axxonHandlers');
 const permisoAutorizacion = require("../checkers/roleAuth");
 
-// router.post('/create/', createPersonHandler);
-// router.get('/', readPersonHandler);
-// router.post('/update/', updatePersonHandler);
-// router.get('/delete/:dni', deletePersonHandler);
-// router.get('/:dni', getEmpleadoIdHandler);
-router.get('/photo/:id', getPhotoHandler);
-router.post('/face/', searchByFaceHandler);
-// router.post('/protocol/', getProtocolsHandler);
+// router.post('/create/', permisoAutorizacion(["all_system_access", "create_empleado"]), createPersonHandler);
+// router.get('/', permisoAutorizacion(["all_system_access", "read_empleado"]), readPersonHandler);
+// router.post('/update/', permisoAutorizacion(["all_system_access", "read_empleado"]), updatePersonHandler);
+// router.get('/delete/:dni', permisoAutorizacion(["all_system_access", "read_empleado"]), deletePersonHandler);
+// router.get('/:dni', permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoIdHandler);
+router.get('/photo/:id', permisoAutorizacion(["all_system_access", "read_empleado"]), getPhotoHandler);
+router.post('/face/', permisoAutorizacion(["all_system_access", "photo_axxon"]), searchByFaceHandler);
+// router.post('/protocol/', permisoAutorizacion(["all_system_access", "read_asistencia"]),getProtocolsHandler);
 
 module.exports = router;

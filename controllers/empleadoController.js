@@ -1,7 +1,7 @@
 const { Empleado, Cargo, RegimenLaboral, Sexo,
     Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno } = require('../db_connection');
 
-const { createPerson } = require('../controllers/axxonController');
+const { createPerson, updatePerson } = require('../controllers/axxonController');
 
 const getAllEmpleados = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
@@ -135,8 +135,9 @@ const updateEmpleado = async (
     
     try {
         const empleado = await getEmpleado(id);
-          console.log("empleado 1",empleado.id);
-          
+        console.log("empleado 1",empleado.id);
+        const consulta = await updatePerson(nombres, apellidos, dni);
+        if (!consulta) return null;
         if (empleado) {
             await empleado.update(
                 {nombres,
