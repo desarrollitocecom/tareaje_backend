@@ -6,8 +6,6 @@ const {
     updateJustificacion
 } = require('../controllers/justificacionController');
 
-const fs = require('fs');
-const FormData = require('form-data');
 const path = require('path');
 
 // Handler para obtener la justificación por ID :
@@ -58,19 +56,8 @@ const getJustificacionWithPdfHandler = async (req, res) => {
             return res.status(400).json({ message: 'No se encontraron PDFs asociados a esta justificación' });
         }
 
-        const form = new FormData();
-        form.append('data', JSON.stringify({
-            id: justificacion.id,
-            descripcion: justificacion.descripcion,
-            id_asistencia: justificacion.id_asistencia,
-            id_empleado: justificacion.id_empleado
-        }));
-
-        documentos.forEach(doc => {
-            form.append('documentos', fs.createReadStream(path.resolve(doc)));
-        });
-        res.set(form.getHeaders());
-        form.pipe(res);
+        const pdfPath = path.resolve(justificacion.documentos[0]);
+        return res.sendFile(pdfPath);
         
     } catch (error) {
         console.error('Error al obtener la justificación y PDFs: ', error);
@@ -118,9 +105,6 @@ const getAllJustificacionesHandler = async (req, res) => {
 
 // Handler para crear una justificación (A --> F o F --> A) :
 const createJustificacionHandler = async (req, res) => {
-
-    console.log('req.body:', req.body); // Log del cuerpo
-    console.log('req.files:', req.files); // Log de los archivos
 
     const { descripcion, id_asistencia, id_empleado } = req.body;
 

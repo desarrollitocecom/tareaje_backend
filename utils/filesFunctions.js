@@ -1,6 +1,5 @@
 const multer = require('multer');
 const fs = require('fs');
-const path = require('path');
 
 // Rutas para guardar las fotos y las justificaciones
 const { FOTOS_RUTA, PDF_RUTA } = process.env;
@@ -45,9 +44,9 @@ const saveImage = multer({
         fileSize: 2 * 1024 * 1024, // 2 MB
     },
     fileFilter: (req, file, cb) => {
-        const allowedTypes = ['image/jpeg', 'image/png'];
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!allowedTypes.includes(file.mimetype)) {
-            return cb(new Error('Formato no permitido. Solo se aceptan imágenes en formato JPEG o PNG.'));
+            return cb(new Error('Formato no permitido. Solo se aceptan imágenes en formato JPEG, JPG o PNG.'));
         }
         cb(null, true);
     },

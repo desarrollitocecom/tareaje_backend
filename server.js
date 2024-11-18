@@ -9,6 +9,7 @@ const { initializeSocket, userSockets } = require("./sockets");
 const loginMiddleware = require("./checkers/validateToken");
 const usuariosRouter = require("./routes/loginRouter");
 const cors = require("cors");
+const configurarCronJobs = require("./cronjobs/cron");
 
 const app = express();
 
@@ -27,6 +28,11 @@ app.use("/", tareajeRutas);
 app.get("/", (req, res) => {
   res.json({ success: "Hello World" });
 });
+
+// Configurar y ejecutar los CronJobs
+configurarCronJobs()
+    .then(() => console.log('CronJobs configurados exitosamente.'))
+    .catch(err => console.error('Error al configurar los CronJobs:', err));
 
 server.listen(PORT_TAREAJE, () => {
   console.log(`TAREAJE: Server is running on port ${PORT_TAREAJE}`);
