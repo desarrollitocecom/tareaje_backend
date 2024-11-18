@@ -1,7 +1,6 @@
 const { Empleado, Cargo, RegimenLaboral, Sexo,
     Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno } = require('../db_connection');
 
-const { guardarFotoEmpleado } = require('../utils/almacenar_fotos');
 const { createPerson } = require('../controllers/axxonController');
 
 const getAllEmpleados = async (page = 1, limit = 20) => {
@@ -60,9 +59,6 @@ const createEmpleado = async ({
     id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
 }) => {
 
-    const guardar = guardarFotoEmpleado(apellidos, nombres, dni, foto);
-    if (!guardar) return null;
-
     const consulta = await createPerson(nombres, apellidos, dni, id_cargo, id_turno, foto);
     if (!consulta) return null;
     try {
@@ -78,7 +74,7 @@ const createEmpleado = async ({
             domicilio,
             celular,
             f_inicio,
-            foto: guardar,
+            foto,
             observaciones,
             id_cargo,
             id_turno,
