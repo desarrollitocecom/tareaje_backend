@@ -1,17 +1,25 @@
 const cron = require('node-cron');
 const { createAsistenciasRango } = require('../utils/asistenciaAlgorithm');
 
-const minutos = ['06'];
+const configurarCronJobs = async () => {
 
-function configurarCronJobs() {
+    const minutos = ['06'];
     const dia = new Date();
-    const hora = dia.getHours;
+    const hora = dia.getHours();
     const diaString = dia.toISOString().split('T')[0];
+    
     minutos.forEach(minute => {
-        cron.schedule(`${minute} * * * *`, () => { // `*` en la posición de hora significa que se ejecuta cada hora
-            createAsistenciasRango(diaString, hora);
+        cron.schedule(`${minute} * * * *`, async () => { 
+            console.log(`Ejecutando createAsistenciasRango para el día ${diaString} a la hora ${hora}:${minute}`);
+            await createAsistenciasRango(diaString, hora)
+                .then(() => {
+                    console.log(`createAsistenciasRango ejecutado con éxito para las ${hora}:${minute}`);
+                })
+                .catch(error => {
+                    console.error(`Error al ejecutar createAsistenciasRango para las ${hora}:${minute}`, error);
+                });
         });
     });
-}
+};
 
-module.exports = { configurarCronJobs };
+module.exports = configurarCronJobs;

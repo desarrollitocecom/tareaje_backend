@@ -1,11 +1,13 @@
 const { Empleado, Cargo, RegimenLaboral, Sexo,
     Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno } = require('../db_connection');
 
+//const { createPerson, updatePerson } = require('../controllers/axxonController');
+
 const getAllEmpleados = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
         const response = await Empleado.findAndCountAll({
-            attributes: ['id','nombres', 'apellidos', 'dni','celular'],
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state'],
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
@@ -41,21 +43,24 @@ const getEmpleado = async (id) => {
             ]
 
         });
-        if (!response) return null;
-        const estado = response.state ? "Trabajando" : "Cesado";
-        return { ...response.toJSON(), estado }
+       
+        
+        return response || null
     } catch (error) {
         console.error("Error al obtener un empleado en el controlador:", error);
         return false;
     }
 }
 
-const createEmpleado = async ({
+const createEmpleado = async (
     nombres, apellidos, dni, ruc, hijos, edad,
     f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
     id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
     id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
-}) => {
+) => {
+
+    //const consulta = await createPerson(nombres, apellidos, dni, id_cargo, id_turno, foto);
+    //if (!consulta) return null;
     try {
         const response = await Empleado.create({
             nombres,
@@ -101,8 +106,7 @@ const deleteEmpleado = async (id) => {
 
 };
 const updateEmpleado = async (
-    id,
-    {
+    {id,
         nombres,
         apellidos,
         dni,
@@ -124,36 +128,41 @@ const updateEmpleado = async (
         id_grado_estudios,
         id_subgerencia,
         id_funcion,
-        id_lugar_trabajo,
+        id_lugar_trabajo
     }
 ) => {
+    
+    
     try {
-        const empleado = await getEmpleado(id);
+        /* const empleado = await getEmpleado(id);
+        console.log("empleado 1",empleado.id);
+        const consulta = await updatePerson(nombres, apellidos, dni);
+        if (!consulta) return null; */
         if (empleado) {
-            await empleado.update({
-                nombres: nombres,
-                apellidos: apellidos,
-                dni: dni,
-                ruc: ruc,
-                hijos: hijos,
-                edad: edad,
-                f_nacimiento: f_nacimiento,
-                correo: correo,
-                domicilio: domicilio,
-                celular: celular,
-                f_inicio: f_inicio,
-                foto: foto,
-                observaciones: observaciones,
-                id_cargo: id_cargo,
-                id_turno: id_turno,
-                id_regimen_laboral: id_regimen_laboral,
-                id_sexo: id_sexo,
-                id_jurisdiccion: id_jurisdiccion,
-                id_grado_estudios: id_grado_estudios,
-                id_subgerencia: id_subgerencia,
-                id_funcion: id_funcion,
-                id_lugar_trabajo: id_lugar_trabajo,
-            });
+            await empleado.update(
+                {nombres,
+                apellidos,
+                dni,
+                ruc,
+                hijos,
+                edad,
+                f_nacimiento,
+                correo,
+                domicilio,
+                celular,
+                f_inicio,
+                foto,
+                observaciones,
+                id_cargo,
+                id_turno,
+                id_regimen_laboral,
+                id_sexo,
+                id_jurisdiccion,
+                id_grado_estudios,
+                id_subgerencia,
+                id_funcion,
+                id_lugar_trabajo,}
+            );
         }
         return empleado || null;
     } catch (error) {

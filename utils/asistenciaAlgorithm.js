@@ -5,6 +5,7 @@ const { createAsistencia } = require('../controllers/asistenciaController');
 
 // Confirmación si la hora corresponde a la petición de CronJobs :
 const confirmarHoraCJ = async (hora) => {
+    
     try{
         const rangos = await getAllRangosHorariosTotal();
         const ingreso = [...new Set(rangos.map(rango => rango.inicio.getHour()))];
@@ -57,8 +58,9 @@ const consultaAxxonProtocols = async (dia, hora) => {
     }
 };
 
-// Asociar la consulta de GetProtocols con RangoHorarios y Empleados
+// Asociar la consulta de GetProtocols con RangoHorarios y Empleados :
 const registrarAsistenciaFalta = async (dia, hora) => {
+    
     try {
         const consulta = await consultaAxxonProtocols(dia, hora);
         const cargosTurnos = await getCargoTurnoIdsByInicio(hora);
@@ -82,9 +84,11 @@ const registrarAsistenciaFalta = async (dia, hora) => {
 
 // Crear la asistencia (SOLO EL ALGORITMO LO PUDE HACER) :
 const createAsistenciasRango = async (dia, hora) => {
+    
     try {
         const asistencias = await registrarAsistenciaFalta(dia, hora);
-        const registro = await createAsistencia(asistencias);
+        const { fecha, hora, estado, id_empleado, photo_id } = asistencias;
+        const registro = await createAsistencia(fecha, hora, estado, id_empleado, photo_id);
         if(registro){
             console.log(`Asistencias creadas y guardadas correctamente a las ${hora}:06:00`);
             return true;

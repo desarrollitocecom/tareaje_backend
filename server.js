@@ -9,11 +9,12 @@ const { initializeSocket, userSockets } = require("./sockets");
 const loginMiddleware = require("./checkers/validateToken");
 const usuariosRouter = require("./routes/loginRouter");
 const cors = require("cors");
+const configurarCronJobs = require("./cronjobs/cron");
 
 const app = express();
 
-app.use(bodyParser.json({ limit: '100mb' }));
-app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 app.use(express.json());
 app.use("/login", usuariosRouter); // no aplica authMiddleware para el manejo de usuarios
@@ -27,6 +28,11 @@ app.use("/", tareajeRutas);
 app.get("/", (req, res) => {
   res.json({ success: "Hello World" });
 });
+
+// Configurar y ejecutar los CronJobs
+configurarCronJobs()
+    .then(() => console.log('CronJobs configurados exitosamente.'))
+    .catch(err => console.error('Error al configurar los CronJobs:', err));
 
 server.listen(PORT_TAREAJE, () => {
   console.log(`TAREAJE: Server is running on port ${PORT_TAREAJE}`);

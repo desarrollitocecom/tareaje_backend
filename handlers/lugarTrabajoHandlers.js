@@ -164,7 +164,7 @@ const deleteLugarTrabajoHandler = async (req, res) => {
             })
         }
         return res.status(200).json({
-            message: 'Función eliminada correctamente '
+            message: 'Lugares de Trabajo eliminado correctamente '
         });
     } catch (error) {
         return res.status(404).json({ message: error.message });

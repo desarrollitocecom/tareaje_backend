@@ -7,7 +7,7 @@ const getJustificacionById = async (id) => {
         const justificacion = await Justificacion.findByPk(id);
         return justificacion || null;
     } catch (error) {
-        console.error('Error al obtener la justificación por ID: ', error);
+        console.error('Error al obtener la justificación por ID:', error);
         return false;
     }
 };
@@ -32,52 +32,66 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
     }
 };
 
-// Crear justificacion :
-// >> Tener en cuenta que se creará la justificación una vez el usuario haya verificado que la justificación en cuestión sea VÁLIDA
-const createJustificacion = async (documentos, descripcion, id_asistencia, id_empleado) => {
+// Función para validar si es posible la justificación :
+const validateJustificacion = async (id_asistencia) => {
+    try {
+        const response = await Asistencia.findOne(
+            { where: { id: id_asistencia }}
+        );
+        if (!response) return null;
+        if (!['A', 'F'].includes(response.estado)) return 1;
 
+        if (response.estado === 'F') return 'A';
+        else return 'F';
+
+    } catch (error) {
+        console.error('Error al validar la justificación:', error);
+        return false;
+    }
+}
+
+// Crear justificacion :
+// >> Tener en cuenta que se creará la justificación una vez se haya verificado que la justificación en cuestión sea VÁLIDA
+const createJustificacion = async (documentosPaths, descripcion, id_asistencia, id_empleado, estado) => {
+    
     try {
         const newJustificacion = await Justificacion.create({
-            documentos: documentos,
-            descripcion: descripcion,
-            id_asistencia: id_asistencia,
-            id_empleado: id_empleado
+            documentos: documentosPaths,
+            descripcion,
+            id_asistencia,
+            id_empleado,
         });
-        if(newJustificacion){
-            await Asistencia.update(
-                { estado: "A" },
-                {
-                    where: { id: id_asistencia } // Actualiza desde el ID de la asistencia
-                }
-            );
-            return newJustificacion;
-        }
-        else return null;
+
+        if (!newJustificacion) return null
+        // Actualizamos el estado de la asistencia :
+        await Asistencia.update(
+            { estado: estado },
+            { where: { id: id_asistencia } }
+        );
+        return newJustificacion;
+
     } catch (error) {
-        console.error('Error al crear una nueva asistencia:', error);
+        console.error('Error al crear una nueva justificación:', error);
         return false;
     }
 };
 
+
 // Actualizar justificación: Solo se debe actualizar la DESCRIPCIÓN
-const updateJustificacion = async (id, newDescripcion) => {
+const updateJustificacion = async (id, descripcion) => {
 
     try {
         const justificacion = await Justificacion.findByPk(id);
         if (!justificacion) {
             console.error('No se encontró la justificación con el ID proporcionado...');
-            return null;
+            return 1;
         }
-        const response = await Justificacion.update(
-            { descripcion: newDescripcion },
-            {
-                where: { id } // Actualiza desde el ID de la Justificación
-            }
-        );
+
+        const response = await justificacion.update(descripcion);
         return response || null;
 
     } catch (error) {
-        console.error('Error al actualizar la asistencia: ', error);
+        console.error('Error al actualizar la asistencia:', error);
         return false;
     }
 };
@@ -85,6 +99,7 @@ const updateJustificacion = async (id, newDescripcion) => {
 module.exports = {
     getJustificacionById,
     getAllJustificaciones,
+    validateJustificacion,
     createJustificacion,
     updateJustificacion
 };

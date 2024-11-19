@@ -44,9 +44,5 @@ module.exports = (sequelize) => {
         Justificacion.belongsTo(db.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
     };
 
-    
-    
-    
-
     return Justificacion;
 };
