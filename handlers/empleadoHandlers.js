@@ -60,13 +60,16 @@ const getEmpleadoHandler = async (req, res) => {
     }
 };
 const createEmpleadoHandler = async (req, res) => {
+    
     const {
         nombres, apellidos, dni, ruc, hijos, edad,
-        f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
+        f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
         id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
         id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
     } = req.body;
     const errores = [];
+
+    if (!req.file || req.file.length === 0) return res.status(400).json({ message: 'No se ha enviado foto' });
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(nombres))
         errores.push("Nombres deben contener solo letras y tener entre 2 y 50 caracteres");
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(apellidos))
@@ -90,8 +93,6 @@ const createEmpleadoHandler = async (req, res) => {
         errores.push("Número de celular debe tener entre 9 y 15 dígitos");
     if (!Date.parse(f_inicio))
         errores.push("Fecha de inicio debe tener el formato YYYY-MM-DD");
-    if (!foto || typeof foto !== 'string')
-        errores.push("Foto incorrecta")
     if (observaciones && observaciones.length > 200)
         errores.push("Observaciones no pueden exceder 200 caracteres");
     if (!id_cargo || isNaN(id_cargo))
@@ -116,12 +117,16 @@ const createEmpleadoHandler = async (req, res) => {
     if (errores.length > 0)
         return res.status(400).json({ errores });
     try {
-        const newEmpleado = await createEmpleado({
+        // Guardar las ruta de la imagen :
+        const savedPath = req.file.path
+
+        const newEmpleado = await createEmpleado(
             nombres, apellidos, dni, ruc, hijos, edad,
-            f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
+            f_nacimiento, correo, domicilio, celular, f_inicio, savedPath, observaciones,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
-        });
+        );
+
         if (!newEmpleado) return res.status(200).json({ message: 'No se encuentra empleado', data: [] })
         return res.status(200).json({ message: 'Nuevo Empleado Creado', data: newEmpleado })
     } catch (error) {
