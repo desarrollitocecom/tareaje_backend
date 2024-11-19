@@ -1,7 +1,12 @@
 const { getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado, getEmpleadoIdDniByCargoTurno } = require('../controllers/empleadoController');
 
+const { createPerson, updatePerson } = require('../controllers/axxonController');
+const fs = require('fs');
+const path = require('path');
+
 const getAllEmpleadosHandlers = async (req, res) => {
+
     const { page = 1, limit = 20 } = req.query;
     const errores = [];
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -38,6 +43,7 @@ const getAllEmpleadosHandlers = async (req, res) => {
 };
 
 const getEmpleadoHandler = async (req, res) => {
+
     const { id } = req.params
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
@@ -59,6 +65,7 @@ const getEmpleadoHandler = async (req, res) => {
         res.status(500).json({ error: "Error interno del servidor al obtener el empleado." });
     }
 };
+
 const createEmpleadoHandler = async (req, res) => {
     
     const {
@@ -117,8 +124,14 @@ const createEmpleadoHandler = async (req, res) => {
     if (errores.length > 0)
         return res.status(400).json({ errores });
     try {
-        // Guardar las ruta de la imagen :
-        const savedPath = req.file.path
+        // Guardar en AXXON la imagen en base 64 :
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const fileBase64 = fileBuffer.toString('base64');
+        const consulta = await createPerson(nombres, apellidos, dni, String(id_cargo), String(id_turno), fileBase64);
+        if (!consulta) return null;
+
+        // Guardar la ruta relativa de la imagen :
+        const savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
 
         const newEmpleado = await createEmpleado(
             nombres, apellidos, dni, ruc, hijos, edad,
@@ -135,32 +148,14 @@ const createEmpleadoHandler = async (req, res) => {
     }
 };
 const updateEmpleadoHandler = async (req, res) => {
+
     const { id } = req.params;
     const {
-        nombres,
-        apellidos,
-        dni,
-        ruc,
-        hijos,
-        edad,
-        f_nacimiento,
-        correo,
-        domicilio,
-        celular,
-        f_inicio,
-        foto,
-        observaciones,
-        id_cargo,
-        id_turno,
-        id_regimen_laboral,
-        id_sexo,
-        id_jurisdiccion,
-        id_grado_estudios,
-        id_subgerencia,
-        id_funcion,
-        id_lugar_trabajo,
+        nombres, apellidos, dni, ruc, hijos, edad,
+        f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
+        id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+        id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
     } = req.body;
-
 
     const errores = [];
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(nombres))
@@ -186,8 +181,6 @@ const updateEmpleadoHandler = async (req, res) => {
         errores.push("Número de celular debe tener entre 9 y 15 dígitos");
     if (!Date.parse(f_inicio))
         errores.push("Fecha de inicio debe tener el formato YYYY-MM-DD");
-    if (!foto || typeof foto !== 'string')
-        errores.push("Foto incorrecta")
     if (observaciones && observaciones.length > 200)
         errores.push("Observaciones no pueden exceder 200 caracteres");
     if (!id_cargo || isNaN(id_cargo))
@@ -212,20 +205,26 @@ const updateEmpleadoHandler = async (req, res) => {
     if (errores.length > 0)
         return res.status(400).json({ errores });
     try {
-        const response = await updateEmpleado({id, 
+        const cargo = (id_cargo) ? String(id_cargo) : null;
+        const turno = (id_turno) ? String(id_turno) : null;
+        const consulta = await updatePerson(nombres, apellidos, dni, cargo, turno);
+        if (!consulta) return null;
+
+        const response = await updateEmpleado(id, 
             nombres, apellidos, dni, ruc, hijos, edad,
-            f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
+            f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
-        });
+        );
         if (!response) return res.status(404).json({ message: 'Empleado no encontrado', data: {} });
-        return res.status(200).json({ message: 'Empleado Mopdificado', data: response });
+        return res.status(200).json({ message: 'Empleado Modificado', data: response });
     } catch (error) {
-        console.error("Error al crear el empleado:", error);
-        res.status(500).json({ error: "Error interno del servidor al Crear el empleado." });
+        console.error("Error al actualizar el empleado:", error);
+        res.status(500).json({ error: "Error interno del servidor al Actualizar el empleado." });
     }
 };
 const deleteEmpleadoHandler = async (req, res) => {
+    
     const { id } = req.params;
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });

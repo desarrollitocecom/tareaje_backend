@@ -2,7 +2,10 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require('body-parser');
 const http = require("http");
+const path = require('path');
 const { sequelize } = require("./db_connection");
+const { FOTOS_RUTA } = process.env;
+const { PDF_RUTA } = process.env;
 const tareajeRutas = require("./routes/index");
 const { PORT_TAREAJE } = process.env;
 const { initializeSocket, userSockets } = require("./sockets");
@@ -22,7 +25,8 @@ app.use(loginMiddleware); // usa el middleware globalmente para validar todas la
 const server = http.createServer(app); // servidor http a partir de express
 
 initializeSocket(server); // Inicializamos Socket.io
-
+app.use('/uploads/fotos', express.static(path.resolve(FOTOS_RUTA)));
+app.use('/upload/pdfs', express.static(path.resolve(PDF_RUTA)));
 app.use("/", tareajeRutas);
 
 app.get("/", (req, res) => {
