@@ -26,7 +26,7 @@ const server = http.createServer(app); // servidor http a partir de express
 
 initializeSocket(server); // Inicializamos Socket.io
 app.use('/uploads/fotos', express.static(path.resolve(FOTOS_RUTA)));
-app.use('/upload/pdfs', express.static(path.resolve(PDF_RUTA)));
+app.use('/uploads/pdfs', express.static(path.resolve(PDF_RUTA)));
 app.use("/", tareajeRutas);
 
 app.get("/", (req, res) => {

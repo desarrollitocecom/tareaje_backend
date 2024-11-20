@@ -6,6 +6,7 @@ const {
     updateJustificacion
 } = require('../controllers/justificacionController');
 
+const fs = require('fs');
 const path = require('path');
 
 // Handler para obtener la justificación por ID :
@@ -18,50 +19,22 @@ const getJustificacionByIdHandler = async (req,res) => {
 
     try {
         const justificacion = await getJustificacionById(id);
-        if(justificacion){
-            return res.status(200).json({
-                message: 'Justificación obtenida correctamente...',
-                data: justificacion
-            });
-        }
-        else{
+        if(!justificacion){
             return res.status(400).json({
                 message: 'La justificación no fue encontrada para este ID...',
-                data: null
+                data: []
             });
         }
+        return res.status(200).json({
+            message: 'Justificación obtenida correctamente...',
+            data: justificacion
+        });
+
     } catch (error) {
         return res.status(500).json({
             message: 'Error en la consulta para obtener la justificación...',
             error: error.message
         });
-    }
-};
-
-const getJustificacionWithPdfHandler = async (req, res) => {
-
-    const { id } = req.params;
-
-    if (!id) return res.status(400).json({ message: 'El parámetro ID es requerido' });
-    if (isNaN(id)) return res.status(400).json({ message: 'El parámetro ID debe ser un entero' });
-
-    try {
-        const justificacion = await getJustificacionById(id);
-        if (!justificacion) {
-            return res.status(400).json({ message: 'Justificación no encontrada' });
-        }
-
-        const documentos = justificacion.documentos || [];
-        if (documentos.length === 0) {
-            return res.status(400).json({ message: 'No se encontraron PDFs asociados a esta justificación' });
-        }
-
-        const pdfPath = path.resolve(justificacion.documentos[0]);
-        return res.sendFile(pdfPath);
-        
-    } catch (error) {
-        console.error('Error al obtener la justificación y PDFs: ', error);
-        return res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
 
@@ -136,9 +109,9 @@ const createJustificacionHandler = async (req, res) => {
         }
 
         // Guardar las rutas de los PDFs :
-        const savedPaths = req.files.map(file => file.path);
+        const documentos = req.files.map((file) => `uploads/pdfs/${file.filename}`);
 
-        const response = await createJustificacion(savedPaths, descripcion, id_asistencia, id_empleado, estado);
+        const response = await createJustificacion(documentos, descripcion, id_asistencia, id_empleado, estado);
         if (!response){
             return res.status(400).json({
                 message: 'No se pudo crear la justificación...',
@@ -205,5 +178,4 @@ module.exports = {
     getAllJustificacionesHandler,
     createJustificacionHandler,
     updateJustificacionHandler,
-    getJustificacionWithPdfHandler
 };
