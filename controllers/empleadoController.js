@@ -1,6 +1,8 @@
 const { Empleado, Cargo, RegimenLaboral, Sexo,
     Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno } = require('../db_connection');
 
+const { deletePerson } = require('./axxonController');
+
 const getAllEmpleados = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
     try {
@@ -88,8 +90,11 @@ const createEmpleado = async (
 };
 
 const deleteEmpleado = async (id) => {
+
     try {
         const response = await Empleado.findByPk(id);
+        const consulta = await deletePerson(response.dni);
+        if (!consulta) return null;
         response.state = false;
         await response.save();
         return response || null;
@@ -113,6 +118,7 @@ const updateEmpleado = async (
         domicilio,
         celular,
         f_inicio,
+        foto,
         observaciones,
         id_cargo,
         id_turno,
@@ -125,9 +131,10 @@ const updateEmpleado = async (
         id_lugar_trabajo
 ) => {
     
-    
     try {
         const empleado = await getEmpleado(id);
+        if (!empleado) return null;
+
         if (empleado) {
             await empleado.update({
                 nombres,
@@ -141,6 +148,7 @@ const updateEmpleado = async (
                 domicilio,
                 celular,
                 f_inicio,
+                foto,
                 observaciones,
                 id_cargo,
                 id_turno,
@@ -160,6 +168,7 @@ const updateEmpleado = async (
     }
 };
 const getEmpleadoByDni = async (dni) => {
+
     try {
         const empleado = await Empleado.findOne({
             attributes: ['id'],
@@ -174,6 +183,7 @@ const getEmpleadoByDni = async (dni) => {
 
 // Obtención del empleado (ID, DNI) según el ID de Cargo y Turno :
 const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
+
     try {
         const empleados = await Empleado.findAll({
             attributes: ['id', 'dni'],
