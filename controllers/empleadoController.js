@@ -1,5 +1,5 @@
 const { Empleado, Cargo, RegimenLaboral, Sexo,
-    Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno } = require('../db_connection');
+    Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion } = require('../db_connection');
 
 const { deletePerson } = require('./axxonController');
 
@@ -40,6 +40,8 @@ const getEmpleado = async (id) => {
                 { model: Jurisdiccion, as: 'jurisdiccion', attributes: ['nombre'] },
                 { model: LugarTrabajo, as: 'lugarTrabajo', attributes: ['nombre'] },
                 { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+                { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+                { model: Funcion, as: 'funcion', attributes: ['nombre'] },
             ]
 
         });
