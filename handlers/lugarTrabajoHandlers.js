@@ -6,7 +6,10 @@ const {
     deleteLugarTrabajo
 } = require('../controllers/lugarTrabajoController');
 
-//Handlers para obtener las LugarTrabajoes
+const { createHistorial } = require('../controllers/historialController');
+const { logger } = require('sequelize/lib/utils/logger');
+
+// Handlers para obtener los Lugar de Trabajo
 const getLugarTrabajosHandler = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const errores = [];
@@ -39,8 +42,9 @@ const getLugarTrabajosHandler = async (req, res) => {
         console.error('Error al obtener todas los Lugar de Trabajos ', error)
         return res.status(500).json({ message: "Error al obtener todas las Lugar de trabajo" })
     }
-}
-//Handlers para obtener una LugarTrabajo 
+};
+
+// Handlers para obtener una LugarTrabajo 
 const getLugarTrabajoHandler = async (req, res) => {
     const id = req.params.id;
     if (!id || isNaN(id)) {
@@ -68,10 +72,12 @@ const getLugarTrabajoHandler = async (req, res) => {
         });
     }
 };
-//handlers para crear una nueva LugarTrabajo
 
+// Handlers para crear un nuevo LugarTrabajo
 const createLugarTrabajoHandler = async (req, res) => {
+    
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!nombre) {
@@ -91,10 +97,20 @@ const createLugarTrabajoHandler = async (req, res) => {
 
     try {
         const nuevaLugarTrabajo = await createLugarTrabajo({ nombre });
+        const historial = await createHistorial(
+            'create',
+            'LugarTrabajo',
+            'nombre',
+            null,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
         return res.status(201).json({
             message: 'Lugar de Trabajo creado exitosamente',
             data: nuevaLugarTrabajo
         });
+
     } catch (error) {
         console.error('Error al crear el Lugar de Trabajo:', error);
         return res.status(500).json({ message: 'Error al crear el Lugar de Trabajo', error });
@@ -103,8 +119,10 @@ const createLugarTrabajoHandler = async (req, res) => {
 
 // Handler para modificar un Lugar de Trabajo
 const updateLugarTrabajoHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!id) {
@@ -130,6 +148,7 @@ const updateLugarTrabajoHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getLugarTrabajo(id);
         const response = await updateLugarTrabajo(id, { nombre });
         if (!response) {
             return res.status(404).json({
@@ -137,6 +156,17 @@ const updateLugarTrabajoHandler = async (req, res) => {
                 data: {}
             });
         }
+
+        const historial = await createHistorial(
+            'update',
+            'LugarTrabajo',
+            'nombre',
+            previo.nombre,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Registro modificado",
             data: response
@@ -148,7 +178,10 @@ const updateLugarTrabajoHandler = async (req, res) => {
 };
 
 const deleteLugarTrabajoHandler = async (req, res) => {
+    
     const id = req.params.id;
+    const token = req.user;
+
     // Validación del ID
     if (isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
@@ -163,6 +196,17 @@ const deleteLugarTrabajoHandler = async (req, res) => {
                 message: `No se encontró la Lugar de Trabajo con ID${id}`
             })
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'LugarTrabajo',
+            'nombre',
+            response.nombre,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Lugares de Trabajo eliminado correctamente '
         });

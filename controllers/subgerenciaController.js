@@ -22,7 +22,7 @@ const getSubgerencia = async (id) => {
     try {
         const newSubgerencia = await Subgerencia.findOne({where: {
             id ,
-           
+            state: true
         }});
         return newSubgerencia || null;
     } catch (error) {

@@ -5,6 +5,8 @@ const { getRegimenLaborales,
     deleteRegimenLaboral
 } = require('../controllers/RegimenLaboralController');
 
+const { createHistorial } = require('../controllers/historialController');
+
 //Handlers para obtener las RegimenLaborales
 const getRegimenLaboralesHandler = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
@@ -72,10 +74,12 @@ const getRegimenLaboralHandler = async (req, res) => {
         });
     }
 };
-//handlers para crear una nueva RegimenLaboral
 
+// Handler para crear una nueva RegimenLaboral
 const createRegimenLaboralHandler = async (req, res) => {
+
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!nombre) {
@@ -95,6 +99,23 @@ const createRegimenLaboralHandler = async (req, res) => {
 
     try {
         const nuevaRegimenLaboral = await createRegimenLaboral({ nombre });
+        if(!nuevaRegimenLaboral){
+            return res.status(400).json({
+                message: 'Régimen Laboral no creado',
+                data: []
+            });
+        }
+        
+        const historial = await createHistorial(
+            'create',
+            'RegimenLaboral',
+            'nombre',
+            null,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(201).json({
             message: 'Régimen Laboral creado exitosamente',
             data: nuevaRegimenLaboral
@@ -106,8 +127,10 @@ const createRegimenLaboralHandler = async (req, res) => {
 };
 
 const updateRegimenLaboralHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!id) {
@@ -133,6 +156,7 @@ const updateRegimenLaboralHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getRegimenLaboral(id);
         const response = await updateRegimenLaboral(id, { nombre });
         if (!response) {
             return res.status(404).json({
@@ -140,6 +164,17 @@ const updateRegimenLaboralHandler = async (req, res) => {
                 data: {}
             });
         }
+
+        const historial = await createHistorial(
+            'update',
+            'RegimenLaboral',
+            'nombre',
+            previo.nombre,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Registro modificado",
             data: response
@@ -151,7 +186,10 @@ const updateRegimenLaboralHandler = async (req, res) => {
 };
 
 const deleteRegimenLaboralHandler = async (req, res) => {
+
     const id = req.params.id;
+    const token = req.user;
+
     // Validación del ID
     if (isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
@@ -167,9 +205,21 @@ const deleteRegimenLaboralHandler = async (req, res) => {
                 data: {}
             })
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'RegimenLaboral',
+            'nombre',
+            response.nombre,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Regimen Laboral eliminada correctamente'
         });
+
     } catch (error) {
         return res.status(404).json({ message: error.message });
     }

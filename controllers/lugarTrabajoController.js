@@ -17,21 +17,22 @@ const getLugarTrabajos = async (page = 1, limit = 20) => {
     }
 }
 
-//trae una LugarTrabajo especifica por id
+// Obtener un Lugar de Trabajo específico por id :
 const getLugarTrabajo = async (id) => {
+    
     try {
-        const LugarTrabajo = await LugarTrabajo.findAll({
-            where: {
-                id
-            }
+        const response = await LugarTrabajo.findOne({
+            where: { id, state: true }
         });
-        return LugarTrabajo || null;
+        return response || null;
+
     } catch (error) {
         console.error(`Error al obtener la Función: ${error.message}`);
         return false
     }
 };
-//Crea una nueva LugarTrabajo
+
+// Crear un nuevo Lugar de Trabajo
 const createLugarTrabajo = async ({ nombre }) => {
     try {
         const lugarTrabajo = await LugarTrabajo.create({ nombre });
@@ -42,7 +43,8 @@ const createLugarTrabajo = async ({ nombre }) => {
         return false
     }
 };
-//elimina la LugarTrabajo o canbia el estado
+
+// Eliminar la LugarTrabajo o canbia el estado
 const deleteLugarTrabajo = async (id) => {
     try {
         const lugarTrabajo = await LugarTrabajo.findByPk(id);
