@@ -7,6 +7,8 @@ const {
     filtroAsistenciaDiaria
 } = require('../controllers/asistenciaController');
 
+const { createHistorial } = require('../controllers/historialController');
+
 // Handler para obtener asistencia por id :
 const getAsistenciaByIdHandler = async (req,res) => {
 
@@ -182,6 +184,7 @@ const getAllAsistenciasHandler = async (req, res) => {
 const createAsistenciaUsuarioHandler = async (req, res) => {
 
     const { fecha, hora, estado, id_empleado } = req.body;
+    const token = req.user;
     const errores = [];
 
     if(!fecha) errores.push('El parámetro FECHA es obligatorio');
@@ -211,6 +214,16 @@ const createAsistenciaUsuarioHandler = async (req, res) => {
                 data: []
             });
         }
+
+        const historial = await createHistorial(
+            'create',
+            'Asistencia',
+            'fecha, hora, estado, id_empleado',
+            null,
+            `${fecha}, ${hora}, ${estado}, ${id_empleado}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
 
         return res.status(200).json({
             message: 'Asistencia creada con éxito...',

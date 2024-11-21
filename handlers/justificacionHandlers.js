@@ -111,7 +111,7 @@ const createJustificacionHandler = async (req, res) => {
         // Guardar las rutas de los PDFs :
         const documentos = req.files.map((file) => `uploads/pdfs/${file.filename}`);
 
-        const response = await createJustificacion(documentos, descripcion, id_asistencia, id_empleado, estado);
+        const response = await createJustificacion(documentos, descripcion, id_asistencia, id_empleado, estado, token);
         if (!response){
             return res.status(400).json({
                 message: 'No se pudo crear la justificación...',

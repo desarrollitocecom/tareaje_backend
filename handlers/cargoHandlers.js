@@ -1,4 +1,8 @@
+const { response } = require('express');
 const { getCargoById, getAllCargos, createCargo, deleteCargo, updateCargo } = require('../controllers/cargoController');
+
+const { createHistorial } = require('../controllers/historialController');
+
 const getCargoByIdHandler = async (req, res) => {
     const { id } = req.params
     if (!id || isNaN(id)) {
@@ -49,7 +53,9 @@ const getAllCargosHandler = async (req, res) => {
 
 // Handler para crear un nuevo Cargo
 const createCargoHandler = async (req, res) => {
+
     const { nombre, sueldo, id_subgerencia } = req.body;
+    const token = req.user;
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
     const errores = [];
 
@@ -73,6 +79,18 @@ const createCargoHandler = async (req, res) => {
 
     try {
         const newCargo = await createCargo({ nombre, sueldo, id_subgerencia });
+        if (!newCargo) return res.status(400).json({ message: 'Cargo no creado', data: [] });
+
+        const historial = await createHistorial(
+            'create',
+            'Cargo',
+            'nombre, sueldo, id_subgerencia',
+            null,
+            `${nombre}, ${sueldo}, ${id_subgerencia}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(201).json({ message: 'Cargo creado exitosamente', data: newCargo });
     } catch (error) {
         return res.status(500).json({ error: 'Error al crear el cargo', data: error.message });
@@ -81,12 +99,25 @@ const createCargoHandler = async (req, res) => {
 
 // Handler para eliminar un Cargo (cambia state a false)
 const deleteCargoHandler = async (req, res) => {
+
     const { id } = req.params;
+    const token = req.user;
     try {
         const cargo = await deleteCargo(id);
         if (!cargo) {
             return res.status(404).json({ message: 'Cargo no encontrado' });
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'Cargo',
+            'nombre, sueldo, id_subgerencia',
+            `${cargo.nombre}, ${cargo.sueldo}, ${cargo.id_subgerencia}`,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         res.status(200).json({ message: 'Cargo desactivado', data: cargo });
     } catch (error) {
         res.status(500).json({ error: 'Error al eliminar el cargo', details: error.message });
@@ -95,8 +126,10 @@ const deleteCargoHandler = async (req, res) => {
 
 // Handler para actualizar un Cargo
 const updateCargoHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre, sueldo, id_subgerencia } = req.body;
+    const token = req.user;
     const errores = [];
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);   
     if (!nombre) errores.push('El campo nombre es requerido');
@@ -124,10 +157,31 @@ const updateCargoHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getCargoById(id);
         const updatedCargo = await updateCargo(id, { nombre, sueldo, id_subgerencia });
         if (!updatedCargo) {
             return res.status(404).json({ message: 'Cargo no encontrado' });
         }
+
+        const anterior = [previo.nombre, previo.sueldo, previo.id_subgerencia];
+        const nuevo = [nombre, sueldo, id_subgerencia];
+        const campos = ['nombre', 'sueldo', 'id_subgerencia'];
+        let historial;
+
+        for (let i = 0; i < anterior.length; i++) {
+            if (anterior[i] !== nuevo[i]) {
+                historial = await createHistorial(
+                    'update',
+                    'Cargo',
+                    campos[i],
+                    anterior[i],
+                    nuevo[i],
+                    token
+                );
+                if (!historial) console.warn('No se agregó al historial...');
+            }
+        }
+
         res.status(200).json({ message: 'Cargo actualizado', data: updatedCargo });
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el cargo', details: error.message });

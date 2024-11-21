@@ -1,6 +1,7 @@
 // handlers/descansosHandler.js
 
 const { getAllDescansos, getDescansos, createDescansos, deleteDescanso, updateDescanso } = require("../controllers/descansoController");
+const { createHistorial } = require('../controllers/historialController');
 
 // Handler para obtener todos los descansos con paginación
 const getAllDescansosHandler = async (req, res) => {
@@ -63,7 +64,9 @@ const getDescansosHandler = async (req, res) => {
 
 // Handler para crear un descanso
 const createDescansosHandler = async (req, res) => {
+
     const { fecha, observacion, id_empleado } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!fecha) {
@@ -97,6 +100,16 @@ const createDescansosHandler = async (req, res) => {
             return res.status(500).json({ message: "Error al crear el descanso" });
         }
 
+        const historial = await createHistorial(
+            'create',
+            'Descanso',
+            'fecha, observacion, id_empleado',
+            null,
+            `${fecha}, ${observacion}, ${id_empleado}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         res.status(201).json({
             message: "Descanso creado exitosamente",
             data: response
@@ -109,8 +122,10 @@ const createDescansosHandler = async (req, res) => {
 
 // Handler para actualizar un descanso
 const updateDescansoHandler = async (req, res) => {
+
     const id = parseInt(req.params.id);
     const { fecha, observacion, id_empleado } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (isNaN(id) || id <= 0) {
@@ -143,9 +158,29 @@ const updateDescansoHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getDescansos(id);
         const response = await updateDescanso(id, { fecha, observacion, id_empleado });
         if (!response) {
             return res.status(404).json({ message: "Descanso no encontrado para actualizar" });
+        }
+
+        const anterior = [previo.fecha, previo.observacion, previo.id_empleado];
+        const nuevo = [fecha, observacion, id_empleado];
+        const campos = ['fecha', 'observacion', 'id_empleado'];
+        let historial;
+
+        for (let i = 0; i < anterior.length; i++) {
+            if (anterior[i] !== nuevo[i]) {
+                historial = await createHistorial(
+                    'update',
+                    'Descanso',
+                    campos[i],
+                    anterior[i],
+                    nuevo[i],
+                    token
+                );
+                if (!historial) console.warn('No se agregó al historial...');
+            }
         }
 
         res.status(200).json({
@@ -160,7 +195,9 @@ const updateDescansoHandler = async (req, res) => {
 
 // Handler para eliminar un descanso (cambia el estado a false)
 const deleteDescansoHandler = async (req, res) => {
+
     const id = parseInt(req.params.id);
+    const token = req.user;
 
     if (isNaN(id) || id <= 0) {
         return res.status(400).json({ message: "ID inválido" });
@@ -171,6 +208,16 @@ const deleteDescansoHandler = async (req, res) => {
         if (!response) {
             return res.status(404).json({ message: "Descanso no encontrado para eliminar" });
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'Descanso',
+            'fecha, observacion, id_empleado',
+            `${response.fecha}, ${response.observacion}, ${response.id_empleado}`,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
 
         res.status(200).json({
             message: "Descanso eliminado exitosamente",

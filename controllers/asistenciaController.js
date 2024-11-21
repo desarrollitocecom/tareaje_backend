@@ -241,7 +241,6 @@ const createAsistenciaUsuario = async (fecha, hora, estado, id_empleado) => {
                 id_empleado: id_empleado
             }
         })
-        console.log(asistencias);
         if (asistencias.rows.length) return 1;
 
         const newAsistencia = await Asistencia.create({
