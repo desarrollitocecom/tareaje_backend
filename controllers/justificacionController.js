@@ -1,4 +1,5 @@
 const { Justificacion, Asistencia } = require('../db_connection');
+const { createHistorial } = require('../controllers/historialController');
 
 // Obtener la justificación por ID :
 const getJustificacionById = async (id) => {
@@ -52,7 +53,7 @@ const validateJustificacion = async (id_asistencia) => {
 
 // Crear justificacion :
 // >> Tener en cuenta que se creará la justificación una vez se haya verificado que la justificación en cuestión sea VÁLIDA
-const createJustificacion = async (documentosPaths, descripcion, id_asistencia, id_empleado, estado) => {
+const createJustificacion = async (documentosPaths, descripcion, id_asistencia, id_empleado, estado, token) => {
     
     try {
         const newJustificacion = await Justificacion.create({
@@ -68,6 +69,18 @@ const createJustificacion = async (documentosPaths, descripcion, id_asistencia, 
             { estado: estado },
             { where: { id: id_asistencia } }
         );
+
+        const previo = (estado === 'A') ? 'F' : 'A';
+        const historial = await createHistorial(
+            'update',
+            'Asistencia',
+            'estado',
+            previo,
+            estado,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return newJustificacion;
 
     } catch (error) {
