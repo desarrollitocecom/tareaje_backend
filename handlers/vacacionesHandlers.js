@@ -143,7 +143,7 @@ const updateVacacionesHandler=async (req,res) => {
     });
   }
   try {
-    const response=await updateVacaciones(id ,{f_inicio}, {f_fin}, {id_empleado});
+    const response = await updateVacaciones(id ,f_inicio, f_fin, id_empleado);
     if (!response) {
       return res.status(404).json({
         message: 'Vacación no se puedo moficar  encontrada.',
