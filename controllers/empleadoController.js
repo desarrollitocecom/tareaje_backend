@@ -1,12 +1,23 @@
 const { Empleado, Cargo, RegimenLaboral, Sexo,
     Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion } = require('../db_connection');
+const { Op } = require('sequelize');
 
 const { deletePerson } = require('./axxonController');
 
-const getAllEmpleados = async (page = 1, limit = 20) => {
+const getAllEmpleados = async (page = 1, limit = 20, search) => {
     const offset = (page - 1) * limit;
     try {
+        const whereCondition = search
+            ? {
+                [Op.or]: [
+                    { nombres: { [Op.like]: `%${search}%` } },
+                    { apellidos: { [Op.like]: `%${search}%` } }
+                ]
+            }
+            : {};
+
         const response = await Empleado.findAndCountAll({
+            where: whereCondition,
             attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state'],
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
@@ -108,31 +119,31 @@ const deleteEmpleado = async (id) => {
 
 };
 const updateEmpleado = async (
-        id,
-        nombres,
-        apellidos,
-        dni,
-        ruc,
-        hijos,
-        edad,
-        f_nacimiento,
-        correo,
-        domicilio,
-        celular,
-        f_inicio,
-        foto,
-        observaciones,
-        id_cargo,
-        id_turno,
-        id_regimen_laboral,
-        id_sexo,
-        id_jurisdiccion,
-        id_grado_estudios,
-        id_subgerencia,
-        id_funcion,
-        id_lugar_trabajo
+    id,
+    nombres,
+    apellidos,
+    dni,
+    ruc,
+    hijos,
+    edad,
+    f_nacimiento,
+    correo,
+    domicilio,
+    celular,
+    f_inicio,
+    foto,
+    observaciones,
+    id_cargo,
+    id_turno,
+    id_regimen_laboral,
+    id_sexo,
+    id_jurisdiccion,
+    id_grado_estudios,
+    id_subgerencia,
+    id_funcion,
+    id_lugar_trabajo
 ) => {
-    
+
     try {
         const empleado = await getEmpleado(id);
         if (!empleado) return null;
@@ -194,7 +205,7 @@ const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
                 id_turno: id_turno
             }
         });
-        if(!empleados || empleados.length === 0) return null;
+        if (!empleados || empleados.length === 0) return null;
         const result = empleados.map(empleado => ({
             id: empleado.id,
             dni: empleado.dni
