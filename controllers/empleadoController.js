@@ -1,7 +1,7 @@
 const { Empleado, Cargo, RegimenLaboral, Sexo,
     Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno } = require('../db_connection');
 
-//const { createPerson, updatePerson } = require('../controllers/axxonController');
+const { deletePerson } = require('./axxonController');
 
 const getAllEmpleados = async (page = 1, limit = 20) => {
     const offset = (page - 1) * limit;
@@ -43,8 +43,6 @@ const getEmpleado = async (id) => {
             ]
 
         });
-       
-        
         return response || null
     } catch (error) {
         console.error("Error al obtener un empleado en el controlador:", error);
@@ -59,8 +57,6 @@ const createEmpleado = async (
     id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
 ) => {
 
-    //const consulta = await createPerson(nombres, apellidos, dni, id_cargo, id_turno, foto);
-    //if (!consulta) return null;
     try {
         const response = await Empleado.create({
             nombres,
@@ -92,9 +88,13 @@ const createEmpleado = async (
         return false;
     }
 };
+
 const deleteEmpleado = async (id) => {
+
     try {
         const response = await Empleado.findByPk(id);
+        const consulta = await deletePerson(response.dni);
+        if (!consulta) return null;
         response.state = false;
         await response.save();
         return response || null;
@@ -106,7 +106,7 @@ const deleteEmpleado = async (id) => {
 
 };
 const updateEmpleado = async (
-    {id,
+        id,
         nombres,
         apellidos,
         dni,
@@ -129,18 +129,15 @@ const updateEmpleado = async (
         id_subgerencia,
         id_funcion,
         id_lugar_trabajo
-    }
 ) => {
     
-    
     try {
-        /* const empleado = await getEmpleado(id);
-        console.log("empleado 1",empleado.id);
-        const consulta = await updatePerson(nombres, apellidos, dni);
-        if (!consulta) return null; */
+        const empleado = await getEmpleado(id);
+        if (!empleado) return null;
+
         if (empleado) {
-            await empleado.update(
-                {nombres,
+            await empleado.update({
+                nombres,
                 apellidos,
                 dni,
                 ruc,
@@ -161,8 +158,8 @@ const updateEmpleado = async (
                 id_grado_estudios,
                 id_subgerencia,
                 id_funcion,
-                id_lugar_trabajo,}
-            );
+                id_lugar_trabajo
+            });
         }
         return empleado || null;
     } catch (error) {
@@ -171,6 +168,7 @@ const updateEmpleado = async (
     }
 };
 const getEmpleadoByDni = async (dni) => {
+
     try {
         const empleado = await Empleado.findOne({
             attributes: ['id'],
@@ -185,6 +183,7 @@ const getEmpleadoByDni = async (dni) => {
 
 // Obtención del empleado (ID, DNI) según el ID de Cargo y Turno :
 const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
+
     try {
         const empleados = await Empleado.findAll({
             attributes: ['id', 'dni'],

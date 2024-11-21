@@ -44,8 +44,7 @@ const getVacacion = async (id) => {
 
   try {
     const response = await Vacacion.findOne({
-      where: { state: true },
-      id,
+      where: { id, state: true },
       include: {
         model: Empleado,
         as: "empleado",
@@ -76,7 +75,7 @@ const deleteVaciones = async (id) => {
 const updateVacaciones = async (id, f_inicio, f_fin, id_empleado) => {
   try {
     const response = await getVacacion(id);
-    if (response) await response.update(f_inicio, f_fin, id_empleado);
+    if (response) await response.update({f_inicio, f_fin, id_empleado});
     return response || null;
   } catch (error) {
     console.error(error);

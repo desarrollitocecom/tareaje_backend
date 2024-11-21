@@ -24,8 +24,6 @@ const getAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
             where: {
                 fecha: fecha
             },
-            limit,
-            offset,
             include: [
                 {
                     model: Empleado,
@@ -45,6 +43,8 @@ const getAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
                     ]
                 }
             ],
+            limit,
+            offset,
             order: [['hora', 'ASC']]
         });
 
@@ -90,12 +90,12 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
 
     try {
         const empleados = await Empleado.findAndCountAll({
-            limit,
-            offset,
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Turno, as: 'turno', attributes: ['nombre'] }
-            ]
+            ],
+            limit,
+            offset
         });
 
         const asistencias = await Asistencia.findAll({
