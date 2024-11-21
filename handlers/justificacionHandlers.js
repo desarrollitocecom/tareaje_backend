@@ -6,8 +6,7 @@ const {
     updateJustificacion
 } = require('../controllers/justificacionController');
 
-const fs = require('fs');
-const path = require('path');
+const { createHistorial } = require('../controllers/historialController');
 
 // Handler para obtener la justificación por ID :
 const getJustificacionByIdHandler = async (req,res) => {
@@ -80,6 +79,7 @@ const getAllJustificacionesHandler = async (req, res) => {
 const createJustificacionHandler = async (req, res) => {
 
     const { descripcion, id_asistencia, id_empleado } = req.body;
+    const token = req.user;
 
     if (!req.files || req.files.length === 0) return res.status(400).json({ message: 'No se han enviado archivos PDF' });
     if (!descripcion) return res.status(400).json({ message: 'El parámetro DESCRIPCIÓN es obligatorio' });
@@ -118,6 +118,16 @@ const createJustificacionHandler = async (req, res) => {
                 data: []
             });
         }
+
+        const historial = await createHistorial(
+            'create',
+            'Justificacion',
+            'documentos, descripcion, id_asistencia, id_empleado',
+            null,
+            `${documentos.length}, ${descripcion}, ${id_asistencia}, ${id_empleado}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
 
         return res.status(200).json({
             message: 'Justificación creada con éxito.',
@@ -193,6 +203,7 @@ const updateJustificacionHandler = async (req, res) => {
 
     const { id } = req.params;
     const { descripcion } = req.body;
+    const token = req.user;
 
     if (!id) return res.status(400).json({ message: 'El parámetro ID es requerido y debe ser un entero' });
     if (!descripcion) return res.status(400).json({ message: 'El parámetro ESTADO debe ser un string' });
@@ -200,8 +211,9 @@ const updateJustificacionHandler = async (req, res) => {
     if (typeof descripcion !== 'string') return res.status(400).json({ message: 'La descripción debe ser un string' });
 
     try {
+        const previo = await getJustificacionById(id);
         const response = await updateJustificacion(id, { descripcion });
-        console.log(response);
+
         if (!response) {
             return res.status(400).json({
                 message: 'No se pudo actualizar la justificación...',
@@ -215,6 +227,16 @@ const updateJustificacionHandler = async (req, res) => {
                 data: []
             });
         }
+
+        const historial = await createHistorial(
+            'update',
+            'Justificacion',
+            'descripcion',
+            previo.descripcion,
+            descripcion,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
 
         return res.status(200).json({
             message: 'Justificación actualizada con éxito...',

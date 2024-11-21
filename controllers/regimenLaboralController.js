@@ -21,7 +21,8 @@ const getRegimenLaborales=async (page = 1, limit = 20) => {
 const getRegimenLaboral = async (id) => {
     try {
         const newRegimenLaboral = await RegimenLaboral.findOne({where: {
-            id ,
+            id,
+            state: true
         }});
         return newRegimenLaboral || null;
     } catch (error) {
