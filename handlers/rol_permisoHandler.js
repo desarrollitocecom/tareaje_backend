@@ -1,10 +1,12 @@
 
 const { createPermiso, createRol, getAllRols, getRolById, getAllPermisos, getPermisoById, getPermisosByRolId, updateRol, deleteRol, deletePermiso, updatePermiso } = require("../controllers/rol_permisoController");
+const { createHistorial } = require('../controllers/historialController');
 const jwt = require("jsonwebtoken");
 
 const createPermisoHandler = async (req, res) => {
 
     const { action, resource, descripcion } = req.body;
+    const token = req.user;
 
     const errors = [];
     if (!action) errors.push("action es requerida");
@@ -15,9 +17,20 @@ const createPermisoHandler = async (req, res) => {
 
     try {
         const permiso = await createPermiso(action, resource, descripcion);
-        if (permiso)
-            return res.status(201).json({ message: "Permiso creado correctamente", data: permiso });
-        return res.status(400).json({ message: "Error al crear el permiso", data: permiso });
+        if (!permiso) return res.status(400).json({ message: "Error al crear el permiso", data: permiso });
+
+        const historial = await createHistorial(
+            'create',
+            'Permiso',
+            'action, resource, descripcion',
+            null,
+            `${action}, ${resource}, ${descripcion}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+        
+        return res.status(201).json({ message: "Permiso creado correctamente", data: permiso });
+        
     } catch (error) {
         console.error("Error en el createPermisoHandler: ", error.message);
         return res.status(500).json({ message: "Error en createPermisoHandler", error: error.message });
@@ -29,6 +42,7 @@ const getRolPermisosHandler = async (req, res) => {
 
     const { id } = req.params;
     const { rol, usuario } = jwt.verify(req.user, process.env.JWT_SECRET);
+    const token = req.user;
     //console.log(rol, id);
     try {
         const permisos = await getPermisosByRolId(rol);
@@ -36,6 +50,16 @@ const getRolPermisosHandler = async (req, res) => {
         if (permisos === null) {
             return res.status(404).json({ message: "Rol no encontrado o sin permisos asociados", data: [] });
         }
+
+        const historial = await createHistorial(
+            'read',
+            'Rol',
+            `Read Permiso Id ${rol}`,
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
 
         return res.status(200).json({
             message: "Permisos obtenidos correctamente",
@@ -48,7 +72,9 @@ const getRolPermisosHandler = async (req, res) => {
 };
 
 const createRolHandler = async (req, res) => {
+
     const { nombre, descripcion, permisos } = req.body;
+    const token = req.user;
 
     // Validaciones
     const errors = [];
@@ -64,11 +90,21 @@ const createRolHandler = async (req, res) => {
         // Crear el rol y asociar los permisos
         const rol = await createRol(nombre, descripcion, permisos);
 
-        if (rol) {
-            return res.status(201).json({ message: "Rol creado correctamente", data: rol });
-        }
+        if (!rol) return res.status(400).json({ message: "Error al crear el rol", data: rol });
 
-        return res.status(400).json({ message: "Error al crear el rol", data: rol });
+        const historial = await createHistorial(
+            'create',
+            'Permiso',
+            'nombre, descripcion, permisos',
+            null,
+            `${nombre}, ${descripcion}, ${permisos}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+        
+        return res.status(201).json({ message: "Rol creado correctamente", data: rol });
+
+        
     } catch (error) {
         console.error("Error en createRolHandler:", error.message);
         return res.status(500).json({ message: "Error en createRolHandler", error: error.message });
@@ -76,8 +112,11 @@ const createRolHandler = async (req, res) => {
 };
 
 const getAllRolsHandler = async (req, res) => {
+
     const { page = 1, pageSize = 20 } = req.query;
+    const token = req.user;
     const errores = [];
+
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page <= 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(pageSize)) errores.push("El pageSize debe ser un numero");
@@ -104,6 +143,16 @@ const getAllRolsHandler = async (req, res) => {
             });
         }
 
+        const historial = await createHistorial(
+            'read',
+            'Rol',
+            'Read All Roles',
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Rols obtenidos correctamente",
             data: {
@@ -124,8 +173,18 @@ const getRolByIdHandler = async (req, res) => {
 
     try {
         const rol = await getRolById(id);
-        if (rol)
+        if (rol) {
+            const historial = await createHistorial(
+                'read',
+                'Rol',
+                `Read Rol Id ${id}`,
+                null,
+                null,
+                token
+            );
+            if (!historial) console.warn('No se agregó al historial...');
             return res.status(200).json({ message: "Rol obtenido correctamente", data: rol });
+        }
         return res.status(404).json({ message: "Rol no encontrado", data: null });
     } catch (error) {
         console.error("Error en getRolByIdHandler:", error.message);
@@ -134,7 +193,9 @@ const getRolByIdHandler = async (req, res) => {
 };
 
 const getAllPermisosHandler = async (req, res) => {
+
     const { page = 1, pageSize = 20 } = req.query;
+    const token = req.user;
 
     try {
         const permisos = await getAllPermisos(page, pageSize);
@@ -153,6 +214,16 @@ const getAllPermisosHandler = async (req, res) => {
             });
         }
 
+        const historial = await createHistorial(
+            'read',
+            'Permiso',
+            'Read All Permisos',
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Permisos obtenidos correctamente",
             data: {
@@ -169,8 +240,10 @@ const getAllPermisosHandler = async (req, res) => {
 };
 
 const updatePermisoHandler = async (req, res) => {
+
     const { id } = req.params;
     const updates = req.body;
+    const token = req.user;
 
     try {
         const permiso = await updatePermiso(id, updates);
@@ -186,6 +259,7 @@ const updatePermisoHandler = async (req, res) => {
 const deletePermisoHandler = async (req, res) => {
 
     const { id } = req.params;
+    const token = req.user;
 
     try {
         const success = await deletePermiso(id);
@@ -199,8 +273,10 @@ const deletePermisoHandler = async (req, res) => {
 };
 
 const updateRolHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre, descripcion, permisos } = req.body;
+    const token = req.user;
 
     try {
         const rol = await updateRol(id, nombre, descripcion, permisos);
@@ -214,7 +290,9 @@ const updateRolHandler = async (req, res) => {
 };
 
 const deleteRolHandler = async (req, res) => {
+
     const { id } = req.params;
+    const token = req.user;
 
     try {
         const success = await deleteRol(id);

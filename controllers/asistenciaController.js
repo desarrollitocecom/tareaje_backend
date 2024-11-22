@@ -14,10 +14,9 @@ const getAsistenciaById = async (id) => {
 };
 
 // Obtener las asistencias (todos los estados) de un día determinado :
-const getAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
+const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
     
-    const offset = (page - 1) * pageSize;
-    const limit = pageSize;
+    const offset = (page - 1) * limit;
 
     try {
         const asistencias = await Asistencia.findAndCountAll({
@@ -66,7 +65,7 @@ const getAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
         return {
             data: result,
             currentPage: page,
-            totalCount: result.length
+            totalCount: asistencias.count
         };
 
     } catch (error) {
@@ -95,7 +94,8 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
                 { model: Turno, as: 'turno', attributes: ['nombre'] }
             ],
             limit,
-            offset
+            offset,
+            order: [['apellidos', 'ASC']]
         });
 
         const asistencias = await Asistencia.findAll({
@@ -133,7 +133,7 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
         return {
             data: result,
             currentPage: page,
-            totalCount: result.length
+            totalCount: empleados.count
         };
 
     } catch (error) {
@@ -158,7 +158,7 @@ const getAllAsistencias = async (page = 1, pageSize = 20) => {
         return {
             data: response.rows,
             currentPage: page,
-            totalCount: response.rows.length,
+            totalCount: response.count,
         };
 
     } catch (error) {
@@ -315,7 +315,7 @@ const filtroAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
         return {
             data: result,
             currentPage: page,
-            totalCount: result.length
+            totalCount: asistencias.count
         };
     } catch (error) {
         console.error('Error al obtener las asistencias de un día determinado:', error);

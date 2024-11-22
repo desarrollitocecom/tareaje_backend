@@ -45,38 +45,58 @@ const getAsistenciaByIdHandler = async (req,res) => {
 const getAsistenciaDiariaHandler = async (req, res) => {
 
     const { fecha } = req.params;
-    const { page = 1, pageSize = 20 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
+    const token = req.user;
     const errores = [];
 
-    if (isNaN(page)) errores.push('El page debe ser un entero');
-    if (page <= 0) errores.push('El page debe ser un entero mayor a cero');
-    if (isNaN(pageSize)) errores.push('El limit debe ser un entero');
-    if (pageSize <= 0) errores.push('El limit debe ser un entero mayor a cero');
+    if (isNaN(page)) errores.push('El page debe ser un número entero...');
+    if (page <= 0) errores.push('El page debe ser mayor que cero...');
+    if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
+    if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
+    if (!fecha) errores.push('La fecha es obligatoria...')
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El formato para fecha es incorrecto, cumplir con YYYY-MM-HH');
+
     if (errores.length > 0) return res.status(400).json({ errores });
 
-    try {
-        const response = await getAsistenciaDiaria(page, pageSize, fecha);
-        const totalPages = Math.ceil(response.totalCount / pageSize)
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
 
-        if(page > pageSize){
-            return res.status(404).json({ 
-                message:'Página fuera de rango...',
-                data:{
-                    data: [],
-                    currentPage: page,
+    try {
+        const response = await getAsistenciaDiaria(numPage, numLimit, fecha);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) {
+            return res.status(404).json({
+                message: "Página fuera de rango...",
+                data: {
+                    asistencias: [],
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
                     totalPages: totalPages,
-                    totalCount: response.totalCount
-                }   
+                }
             });
         }
 
+        const historial = await createHistorial(
+            'read',
+            'Asistencia',
+            `Read Asistencia Diaria ${fecha}`,
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: `Mostrando las asistencias del día ${fecha}`,
-            data: response.data,
-            currentPage: page,
-            totalPages: totalPages,
-            totalCount: response.totalCount
+            data: {
+                asistencias: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
         });
         
     } catch (error) {
@@ -91,46 +111,64 @@ const getAsistenciaDiariaHandler = async (req, res) => {
 const getAsistenciaRangoHandler = async (req, res) => {
 
     const { inicio, fin } = req.body;
-    const { page = 1, pageSize = 20 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
+    const token = req.user;
     const errores = [];
 
-    if (isNaN(page)) errores.push('El page debe ser un entero');
-    if (page <= 0) errores.push('El page debe ser un entero mayor a cero');
-    if (isNaN(pageSize)) errores.push('El limit debe ser un entero');
-    if (pageSize <= 0) errores.push('El limit debe ser un entero mayor a cero');
-    if (!inicio) errores.push('El parámetro INICIO es obligatorio');
-    if (!fin) errores.push('El parámetro FIN es obligatorio')
+    if (isNaN(page)) errores.push('El page debe ser un número entero...');
+    if (page <= 0) errores.push('El page debe ser mayor que cero...');
+    if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
+    if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
+    if (!inicio) errores.push('La fecha de inicio es obligatoria...');
+    if (!fin) errores.push('La fecha de fin es obligatoria...')
     if (!/^\d{4}-\d{2}-\d{2}$/.test(inicio)) errores.push('El formato para INICIO es incorrecto, debe ser YYYY-MM-HH)');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fin)) errores.push('El formato para FIN es incorrecto, debe ser YYYY-MM-HH');
     if(errores.length > 0) return res.status(400).json({ errores });
 
-    try {
-        const response = await getAsistenciaRango(page, pageSize, inicio, fin);
-        const totalPages = Math.ceil(response.totalCount / pageSize);
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
 
-        if(page > pageSize){
-            return res.status(404).json({ 
-                message:'Página fuera de rango...',
-                data:{
-                    data: [],
-                    currentPage: page,
+    try {
+        const response = await getAsistenciaRango(numPage, numLimit, inicio, fin);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) {
+            return res.status(404).json({
+                message: "Página fuera de rango...",
+                data: {
+                    asistencias: [],
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
                     totalPages: totalPages,
-                    totalCount: response.totalCount
-                }   
+                }
             });
         }
 
+        const historial = await createHistorial(
+            'read',
+            'Asistencia',
+            `Read Asistencias ${inicio} to ${fin}`,
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: `Mostrando las asistencias del ${inicio} al ${fin}`,
-            data: response.data,
-            currentPage: page,
-            totalPages: totalPages,
-            totalCount: response.totalCount
+            data: {
+                asistencias: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
         });
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Error en getAsistenciaRango',
+            message: "Error en getAsistenciaRango...",
             error: error.message
         });
     }
@@ -139,37 +177,55 @@ const getAsistenciaRangoHandler = async (req, res) => {
 // Handler para obtener todas las asistencias :
 const getAllAsistenciasHandler = async (req, res) => {
 
-    const { page = 1, pageSize = 20 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
+    const token = req.user;
     const errores = [];
 
-    if (isNaN(page)) errores.push('El page debe ser un entero');
-    if (page <= 0) errores.push('El page debe ser un entero mayor a cero');
-    if (isNaN(pageSize)) errores.push('El limit debe ser un entero');
-    if (pageSize <= 0) errores.push('El limit debe ser un entero mayor a cero');
-    if(errores.length > 0) return res.status(400).json({ errores });
+    if (isNaN(page)) errores.push('El page debe ser un número entero...');
+    if (page <= 0) errores.push('El page debe ser mayor que cero...');
+    if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
+    if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
+    if (errores.length > 0) return res.status(400).json({ errores });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
 
     try {
-        const response = await getAllAsistencias(page, pageSize);
-        const totalPages = Math.ceil(response.totalCount / pageSize);
+        const response = await getAllAsistencias(numPage, numLimit);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
 
-        if(page > pageSize){
-            return res.status(404).json({ 
-                message:'Página fuera de rango...',
-                data:{
-                    data: [],
-                    currentPage: page,
+        if (numPage > totalPages) {
+            return res.status(404).json({
+                message: "Página fuera de rango...",
+                data: {
+                    asistencias: [],
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
                     totalPages: totalPages,
-                    totalCount: response.totalCount
-                }   
+                }
             });
         }
 
+        const historial = await createHistorial(
+            'read',
+            'Asistencia',
+            'Read All Asistencias',
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
-            message: 'Mostrando las asistencias...',
-            data: response.data,
-            currentPage: page,
-            totalPages: totalPages,
-            totalCount: response.totalCount
+            message: "Mostrando asistencias correctamente...",
+            data: {
+                asistencias: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
         });
 
     } catch (error) {
@@ -242,38 +298,58 @@ const createAsistenciaUsuarioHandler = async (req, res) => {
 const filtroAsistenciaDiariaHandler = async (req, res) => {
 
     const { fecha } = req.params;
-    const { page = 1, pageSize = 20 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
+    const token = req.user;
     const errores = [];
 
-    if (isNaN(page)) errores.push('El page debe ser un entero');
-    if (page <= 0) errores.push('El page debe ser un entero mayor a cero');
-    if (isNaN(pageSize)) errores.push('El limit debe ser un entero');
-    if (pageSize <= 0) errores.push('El limit debe ser un entero mayor a cero');
+    if (isNaN(page)) errores.push('El page debe ser un número entero...');
+    if (page <= 0) errores.push('El page debe ser mayor que cero...');
+    if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
+    if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
+    if (!fecha) errores.push('La fecha es obligatoria...')
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El formato para fecha es incorrecto, cumplir con YYYY-MM-HH');
+
     if (errores.length > 0) return res.status(400).json({ errores });
 
-    try {
-        const response = await filtroAsistenciaDiaria(page, pageSize, fecha);
-        const totalPages = Math.ceil(response.totalCount / pageSize)
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
 
-        if(page > pageSize){
-            return res.status(404).json({ 
-                message:'Página fuera de rango...',
-                data:{
-                    data: [],
-                    currentPage: page,
+    try {
+        const response = await filtroAsistenciaDiaria(numPage, numLimit, fecha);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) {
+            return res.status(404).json({
+                message: "Página fuera de rango...",
+                data: {
+                    asistencias: [],
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
                     totalPages: totalPages,
-                    totalCount: response.totalCount
-                }   
+                }
             });
         }
 
+        const historial = await createHistorial(
+            'read',
+            'Asistencia',
+            `Read Asistencias of ${fecha}`,
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: `Mostrando las asistencias del día ${fecha}`,
-            data: response.data,
-            currentPage: page,
-            totalPages: totalPages,
-            totalCount: response.totalCount
+            data: {
+                asistencias: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
         });
         
     } catch (error) {

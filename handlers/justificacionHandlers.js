@@ -12,6 +12,7 @@ const { createHistorial } = require('../controllers/historialController');
 const getJustificacionByIdHandler = async (req,res) => {
     
     const { id } = req.params;
+    const token = req.user;
 
     if (!id) return res.status(400).json({ message: 'El parámetro ID es requerido' });
     if (isNaN(id)) return res.status(400).json({ message: 'El parámetro ID debe ser un entero' });
@@ -24,6 +25,17 @@ const getJustificacionByIdHandler = async (req,res) => {
                 data: []
             });
         }
+
+        const historial = await createHistorial(
+            'read',
+            'Justificacion',
+            `Read Justificacion Id ${id}`,
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Justificación obtenida correctamente...',
             data: justificacion
@@ -41,6 +53,7 @@ const getJustificacionByIdHandler = async (req,res) => {
 const getAllJustificacionesHandler = async (req, res) => {
     
     const { page = 1, limit = 20 } = req.query;
+    const token = req.user;
     const errores = [];
 
     // Validaciones para la obtención de las justificaciones :
@@ -62,6 +75,17 @@ const getAllJustificacionesHandler = async (req, res) => {
                 }   
             });
         }
+
+        const historial = await createHistorial(
+            'read',
+            'Justificacion',
+            'Read All Justificaciones',
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Mostrando justificaciones...',
             data: response
