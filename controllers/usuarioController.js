@@ -142,7 +142,20 @@ const getAllUsers = async (page = 1, pageSize = 20) => {
     }
 };
 
+const getUserByToken = async (token) => {
 
+    try {
+        const user = await Usuario.findOne({
+            where: {token, token},
+            attributes: ['id']
+        });
+        return user.id;
+
+    } catch (error) {
+        console.error('Error en obtener el id del usuario');
+        return false;
+    }
+};
 
 const getUserById = async (token) => {
     try {
@@ -205,6 +218,7 @@ module.exports = {
     signToken,
     changeUserData,
     getAllUsers,
+    getUserByToken,
     getUserById,
     deleteUser,
     logoutUser,

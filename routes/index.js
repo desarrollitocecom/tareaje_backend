@@ -20,6 +20,7 @@ const feriadoRouter=require('./feriadoRouter');
 const asistenciaRouter=require('./asistenciaRouter');
 const rangoHorarioRouter=require('./rangoHorarioRouter');
 const justificacionRouter = require('./justificacionRouter');
+const historialRouter = require('./historialRouter');
 
 
 // Usa prefijos para organizar las rutas
@@ -42,5 +43,6 @@ router.use('/feriados',feriadoRouter);
 router.use('/asistencias',asistenciaRouter);
 router.use('/rangohorarios',rangoHorarioRouter);
 router.use('/justificaciones',justificacionRouter);
+router.use('/historial',historialRouter);
 
 module.exports = router;

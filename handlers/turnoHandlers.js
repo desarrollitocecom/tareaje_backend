@@ -5,6 +5,8 @@ const { getTurnos,
     deleteTurno
 } = require('../controllers/turnoController');
 
+const { createHistorial } = require('../controllers/historialController');
+
 //Handlers para obtener los Turnos
 const getTurnosHandler = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
@@ -74,7 +76,9 @@ const getTurnoHandler = async (req, res) => {
 //handlers para crear una nueva Turno
 
 const createTurnoHandler = async (req, res) => {
+    
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!nombre) {
@@ -94,6 +98,23 @@ const createTurnoHandler = async (req, res) => {
 
     try {
         const nuevaTurno = await createTurno({ nombre });
+        if (!nuevaTurno) {
+            return res.status(404).json({
+                message: "Turno no creado",
+                data: {}
+            });
+        }
+
+        const historial = await createHistorial(
+            'create',
+            'Turno',
+            'nombre',
+            null,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(201).json({
             message: 'Turno creado exitosamente',
             data: nuevaTurno
@@ -105,8 +126,10 @@ const createTurnoHandler = async (req, res) => {
 };
 
 const updateTurnoHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!id) {
@@ -132,6 +155,7 @@ const updateTurnoHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getTurno(id);
         const response = await updateTurno(id, { nombre });
         if (!response) {
             return res.status(404).json({
@@ -139,6 +163,17 @@ const updateTurnoHandler = async (req, res) => {
                 data: {}
             });
         }
+
+        const historial = await createHistorial(
+            'update',
+            'Turno',
+            'nombre',
+            previo.nombre,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Registro modificado",
             data: response
@@ -150,7 +185,10 @@ const updateTurnoHandler = async (req, res) => {
 };
 
 const deleteTurnoHandler = async (req, res) => {
+
     const id = req.params.id;
+    const token = req.user;
+
     // Validación del ID
     if (isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
@@ -166,9 +204,21 @@ const deleteTurnoHandler = async (req, res) => {
                 data: {}
             })
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'Turno',
+            'nombre',
+            response.nombre,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Turno eliminado correctamente'
         });
+
     } catch (error) {
         return res.status(404).json({ message: error.message });
     }

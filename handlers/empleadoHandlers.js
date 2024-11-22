@@ -1,23 +1,28 @@
 const { getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado, getEmpleadoIdDniByCargoTurno } = require('../controllers/empleadoController');
 
+const { createHistorial } = require('../controllers/historialController');
 const { createPerson, deletePerson } = require('../controllers/axxonController');
 const fs = require('fs');
 const path = require('path');
 
 const getAllEmpleadosHandlers = async (req, res) => {
 
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, dni, state } = req.query;
+    const filters = { search, subgerencia, turno, cargo, dni, state };
+    //console.log("filtros: ",filters);
+    const token = req.user;
     const errores = [];
+
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page <= 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: "Se encontraron los siguentes errores:", data: errores });
     }
     try {
-        const response = await getAllEmpleados(Number(page), Number(limit)); // Llamamos a la función getEmpleados
+        const response = await getAllEmpleados(Number(page), Number(limit), filters); // Llamamos a la función getEmpleados
 
         if (response.length === 0 || page > limit) {
             return res.status(200).json(
@@ -32,6 +37,16 @@ const getAllEmpleadosHandlers = async (req, res) => {
             );
         }
 
+        const historial = await createHistorial(
+            'read',
+            'Empleado',
+            'Read All Empleados',
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Empleados obtenidos correctamente",
             data: response,
@@ -45,6 +60,8 @@ const getAllEmpleadosHandlers = async (req, res) => {
 const getEmpleadoHandler = async (req, res) => {
 
     const { id } = req.params
+    const token = req.user;
+
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
     }
@@ -56,6 +73,17 @@ const getEmpleadoHandler = async (req, res) => {
                 data: {}
             })
         };
+
+        const historial = await createHistorial(
+            'read',
+            'Empleado',
+            `Read Empleado Id ${id}`,
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(201).json({
             message: 'Enpleado encontrado',
             data: response,
@@ -67,13 +95,14 @@ const getEmpleadoHandler = async (req, res) => {
 };
 
 const createEmpleadoHandler = async (req, res) => {
-    
+
     const {
         nombres, apellidos, dni, ruc, hijos, edad,
         f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
         id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
         id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
     } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!req.file || req.file.length === 0) return res.status(400).json({ message: 'No se ha enviado foto' });
@@ -141,6 +170,17 @@ const createEmpleadoHandler = async (req, res) => {
         );
 
         if (!newEmpleado) return res.status(200).json({ message: 'No se encuentra empleado', data: [] })
+
+        const historial = await createHistorial(
+            'create',
+            'Empleado',
+            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
+            null,
+            `${nombres}, ${apellidos}, ${id_cargo}, ${id_turno}, ${id_regimen_laboral}, ${id_sexo}, ${id_jurisdiccion}, ${id_grado_estudios}, ${id_subgerencia}, ${id_funcion}, ${id_lugar_trabajo}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({ message: 'Nuevo Empleado Creado', data: newEmpleado })
     } catch (error) {
         console.error("Error al crear el empleado:", error);
@@ -156,6 +196,7 @@ const updateEmpleadoHandler = async (req, res) => {
         id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
         id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
     } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!req.file || req.file.length === 0) return res.status(400).json({ message: 'No se ha enviado foto' });
@@ -219,7 +260,7 @@ const updateEmpleadoHandler = async (req, res) => {
         // Guardar la ruta relativa de la imagen :
         const savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
 
-        const response = await updateEmpleado(id, 
+        const response = await updateEmpleado(id,
             nombres, apellidos, dni, ruc, hijos, edad,
             f_nacimiento, correo, domicilio, celular, f_inicio, savedPath, observaciones,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
@@ -234,8 +275,9 @@ const updateEmpleadoHandler = async (req, res) => {
 };
 
 const deleteEmpleadoHandler = async (req, res) => {
-    
+
     const { id } = req.params;
+    const token = req.user;
     
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
@@ -243,6 +285,17 @@ const deleteEmpleadoHandler = async (req, res) => {
     try {
         const response = await deleteEmpleado(id);
         if (!response) return res.status(200).json({ message: 'Empleado no encontrado', data: {} });
+
+        const historial = await createHistorial(
+            'create',
+            'Empleado',
+            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
+            `${response.nombres}, ${response.apellidos}, ${response.id_cargo}, ${response.id_turno}, ${response.id_regimen_laboral}, ${response.id_sexo}, ${response.id_jurisdiccion}, ${response.id_grado_estudios}, ${response.id_subgerencia}, ${response.id_funcion}, ${response.id_lugar_trabajo}`,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({ message: 'Función eliminada correctamente (estado cambiado a inactivo)' },)
     } catch (error) {
         console.error("Error al eliminar el empleado:", error);
@@ -252,14 +305,14 @@ const deleteEmpleadoHandler = async (req, res) => {
 };
 
 const getEmpleadoIdDniByCargoTurnoHandler = async (req, res) => {
-    
+
     const { cargo, turno } = req.body;
-    if(!cargo) return res.status(400).json({ message: "El cargo es obligatorio" });
-    if(!turno) return res.status(400).json({ message: "El turno es obligatorio" });
+    if (!cargo) return res.status(400).json({ message: "El cargo es obligatorio" });
+    if (!turno) return res.status(400).json({ message: "El turno es obligatorio" });
 
     try {
         const response = await getEmpleadoIdDniByCargoTurno(cargo, turno);
-        if(!response || response.length === 0){
+        if (!response || response.length === 0) {
             return res.status(400).json({
                 message: "No hay nada",
                 data: null
@@ -269,7 +322,7 @@ const getEmpleadoIdDniByCargoTurnoHandler = async (req, res) => {
             message: 'Mostrando empleados...',
             data: response
         });
-        
+
     } catch (error) {
         return res.status(500).json({
             message: "Error al obtener todas las asistencias por día en el handler",

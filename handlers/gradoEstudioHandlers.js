@@ -6,6 +6,8 @@ const {
     deleteGradoEstudio
 } = require('../controllers/gradoestudioController');
 
+const { createHistorial } = require('../controllers/historialController');
+
 // Handler para obtener todas las GradoEstudioes
 const getGradoEstudiosHandler = async (req, res) => {
     const {page=1,limit=20}=req.query;
@@ -75,7 +77,9 @@ const getGradoEstudioHandler = async (req, res) => {
 
 // Handler para crear una nueva GradoEstudio
 const createGradoEstudioHandler = async (req, res) => {
+
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!nombre) {
@@ -95,6 +99,23 @@ const createGradoEstudioHandler = async (req, res) => {
 
     try {
         const nuevaGradoEstudio = await createGradoEstudio({ nombre });
+        if (!nuevaGradoEstudio) {
+            return res.status(400).json({
+                message: 'Grado de Estudio no creado',
+                data: []
+            });
+        }
+
+        const historial = await createHistorial(
+            'create',
+            'GradoEstudios',
+            'nombre',
+            null,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(201).json({
             message: 'Grado de Estudio creado exitosamente',
             data: nuevaGradoEstudio
@@ -106,8 +127,10 @@ const createGradoEstudioHandler = async (req, res) => {
 };
 
 const updateGradoEstudioHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!id) {
@@ -133,6 +156,7 @@ const updateGradoEstudioHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getGradoEstudio(id);
         const response = await updateGradoEstudio(id, { nombre });
         if (!response) {
             return res.status(404).json({
@@ -140,6 +164,17 @@ const updateGradoEstudioHandler = async (req, res) => {
                 data: {}
             });
         }
+
+        const historial = await createHistorial(
+            'update',
+            'GradoEstudios',
+            'nombre',
+            previo.nombre,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Registro modificado",
             data: response
@@ -153,7 +188,10 @@ const updateGradoEstudioHandler = async (req, res) => {
 
 // Handler para eliminar una GradoEstudio (cambiar estado a inactivo)
 const deleteGradoEstudioHandler = async (req, res) => {
+
     const { id } = req.params;
+    const token = req.user;
+
     try {
         const response = await deleteGradoEstudio(id);
 
@@ -162,6 +200,17 @@ const deleteGradoEstudioHandler = async (req, res) => {
                 message: `No se encontró el Grado de Estudio con ID:${id}`
             });
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'GradoEstudios',
+            'nombre',
+            response.nombre,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Grado de Estudio eliminada correctamente ',
             data:{}

@@ -5,6 +5,8 @@ const { getSexos,
     deleteSexo
 } = require('../controllers/sexoController');
 
+const { createHistorial } = require('../controllers/historialController');
+
 //Handlers para obtener las Sexoes
 const getSexosHandler = async (req, res) => {
    
@@ -70,7 +72,9 @@ const getSexoHandler = async (req, res) => {
 //handlers para crear una nueva Sexo
 
 const createSexoHandler = async (req, res) => {
+
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!nombre ) {
@@ -90,13 +94,25 @@ const createSexoHandler = async (req, res) => {
 
     try {
         const nuevaSexo = await createSexo({ nombre });
-                if (!nuevaSexo) {
+        if (!nuevaSexo) {
             return res.status(500).json({ message: 'Error al crear el sexo' });
         }
+
+        const historial = await createHistorial(
+            'create',
+            'Sexo',
+            'nombre',
+            null,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(201).json({
             message: 'Sexo creado exitosamente',
             data: nuevaSexo
         });
+
     } catch (error) {
         console.error('Error al crear el sexo:', error);
         return res.status(500).json({ message: 'Error al crear el sexo', error });
@@ -104,8 +120,10 @@ const createSexoHandler = async (req, res) => {
 };
 
 const updateSexoHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!id) {
@@ -131,6 +149,7 @@ const updateSexoHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getSexo(id);
         const response = await updateSexo(id, { nombre });
         if (!response) {
             return res.status(404).json({
@@ -138,6 +157,17 @@ const updateSexoHandler = async (req, res) => {
                 data: {}
             });
         }
+
+        const historial = await createHistorial(
+            'update',
+            'Sexo',
+            'nombre',
+            previo.nombre,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+        
         return res.status(200).json({
             message: "Registro modificado",
             data: response
@@ -149,7 +179,10 @@ const updateSexoHandler = async (req, res) => {
 };
 
 const deleteSexoHandler = async (req, res) => {
+
     const id = req.params.id;
+    const token = req.user;
+
     // Validación del ID
     if (isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
@@ -158,15 +191,26 @@ const deleteSexoHandler = async (req, res) => {
     try {
         // Llamada a la función para eliminar (estado a inactivo)
         const response = await deleteSexo(id);
-
         if (!response) {
             return res.status(204).json({
                 message: `No se encontró la Sexo con ID${id}`
             })
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'Sexo',
+            'nombre',
+            response.nombre,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Sexo eliminado correctamente '
         });
+
     } catch (error) {
         return res.status(404).json({ message: error.message });
     }

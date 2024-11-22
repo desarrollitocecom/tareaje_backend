@@ -22,7 +22,7 @@ const getSexo = async (id) => {
     try {
         const response = await Sexo.findOne({where: {
             id ,
-            
+            state:true
         }});
         return response || null;
     } catch (error) {

@@ -14,10 +14,9 @@ const getAsistenciaById = async (id) => {
 };
 
 // Obtener las asistencias (todos los estados) de un día determinado :
-const getAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
+const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
     
-    const offset = (page - 1) * pageSize;
-    const limit = pageSize;
+    const offset = (page - 1) * limit;
 
     try {
         const asistencias = await Asistencia.findAndCountAll({
@@ -66,7 +65,7 @@ const getAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
         return {
             data: result,
             currentPage: page,
-            totalCount: result.length
+            totalCount: asistencias.count
         };
 
     } catch (error) {
@@ -95,7 +94,8 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
                 { model: Turno, as: 'turno', attributes: ['nombre'] }
             ],
             limit,
-            offset
+            offset,
+            order: [['apellidos', 'ASC']]
         });
 
         const asistencias = await Asistencia.findAll({
@@ -133,8 +133,46 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
         return {
             data: result,
             currentPage: page,
-            totalCount: result.length
+            totalCount: empleados.count
         };
+
+    } catch (error) {
+        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        return false;
+    }
+};
+
+// Obtener ids asistencias con datos de empleado en un rango de fechas :
+const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
+    
+    const dias = [];
+
+    let fechaDate = new Date(inicio);
+    while (fechaDate <= new Date(fin)) {
+        dias.push(new Date(fechaDate).toISOString().split('T')[0]);
+        fechaDate.setDate(fechaDate.getDate() + 1);
+    }
+
+    try {
+        const asistencias = await Asistencia.findAll({
+            where: {
+                fecha: { [Op.between]: [inicio, fin] },
+                id_empleado: id_empleado
+            },
+            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
+        });
+
+        const nombre = asistencias[0].empleado.nombres;
+        const apellido = asistencias[0].empleado.apellidos;
+        const dni = asistencias[0].empleado.dni;
+
+        const ids = [];
+        asistencias.forEach(a => {
+            ids.push(a.id);
+        });
+        
+        const result = { nombre, apellido, dni, ids};
+        return result;
 
     } catch (error) {
         console.error('Error al obtener las asistencias de un rango de fechas:', error);
@@ -158,7 +196,7 @@ const getAllAsistencias = async (page = 1, pageSize = 20) => {
         return {
             data: response.rows,
             currentPage: page,
-            totalCount: response.rows.length,
+            totalCount: response.count,
         };
 
     } catch (error) {
@@ -241,7 +279,6 @@ const createAsistenciaUsuario = async (fecha, hora, estado, id_empleado) => {
                 id_empleado: id_empleado
             }
         })
-        console.log(asistencias);
         if (asistencias.rows.length) return 1;
 
         const newAsistencia = await Asistencia.create({
@@ -316,7 +353,7 @@ const filtroAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
         return {
             data: result,
             currentPage: page,
-            totalCount: result.length
+            totalCount: asistencias.count
         };
     } catch (error) {
         console.error('Error al obtener las asistencias de un día determinado:', error);
@@ -328,6 +365,7 @@ module.exports = {
     getAsistenciaById,
     getAsistenciaDiaria,
     getAsistenciaRango,
+    getIdsAsistenciaRango,
     getAllAsistencias,
     createAsistencia,
     createAsistenciaUsuario,

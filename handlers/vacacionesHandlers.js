@@ -5,6 +5,9 @@ const {
   getVacaciones,
   createVacaciones,
 } = require("../controllers/vacacionesController.js");
+
+const { createHistorial } = require('../controllers/historialController');
+
 const getVacacionHandler = async (req, res) => {
   const { id } = req.params;
   if (!id || isNaN(id)) {
@@ -56,9 +59,11 @@ const getVacacionesHandler = async (req, res) => {
   }
 };
 const createVacacionesHandler = async (req, res) => {
+
   const { f_inicio}= req.body;
   const { f_fin}= req.body;
   const {id_empleado} = req.body;
+  const token = req.user;
 
   if (!id_empleado || isNaN(id_empleado)) {
     return res
@@ -91,6 +96,17 @@ const createVacacionesHandler = async (req, res) => {
         message: "La vacacion  no se creo",
         data: [],
       });
+
+    const historial = await createHistorial(
+        'create',
+        'Vacacion',
+        'f_inicio, f_fin, id_empleado',
+        null,
+        `${f_inicio}, ${f_fin}, ${id_empleado}`,
+        token
+    );
+    if (!historial) console.warn('No se agregó al historial...');
+
     return res.status(200).json({
       message: "nueva vacaion Creada con Exito",
       data: newVacaciones,
@@ -105,7 +121,10 @@ const createVacacionesHandler = async (req, res) => {
 
 
 const deleteVacacionesHandler = async (req, res) => {
+
   const { id } = req.params;
+  const token = req.user;
+
   if (!id || isNaN(id)) {
     return res
       .status(400)
@@ -117,6 +136,17 @@ const deleteVacacionesHandler = async (req, res) => {
       return res.status(204).json({
         message: `No se encontró la vacacion con ID${id}`,
       });
+
+    const historial = await createHistorial(
+        'delete',
+        'Vacacion',
+        'f_inicio, f_fin, id_empleado',
+        `${response.f_inicio}, ${response.f_fin}, ${response.id_empleado}`,
+        null,
+        token
+    );
+    if (!historial) console.warn('No se agregó al historial...');
+
     return res.status(200).json({
       message: "Vacacion eliminada correctamente (estado cambiado a inactivo)",
     });
@@ -125,8 +155,10 @@ const deleteVacacionesHandler = async (req, res) => {
   }
 };
 const updateVacacionesHandler=async (req,res) => {
+
   const { id } = req.params; // ID de la vacación a actualizar
   const { f_inicio, f_fin, id_empleado } = req.body;
+  const token = req.user;
 
   // Validación de fechas
   if (!Date.parse(f_inicio) || !Date.parse(f_fin)) {
@@ -143,6 +175,7 @@ const updateVacacionesHandler=async (req,res) => {
     });
   }
   try {
+    const previo = await getVacacion(id);
     const response = await updateVacaciones(id ,f_inicio, f_fin, id_empleado);
     if (!response) {
       return res.status(404).json({
@@ -150,6 +183,26 @@ const updateVacacionesHandler=async (req,res) => {
         data: []
       });
     }
+
+    const anterior = [previo.f_inicio, previo.f_fin, previo.id_empleado];
+    const nuevo = [f_inicio, f_fin, id_empleado];
+    const campos = ['f_inicio', 'f_fin', 'id_empleado'];
+    let historial;
+
+    for (let i = 0; i < anterior.length; i++) {
+        if (anterior[i] !== nuevo[i]) {
+            historial = await createHistorial(
+                'update',
+                'Vacacion',
+                campos[i],
+                anterior[i],
+                nuevo[i],
+                token
+            );
+            if (!historial) console.warn('No se agregó al historial...');
+        }
+    }
+
     return res.status(200).json({
         message:"Vacacion modificada",
         data:response
