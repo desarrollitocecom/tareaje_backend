@@ -5,6 +5,8 @@ const { getJurisdicciones,
     deleteJurisdiccion
 } = require('../controllers/JurisdiccionController');
 
+const { createHistorial } = require('../controllers/historialController');
+
 //Handlers para obtener las Jurisdicciones
 const getJurisdiccionesHandler = async (req, res) => {
     const {page=1,limit=20}=req.query;
@@ -69,7 +71,9 @@ const getJurisdiccionHandler = async (req, res) => {
 
 //handlers para crear una nueva Jurisdiccion
 const createJurisdiccionHandler = async (req, res) => {
+
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!nombre) {
@@ -89,6 +93,23 @@ const createJurisdiccionHandler = async (req, res) => {
 
     try {
         const nuevaJurisdiccion = await createJurisdiccion({ nombre });
+        if (!nuevaJurisdiccion) {
+            return res.status(400).json({
+                message: 'Jurisdicción no creada',
+                data: []
+            });
+        }
+
+        const historial = await createHistorial(
+            'create',
+            'Jurisdiccion',
+            'nombre',
+            null,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(201).json({
             message: 'Jurisdicción creada exitosamente',
             data: nuevaJurisdiccion
@@ -101,8 +122,10 @@ const createJurisdiccionHandler = async (req, res) => {
 
 // Handler para modificar una Jurisdicción
 const updateJurisdiccionHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!id) {
@@ -128,6 +151,7 @@ const updateJurisdiccionHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getJurisdiccion(id);
         const response = await updateJurisdiccion(id, { nombre });
         if (!response) {
             return res.status(404).json({
@@ -135,6 +159,17 @@ const updateJurisdiccionHandler = async (req, res) => {
                 data: {}
             });
         }
+
+        const historial = await createHistorial(
+            'update',
+            'Jurisdiccion',
+            'nombre',
+            previo.nombre,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Registro modificado",
             data: response
@@ -146,7 +181,10 @@ const updateJurisdiccionHandler = async (req, res) => {
 };
 
 const deleteJurisdiccionHandler = async (req, res) => {
+
     const id = req.params.id;
+    const token = req.user;
+
     // Validación del ID
     if (isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
@@ -162,6 +200,17 @@ const deleteJurisdiccionHandler = async (req, res) => {
                 data:{}
             })
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'Jurisdiccion',
+            'nombre',
+            response.nombre,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Función eliminada correctamente '
         });

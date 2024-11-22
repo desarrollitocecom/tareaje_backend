@@ -5,6 +5,8 @@ const { getFunciones,
     deleteFuncion
 } = require('../controllers/funcionController');
 
+const { createHistorial } = require('../controllers/historialController');
+
 const getFuncionesHandler = async (req, res) => {
     const { page=1,limit=20  } = req.query; 
     const errores = [];
@@ -70,7 +72,9 @@ const getFuncionHandler = async (req, res) => {
 
 
 const createFuncionHandler = async (req, res) => {
+
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!nombre) {
@@ -93,6 +97,16 @@ const createFuncionHandler = async (req, res) => {
         if (!nuevaFuncion) {
             return res.status(500).json({ message: "Error al crear la función" });
         }
+
+        const historial = await createHistorial(
+            'create',
+            'Funcion',
+            'nombre',
+            null,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
     
         return res.status(201).json({
             message: "Función creada exitosamente",
@@ -105,8 +119,10 @@ const createFuncionHandler = async (req, res) => {
 };
 
 const updateFuncionHandler = async (req, res) => {
+
     const { id } = req.params;
     const { nombre } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!id) {
@@ -127,6 +143,7 @@ const updateFuncionHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getFuncion(id);
         const response = await updateFuncion(id, { nombre });
         if (!response) {
             return res.status(404).json({
@@ -134,6 +151,17 @@ const updateFuncionHandler = async (req, res) => {
                 data: {}
             });
         }
+
+        const historial = await createHistorial(
+            'update',
+            'Funcion',
+            'nombre',
+            previo.nombre,
+            nombre,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Registro modificado",
             data: response
@@ -144,7 +172,9 @@ const updateFuncionHandler = async (req, res) => {
 };
 
 const deleteFuncionHandler = async (req, res) => {
+
     const id = req.params.id;
+    const token = req.user;
 
     if (isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
@@ -159,6 +189,17 @@ const deleteFuncionHandler = async (req, res) => {
                 message: `No se encontró la funcion con ID${id}`
             })
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'Funcion',
+            'nombre',
+            response.nombre,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: 'Función eliminada correctamente (estado cambiado a inactivo)'
         });

@@ -1,6 +1,7 @@
 const { getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado, getEmpleadoIdDniByCargoTurno } = require('../controllers/empleadoController');
 
+const { createHistorial } = require('../controllers/historialController');
 const { createPerson, deletePerson } = require('../controllers/axxonController');
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +11,9 @@ const getAllEmpleadosHandlers = async (req, res) => {
     const { page = 1, limit = 20, search, subgerencia, turno, cargo, dni, state } = req.query;
     const filters = { search, subgerencia, turno, cargo, dni, state };
     //console.log("filtros: ",filters);
+    const token = req.user;
     const errores = [];
+
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page <= 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
@@ -34,6 +37,16 @@ const getAllEmpleadosHandlers = async (req, res) => {
             );
         }
 
+        const historial = await createHistorial(
+            'read',
+            'Empleado',
+            'Read All Empleados',
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({
             message: "Empleados obtenidos correctamente",
             data: response,
@@ -47,6 +60,8 @@ const getAllEmpleadosHandlers = async (req, res) => {
 const getEmpleadoHandler = async (req, res) => {
 
     const { id } = req.params
+    const token = req.user;
+
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
     }
@@ -58,6 +73,17 @@ const getEmpleadoHandler = async (req, res) => {
                 data: {}
             })
         };
+
+        const historial = await createHistorial(
+            'read',
+            'Empleado',
+            `Read Empleado Id ${id}`,
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(201).json({
             message: 'Enpleado encontrado',
             data: response,
@@ -76,6 +102,7 @@ const createEmpleadoHandler = async (req, res) => {
         id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
         id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
     } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!req.file || req.file.length === 0) return res.status(400).json({ message: 'No se ha enviado foto' });
@@ -143,6 +170,17 @@ const createEmpleadoHandler = async (req, res) => {
         );
 
         if (!newEmpleado) return res.status(200).json({ message: 'No se encuentra empleado', data: [] })
+
+        const historial = await createHistorial(
+            'create',
+            'Empleado',
+            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
+            null,
+            `${nombres}, ${apellidos}, ${id_cargo}, ${id_turno}, ${id_regimen_laboral}, ${id_sexo}, ${id_jurisdiccion}, ${id_grado_estudios}, ${id_subgerencia}, ${id_funcion}, ${id_lugar_trabajo}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({ message: 'Nuevo Empleado Creado', data: newEmpleado })
     } catch (error) {
         console.error("Error al crear el empleado:", error);
@@ -158,6 +196,7 @@ const updateEmpleadoHandler = async (req, res) => {
         id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
         id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
     } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!req.file || req.file.length === 0) return res.status(400).json({ message: 'No se ha enviado foto' });
@@ -238,13 +277,25 @@ const updateEmpleadoHandler = async (req, res) => {
 const deleteEmpleadoHandler = async (req, res) => {
 
     const { id } = req.params;
-
+    const token = req.user;
+    
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
     }
     try {
         const response = await deleteEmpleado(id);
         if (!response) return res.status(200).json({ message: 'Empleado no encontrado', data: {} });
+
+        const historial = await createHistorial(
+            'create',
+            'Empleado',
+            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
+            `${response.nombres}, ${response.apellidos}, ${response.id_cargo}, ${response.id_turno}, ${response.id_regimen_laboral}, ${response.id_sexo}, ${response.id_jurisdiccion}, ${response.id_grado_estudios}, ${response.id_subgerencia}, ${response.id_funcion}, ${response.id_lugar_trabajo}`,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         return res.status(200).json({ message: 'Función eliminada correctamente (estado cambiado a inactivo)' },)
     } catch (error) {
         console.error("Error al eliminar el empleado:", error);

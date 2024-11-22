@@ -1,6 +1,7 @@
 // handlers/feriadoHandler.js
 
 const { getAllFeriados, createFeriado, getFeriado, updateFeriado, deleteFeriado } = require("../controllers/feriadoController");
+const { createHistorial } = require('../controllers/historialController');
 
 // Handler para obtener todos los feriados con paginación
 const getAllFeriadosHandler = async (req, res) => {
@@ -61,7 +62,9 @@ const getFeriadoHandler = async (req, res) => {
 
 // Handler para crear un nuevo feriado
 const createFeriadoHandler = async (req, res) => {
+
     const { nombre, fecha } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (!nombre) {
@@ -95,6 +98,16 @@ const createFeriadoHandler = async (req, res) => {
             return res.status(500).json({ message: "Error al crear el feriado" });
         }
 
+        const historial = await createHistorial(
+            'create',
+            'Feriado',
+            'nombre, fecha',
+            null,
+            `${nombre}, ${fecha}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
         res.status(201).json({
             message: "Feriado creado exitosamente",
             data: feriado
@@ -107,8 +120,10 @@ const createFeriadoHandler = async (req, res) => {
 
 // Handler para actualizar un feriado
 const updateFeriadoHandler = async (req, res) => {
+
     const id = parseInt(req.params.id);
     const { nombre, fecha } = req.body;
+    const token = req.user;
     const errores = [];
 
     if (isNaN(id) || id <= 0) {
@@ -141,9 +156,29 @@ const updateFeriadoHandler = async (req, res) => {
     }
 
     try {
+        const previo = await getFeriado(id);
         const feriado = await updateFeriado(id, { nombre, fecha });
         if (!feriado) {
             return res.status(404).json({ message: "Feriado no encontrado para actualizar" });
+        }
+
+        const anterior = [previo.nombre, previo.fecha];
+        const nuevo = [nombre, fecha];
+        const campos = ['nombre', 'fecha'];
+        let historial;
+
+        for (let i = 0; i < anterior.length; i++) {
+            if (anterior[i] !== nuevo[i]) {
+                historial = await createHistorial(
+                    'update',
+                    'Feriado',
+                    campos[i],
+                    anterior[i],
+                    nuevo[i],
+                    token
+                );
+                if (!historial) console.warn('No se agregó al historial...');
+            }
         }
 
         res.status(200).json({
@@ -158,7 +193,9 @@ const updateFeriadoHandler = async (req, res) => {
 
 // Handler para eliminar (cambiar el estado) de un feriado
 const deleteFeriadoHandler = async (req, res) => {
+
     const id = parseInt(req.params.id);
+    const token = req.user;
 
     if (isNaN(id) || id <= 0) {
         return res.status(400).json({ message: "ID inválido" });
@@ -169,6 +206,16 @@ const deleteFeriadoHandler = async (req, res) => {
         if (!feriado) {
             return res.status(404).json({ message: "Feriado no encontrado para eliminar" });
         }
+
+        const historial = await createHistorial(
+            'delete',
+            'Feriado',
+            'nombre, fecha',
+            `${feriado.nombre}, ${feriado.fecha}`,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
 
         res.status(200).json({
             message: "Feriado eliminado exitosamente",
