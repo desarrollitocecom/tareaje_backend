@@ -45,7 +45,7 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
 
         const response = await Empleado.findAndCountAll({
             where: whereCondition,
-            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state'],
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state', 'foto'],
             include: includeConditions,
             limit,
             offset,
