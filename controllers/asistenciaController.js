@@ -142,6 +142,44 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
     }
 };
 
+// Obtener ids asistencias con datos de empleado en un rango de fechas :
+const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
+    
+    const dias = [];
+
+    let fechaDate = new Date(inicio);
+    while (fechaDate <= new Date(fin)) {
+        dias.push(new Date(fechaDate).toISOString().split('T')[0]);
+        fechaDate.setDate(fechaDate.getDate() + 1);
+    }
+
+    try {
+        const asistencias = await Asistencia.findAll({
+            where: {
+                fecha: { [Op.between]: [inicio, fin] },
+                id_empleado: id_empleado
+            },
+            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
+        });
+
+        const nombre = asistencias[0].empleado.nombres;
+        const apellido = asistencias[0].empleado.apellidos;
+        const dni = asistencias[0].empleado.dni;
+
+        const ids = [];
+        asistencias.forEach(a => {
+            ids.push(a.id);
+        });
+        
+        const result = { nombre, apellido, dni, ids};
+        return result;
+
+    } catch (error) {
+        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        return false;
+    }
+};
+
 // Obtener todas las asistencias :
 const getAllAsistencias = async (page = 1, pageSize = 20) => {
     
@@ -327,6 +365,7 @@ module.exports = {
     getAsistenciaById,
     getAsistenciaDiaria,
     getAsistenciaRango,
+    getIdsAsistenciaRango,
     getAllAsistencias,
     createAsistencia,
     createAsistenciaUsuario,
