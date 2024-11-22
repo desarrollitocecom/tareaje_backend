@@ -170,6 +170,7 @@ const getAllRolsHandler = async (req, res) => {
 
 const getRolByIdHandler = async (req, res) => {
     const { id } = req.params;
+    const token = req.user
 
     try {
         const rol = await getRolById(id);
