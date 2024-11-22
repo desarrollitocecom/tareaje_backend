@@ -1,28 +1,64 @@
 const { Empleado, Cargo, RegimenLaboral, Sexo,
-    Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno } = require('../db_connection');
+    Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion } = require('../db_connection');
+const { Op } = require('sequelize');
 
 const { deletePerson } = require('./axxonController');
 
-const getAllEmpleados = async (page = 1, limit = 20) => {
+const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
+    const { search, dni, state, cargo, subgerencia, turno } = filters; // Extraer filtros
     const offset = (page - 1) * limit;
+    const parsedState = state === "true";
+    //console.log(search, dni, state, cargo, subgerencia, turno);
     try {
+        // Construcción dinámica de condiciones
+        const whereCondition = {
+            ...(search && {
+                [Op.or]: [
+                    { nombres: { [Op.iLike]: `%${search}%` } },
+                    { apellidos: { [Op.iLike]: `%${search}%` } },
+                ],
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }), // busca por dni que coincida con el filtro, puede ser el DNI completo o parte de él
+            ...(state !== undefined && { state: parsedState }), // Búsqueda exacta por estado: true o false
+        };
+
+        const includeConditions = [
+            {
+                model: Cargo,
+                as: 'cargo',
+                attributes: ['nombre'],
+                ...(cargo && { where: { id: cargo } })
+            },
+            {
+                model: Subgerencia,
+                as: 'subgerencia',
+                attributes: ['nombre'],
+                ...(subgerencia && { where: { id: subgerencia } })
+            },
+            {
+                model: Turno,
+                as: 'turno',
+                attributes: ['nombre'],
+                ...(turno && { where: { id: turno } })
+            }
+        ];
+
         const response = await Empleado.findAndCountAll({
-            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state'],
-            include: [
-                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
-                { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
-                { model: Turno, as: 'turno', attributes: ['nombre'] }
-            ],
+            where: whereCondition,
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state', 'foto'],
+            include: includeConditions,
             limit,
             offset,
             order: [['id', 'ASC']]
         });
+
         return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
         console.error("Error al obtener todos los empleados:", error);
         return false;
     }
 };
+
 
 const getEmpleado = async (id) => {
     try {
@@ -40,6 +76,8 @@ const getEmpleado = async (id) => {
                 { model: Jurisdiccion, as: 'jurisdiccion', attributes: ['nombre'] },
                 { model: LugarTrabajo, as: 'lugarTrabajo', attributes: ['nombre'] },
                 { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+                { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+                { model: Funcion, as: 'funcion', attributes: ['nombre'] },
             ]
 
         });
@@ -106,31 +144,31 @@ const deleteEmpleado = async (id) => {
 
 };
 const updateEmpleado = async (
-        id,
-        nombres,
-        apellidos,
-        dni,
-        ruc,
-        hijos,
-        edad,
-        f_nacimiento,
-        correo,
-        domicilio,
-        celular,
-        f_inicio,
-        foto,
-        observaciones,
-        id_cargo,
-        id_turno,
-        id_regimen_laboral,
-        id_sexo,
-        id_jurisdiccion,
-        id_grado_estudios,
-        id_subgerencia,
-        id_funcion,
-        id_lugar_trabajo
+    id,
+    nombres,
+    apellidos,
+    dni,
+    ruc,
+    hijos,
+    edad,
+    f_nacimiento,
+    correo,
+    domicilio,
+    celular,
+    f_inicio,
+    foto,
+    observaciones,
+    id_cargo,
+    id_turno,
+    id_regimen_laboral,
+    id_sexo,
+    id_jurisdiccion,
+    id_grado_estudios,
+    id_subgerencia,
+    id_funcion,
+    id_lugar_trabajo
 ) => {
-    
+
     try {
         const empleado = await getEmpleado(id);
         if (!empleado) return null;
@@ -192,7 +230,7 @@ const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
                 id_turno: id_turno
             }
         });
-        if(!empleados || empleados.length === 0) return null;
+        if (!empleados || empleados.length === 0) return null;
         const result = empleados.map(empleado => ({
             id: empleado.id,
             dni: empleado.dni
