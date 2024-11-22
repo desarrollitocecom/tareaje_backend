@@ -35,7 +35,7 @@ const getAllHistorial = async (page = 1, limit = 20) => {
         return {
             data: response.rows,
             currentPage: page,
-            totalCount: response.rows.length,
+            totalCount: response.count,
         };
 
     } catch (error) {
@@ -43,6 +43,18 @@ const getAllHistorial = async (page = 1, limit = 20) => {
         return false;
     }
 };
+
+const validateUsuarioHistorial = async (id_usuario) => {
+    
+    try {
+        const response = await Historial.findOne({ where: { id_usuario: id_usuario } });
+        return response || null;
+
+    } catch (error) {
+        console.error('Error al validar el usuario: ', error);
+        return false;
+    }
+}
 
 const getUsuarioHistorial = async (page = 1, limit = 20, id_usuario) => {
     
@@ -57,7 +69,7 @@ const getUsuarioHistorial = async (page = 1, limit = 20, id_usuario) => {
         return {
             data: response.rows,
             currentPage: page,
-            totalCount: response.rows.length,
+            totalCount: response.count,
         };
 
     } catch (error) {
@@ -69,5 +81,6 @@ const getUsuarioHistorial = async (page = 1, limit = 20, id_usuario) => {
 module.exports = {
     createHistorial,
     getAllHistorial,
+    validateUsuarioHistorial,
     getUsuarioHistorial
 };
