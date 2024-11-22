@@ -1,11 +1,14 @@
-const { Justificacion, Asistencia } = require('../db_connection');
+const { Justificacion, Asistencia, Empleado } = require('../db_connection');
 const { createHistorial } = require('../controllers/historialController');
 
 // Obtener la justificación por ID :
 const getJustificacionById = async (id) => {
 
     try {
-        const justificacion = await Justificacion.findByPk(id);
+        const justificacion = await Justificacion.findOne({
+            where: { id: id },
+            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
+        });
         return justificacion || null;
     } catch (error) {
         console.error('Error al obtener la justificación por ID:', error);
@@ -20,7 +23,8 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
     try {
         const justificaciones = await Justificacion.findAndCountAll({
             limit,
-            offset
+            offset,
+            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
         });
         return {
             total: justificaciones.count,
