@@ -7,17 +7,19 @@ const path = require('path');
 
 const getAllEmpleadosHandlers = async (req, res) => {
 
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, dni, state } = req.query;
+    const filters = { search, subgerencia, turno, cargo, dni, state };
+    //console.log("filtros: ",filters);
     const errores = [];
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page <= 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
     if (errores.length > 0) {
-        return res.status(400).json({ errores });
+        return res.status(400).json({ message: "Se encontraron los siguentes errores:", data: errores });
     }
     try {
-        const response = await getAllEmpleados(Number(page), Number(limit)); // Llamamos a la función getEmpleados
+        const response = await getAllEmpleados(Number(page), Number(limit), filters); // Llamamos a la función getEmpleados
 
         if (response.length === 0 || page > limit) {
             return res.status(200).json(
@@ -67,7 +69,7 @@ const getEmpleadoHandler = async (req, res) => {
 };
 
 const createEmpleadoHandler = async (req, res) => {
-    
+
     const {
         nombres, apellidos, dni, ruc, hijos, edad,
         f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
@@ -219,7 +221,7 @@ const updateEmpleadoHandler = async (req, res) => {
         // Guardar la ruta relativa de la imagen :
         const savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
 
-        const response = await updateEmpleado(id, 
+        const response = await updateEmpleado(id,
             nombres, apellidos, dni, ruc, hijos, edad,
             f_nacimiento, correo, domicilio, celular, f_inicio, savedPath, observaciones,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
@@ -234,9 +236,9 @@ const updateEmpleadoHandler = async (req, res) => {
 };
 
 const deleteEmpleadoHandler = async (req, res) => {
-    
+
     const { id } = req.params;
-    
+
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
     }
@@ -252,14 +254,14 @@ const deleteEmpleadoHandler = async (req, res) => {
 };
 
 const getEmpleadoIdDniByCargoTurnoHandler = async (req, res) => {
-    
+
     const { cargo, turno } = req.body;
-    if(!cargo) return res.status(400).json({ message: "El cargo es obligatorio" });
-    if(!turno) return res.status(400).json({ message: "El turno es obligatorio" });
+    if (!cargo) return res.status(400).json({ message: "El cargo es obligatorio" });
+    if (!turno) return res.status(400).json({ message: "El turno es obligatorio" });
 
     try {
         const response = await getEmpleadoIdDniByCargoTurno(cargo, turno);
-        if(!response || response.length === 0){
+        if (!response || response.length === 0) {
             return res.status(400).json({
                 message: "No hay nada",
                 data: null
@@ -269,7 +271,7 @@ const getEmpleadoIdDniByCargoTurnoHandler = async (req, res) => {
             message: 'Mostrando empleados...',
             data: response
         });
-        
+
     } catch (error) {
         return res.status(500).json({
             message: "Error al obtener todas las asistencias por día en el handler",
