@@ -44,7 +44,6 @@ const validateJustificacion = async (id_asistencia, id_empleado) => {
             { where: { id: id_asistencia }}
         );
         if (!response) return null;
-        if (response.id_empleado !== id_empleado) return 2;
         if (!['A', 'F'].includes(response.estado)) return 1;
 
         if (response.estado === 'F') return 'A';

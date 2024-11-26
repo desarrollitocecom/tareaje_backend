@@ -156,7 +156,7 @@ const createEmpleadoHandler = async (req, res) => {
         // Guardar en AXXON la imagen en base 64 :
         const fileBuffer = fs.readFileSync(req.file.path);
         const fileBase64 = fileBuffer.toString('base64');
-        const consulta = await createPerson(nombres, apellidos, dni, String(id_cargo), String(id_turno), fileBase64);
+        const consulta = await createPerson(nombres, apellidos, dni, String(id_funcion), String(id_turno), fileBase64);
         if (!consulta) return null;
 
         // Guardar la ruta relativa de la imagen :

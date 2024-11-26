@@ -152,14 +152,6 @@ const createJustificacionHandler = async (req, res) => {
             })
         }
 
-        if (estado === 2){
-            errores.push('La asistencia no coincide con el empleado...');
-            return res.status(400).json({
-                message: 'Se encontraron los siguientes errores...',
-                data: errores
-            })
-        }
-
         if (estado === 1){
             errores.push('Solo se pueden actualizar asistencias o faltas...');
             return res.status(400).json({

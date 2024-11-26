@@ -12,7 +12,7 @@ const urlProtocols = `${AXXON_URL}/firserver/GetProtocols`;
 const urlFindFaces = `${AXXON_URL}/firserver/FindFaces`;
 
 // Create Person en la Base de Datos de Axxon (SIN HANDLER):
-const createPerson = async (nombres, apellidos, dni, cargo, turno, foto) => {
+const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
     
     if(!nombres){
         console.error('El parámetro NOMBRES es requerido...');
@@ -26,8 +26,8 @@ const createPerson = async (nombres, apellidos, dni, cargo, turno, foto) => {
         console.error('El parámetro DNI es requerido...');
         return false;
     }
-    if(!cargo){
-        console.error('El parámetro CARGO es requerido...');
+    if(!funcion){
+        console.error('El parámetro FUNCIÓN es requerido...');
         return false;
     }
     if(!turno){
@@ -307,10 +307,13 @@ const getProtocols = async (inicio, final) => {
             if(protocol.Hits && protocol.Hits.length > 0){
                 const foto = protocol.id;
                 const dni = protocol.Hits[0].patronymic;
-                const cargo = protocol.Hits[0].department;
+                const funcion = protocol.Hits[0].department;
                 const turno = protocol.Hits[0].comment;
                 const hora = protocol.timestamp.split('T')[1].split('.')[0];
-                const personInfo = {dni, fecha, hora, foto, cargo, turno};
+
+                const id_funcion = parseInt(funcion) || null;
+                const id_turno = parseInt(turno) || null;
+                const personInfo = {dni, fecha, hora, foto, id_funcion, id_turno};
 
                 // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana :
                 if (!uniqueAsistentes.has(dni)) {
