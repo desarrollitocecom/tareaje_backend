@@ -58,6 +58,7 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
             nombres: asistencia.empleado.nombres,
             apellidos: asistencia.empleado.apellidos,
             dni: asistencia.empleado.dni,
+            foto: asistencia.empleado.foto,
             cargo: asistencia.empleado.cargo ? asistencia.empleado.cargo.nombre : null,
             turno: asistencia.empleado.turno ? asistencia.empleado.turno.nombre : null
         }));

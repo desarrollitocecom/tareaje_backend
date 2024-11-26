@@ -1,4 +1,4 @@
-const { getAllEmpleados, getEmpleado, createEmpleado,
+const { getAllUniverseEmpleados, getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado, getEmpleadoIdDniByCargoTurno } = require('../controllers/empleadoController');
 
 const { createHistorial } = require('../controllers/historialController');
@@ -6,12 +6,36 @@ const { createPerson, deletePerson } = require('../controllers/axxonController')
 const fs = require('fs');
 const path = require('path');
 
+const getAllUniverseEmpleadosHandlers = async (req, res) => {
+
+    try {
+        const response = await getAllUniverseEmpleados();
+        if (!response) {
+            return res.status(404).json({
+                message: 'No se obtuvieron los empleados...',
+                data: {
+                    data: [],
+                    totalCount: response.totalCount
+                }
+            });
+        }
+
+        return res.status(200).json({
+            message: "Todos los empleados obtenidos correctamente...",
+            data: response,
+        });
+
+    } catch (error) {
+        console.error("Error al obtener empleados:", error); // Log para debugging
+        res.status(500).json({ error: "Error interno del servidor al obtener los empleados." });
+    }
+};
+
 const getAllEmpleadosHandlers = async (req, res) => {
 
     const { page = 1, limit = 20, search, subgerencia, turno, cargo, dni, state } = req.query;
     const filters = { search, subgerencia, turno, cargo, dni, state };
     //console.log("filtros: ",filters);
-    const token = req.user;
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -36,16 +60,6 @@ const getAllEmpleadosHandlers = async (req, res) => {
                 }
             );
         }
-
-        const historial = await createHistorial(
-            'read',
-            'Empleado',
-            'Read All Empleados',
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
 
         return res.status(200).json({
             message: "Empleados obtenidos correctamente",
@@ -332,6 +346,7 @@ const getEmpleadoIdDniByCargoTurnoHandler = async (req, res) => {
 }
 
 module.exports = {
+    getAllUniverseEmpleadosHandlers,
     getAllEmpleadosHandlers,
     getEmpleadoHandler,
     createEmpleadoHandler,

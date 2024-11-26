@@ -4,6 +4,22 @@ const { Op } = require('sequelize');
 
 const { deletePerson } = require('./axxonController');
 
+const getAllUniverseEmpleados = async () => {
+
+    try {
+        const response = await Empleado.findAndCountAll({
+            where: { state: true },
+            attributes: ['id', 'nombres', 'apellidos', 'dni'],
+            order: [['apellidos', 'ASC']]
+        });
+        return { totalCount: response.count, data: response.rows } || null;
+
+    } catch (error) {
+        console.error("Error al obtener todos los empleados:", error);
+        return false;
+    }
+};
+
 const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
     const { search, dni, state, cargo, subgerencia, turno } = filters; // Extraer filtros
     const offset = (page - 1) * limit;
@@ -58,7 +74,6 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
         return false;
     }
 };
-
 
 const getEmpleado = async (id) => {
     try {
@@ -243,6 +258,7 @@ const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
 };
 
 module.exports = {
+    getAllUniverseEmpleados,
     getEmpleadoByDni,
     getAllEmpleados,
     getEmpleadoIdDniByCargoTurno,
