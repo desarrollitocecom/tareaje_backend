@@ -38,12 +38,13 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
 };
 
 // Función para validar si es posible la justificación :
-const validateJustificacion = async (id_asistencia) => {
+const validateJustificacion = async (id_asistencia, id_empleado) => {
     try {
         const response = await Asistencia.findOne(
             { where: { id: id_asistencia }}
         );
         if (!response) return null;
+        if (response.id_empleado !== id_empleado) return 2;
         if (!['A', 'F'].includes(response.estado)) return 1;
 
         if (response.estado === 'F') return 'A';

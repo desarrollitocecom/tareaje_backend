@@ -11,9 +11,9 @@ const getTurnos=async (page = 1, limit = 20) => {
             order: [['id', 'ASC']]
 
         });
-        return { total: count, data: rows , currentPage:page } || null;
+        return { data: rows, total: count } || null;
     } catch (error) {
-        console.error('Error al Obtener todas las Turnoes ',error);
+        console.error('Error al Obtener todas las Turnos...', error);
         return false
     }
 }

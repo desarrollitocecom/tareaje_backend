@@ -225,10 +225,9 @@ const getPhotoId = async (photo_id) => {
     
     // El url en esta ocasión se maneja dentro de la función getPhotoId :
     try {
-        const response = await axios.get(`${AXXON_URL}/firserver/GetImage/1/${photo_id}`);
-        if(response.data){
-            const imagenBase64 = Buffer.from(response.data, 'binary').toString('base64');
-            return imagenBase64
+        const response = await axios.get(`${AXXON_URL}/firserver/GetImage/1/${photo_id}`, { responseType: 'arraybuffer' });
+        if(response){
+            return response;
         }
         else{
             return null;
@@ -306,7 +305,7 @@ const getProtocols = async (inicio, final) => {
         const fecha = inicio.split('T')[0];
         protocols.forEach(protocol => {
             if(protocol.Hits && protocol.Hits.length > 0){
-                const foto = protocol.Hits[0].id;
+                const foto = protocol.id;
                 const dni = protocol.Hits[0].patronymic;
                 const cargo = protocol.Hits[0].department;
                 const turno = protocol.Hits[0].comment;
