@@ -27,7 +27,7 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
                 {
                     model: Empleado,
                     as: 'empleado',
-                    attributes: ['nombres', 'apellidos', 'dni'],
+                    attributes: ['nombres', 'apellidos', 'dni', 'foto'],
                     include: [
                         {
                             model: Cargo,
