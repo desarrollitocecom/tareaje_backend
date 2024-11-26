@@ -166,12 +166,15 @@ const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
         const apellido = asistencias[0].empleado.apellidos;
         const dni = asistencias[0].empleado.dni;
 
-        const ids = [];
+        const info = [];
         asistencias.forEach(a => {
-            ids.push(a.id);
+            const id = a.id;
+            const fecha = a.fecha;
+            const carga = {id, fecha};
+            info.push(carga);
         });
         
-        const result = { nombre, apellido, dni, ids};
+        const result = { nombre, apellido, dni, info };
         return result;
 
     } catch (error) {

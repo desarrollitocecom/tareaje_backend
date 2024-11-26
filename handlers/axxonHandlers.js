@@ -202,14 +202,12 @@ const getPhotoHandler = async (req, res) => {
     try {
         const photo = await getPhotoId(id);
         if (photo) {
-            return res.status(200).json({
-                message: 'Imagen obtenida exitosamente',
-                data: photo
-            });
+            res.set('Content-Type', 'image/jpeg');
+            return res.status(200).send(photo.data);
         } else {
             return res.status(400).json({
                 message: 'No se pudo obtener la imagen',
-                data: null
+                data: []
             });
         }
     } catch (error) {

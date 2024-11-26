@@ -18,31 +18,43 @@ const getTurnosHandler = async (req, res) => {
     if (errores.length > 0) {
         return res.status(400).json({ errores });
     }
-    try {
-        const response = await getTurnos(Number(page), Number(limit));
 
-        // Si no hay datos, devuelve un mensaje con estado 200
-        if (response.length === 0 || page > limit) {
-            return res.status(200).json(
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+
+    try {
+        const response = await getTurnos(numPage, numLimit);
+        const totalPages = Math.ceil(response.total / numLimit);
+
+        if (numPage > totalPages) {
+            return res.status(404).json(
                 {
-                    message: 'Ya no hay mas Turnos',
+                    message: 'Página fuera de rango...',
                     data: {
                         data: [],
-                        totalPage: response.currentPage,
-                        totalCount: response.totalCount
+                        currentPage: numPage,
+                        totalCount: response.total,
+                        totalPages: totalPages,
                     }
                 }
             );
         }
 
-        // Si hay datos, devuélvelos con el mensaje correspondiente
         return res.status(200).json({
-            message: 'Son los Turnos',
-            data: response
+            message: 'Mostrando los turnos...',
+            data: {
+                data: response.data,
+                currentPage: page,
+                totalCount: response.total,
+                totalPages: totalPages
+            }
         });
     } catch (error) {
         console.error('Error al obtener todas los turnos:', error);
-        return res.status(500).json({ message: "Error al obtener todos los turnos" });
+        return res.status(500).json({
+            message: "Error al obtener todos los turnos",
+            error: error.message
+        });
     }
 };
 //Handlers para obtener una Turno 
