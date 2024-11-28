@@ -1,5 +1,6 @@
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 // Rutas para guardar las fotos y las justificaciones :
@@ -83,8 +84,23 @@ const multerError = (err, req, res, next) => {
     next();
 };
 
+// Función para eliminar archivos :
+const deleteFile = (file) => {
+    const filePath = path.join(PDF_RUTA, file);
+    return new Promise((resolve, reject) => {
+        const absolutePath = path.resolve(filePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlink(absolutePath, (err) => {
+                if (err) return reject(new Error(`Error al eliminar el archivo: ${err.message}`));
+                resolve(`Archivo eliminado correctamente: ${absolutePath}`);
+            });
+        } else resolve(`Archivo no encontrado: ${absolutePath}`);
+    });
+};
+
 module.exports = {
     saveImage,
     savePdf,
     multerError,
+    deleteFile
 };

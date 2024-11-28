@@ -1,4 +1,5 @@
 const { Justificacion, Asistencia, Empleado } = require('../db_connection');
+const { Op } = require("sequelize");
 const { createHistorial } = require('../controllers/historialController');
 
 // Obtener la justificación por ID :
@@ -37,50 +38,43 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
     }
 };
 
-// Función para validar si es posible la justificación :
-const validateJustificacion = async (id_asistencia, id_empleado) => {
-    try {
-        const response = await Asistencia.findOne(
-            { where: { id: id_asistencia }}
-        );
-        if (!response) return null;
-        if (!['A', 'F'].includes(response.estado)) return 1;
-
-        if (response.estado === 'F') return 'A';
-        else return 'F';
-
-    } catch (error) {
-        console.error('Error al validar la justificación:', error);
-        return false;
-    }
-}
-
 // Crear justificacion :
 // >> Tener en cuenta que se creará la justificación una vez se haya verificado que la justificación en cuestión sea VÁLIDA
-const createJustificacion = async (documentosPaths, descripcion, id_asistencia, id_empleado, estado, token) => {
+const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado, token) => {
     
     try {
+        const justificacion = await Justificacion.findAndCountAll({
+            where: {
+                id_empleado: id_empleado,
+                f_inicio: { [Op.between]: [f_inicio, f_fin] }
+            }
+        });
+        if (justificacion.count !== 0) return 1;
+
         const newJustificacion = await Justificacion.create({
             documentos: documentosPaths,
             descripcion,
-            id_asistencia,
-            id_empleado,
+            tipo,
+            f_inicio,
+            f_fin,
+            ids_asistencia,
+            id_empleado
         });
 
         if (!newJustificacion) return null
-        // Actualizamos el estado de la asistencia :
+        // Actualizamos el estado de la asistencias :
         await Asistencia.update(
-            { estado: estado },
-            { where: { id: id_asistencia } }
+            { estado: tipo },
+            { where: { id: { [Op.in]: ids_asistencia } } }
         );
 
-        const previo = (estado === 'A') ? 'F' : 'A';
+        const previo = (tipo === 'A') ? 'F' : tipo;
         const historial = await createHistorial(
             'update',
             'Asistencia',
-            'estado',
-            previo,
-            estado,
+            'estado, f_inicio, f_fin, id_empleado',
+            `${previo}, ${f_inicio}, ${f_fin}, ${id_empleado}`,
+            `${tipo}, ${f_inicio}, ${f_fin}, ${id_empleado}`,
             token
         );
         if (!historial) console.warn('No se agregó al historial...');
@@ -116,7 +110,6 @@ const updateJustificacion = async (id, descripcion) => {
 module.exports = {
     getJustificacionById,
     getAllJustificaciones,
-    validateJustificacion,
     createJustificacion,
     updateJustificacion
 };

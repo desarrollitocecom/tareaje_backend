@@ -31,9 +31,9 @@ const getDescansos = async (id) => {
         return false
     }
 }
-const createDescansos = async ({ fecha, observacion, id_empleado }) => {
+const createDescansos = async ({ fecha, tipo, observacion, id_empleado }) => {
     try {
-        const response = await Descanso.create({ fecha, observacion, id_empleado });
+        const response = await Descanso.create({ fecha, tipo, observacion, id_empleado });
         return response || null
     } catch (error) {
         console.error({ message: "Error en el controlador al crear el Descanso", data: error });
@@ -63,7 +63,7 @@ const deleteDescanso = async (id) => {
 const updateDescanso = async (id, { fecha, observacion, id_empleado }) => {
     try {
         const response = await getDescansos(id);
-        if (response) await response.update({ fecha, observacion, id_empleado });
+        if (response) await response.update({ fecha: fecha, observacion: observacion, id_empleado:id_empleado });
         return response || null;
     } catch (error) {
         console.error("Error al modificar el descanso en el controlador:", error);

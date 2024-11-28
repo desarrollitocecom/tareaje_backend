@@ -11,23 +11,25 @@ module.exports = (sequelize) => {
             type: DataTypes.ARRAY(DataTypes.STRING),
             allowNull: false
         },
+        tipo: {
+            type: DataTypes.ENUM('F','LSG','LCG','LF','PE','LP'),
+            allowNull: false
+        },
         descripcion: {
             type: DataTypes.STRING,
             allowNull: false
         },
-        id_asistencia: {
-            type: DataTypes.UUID,
-            references: {
-                model: 'Asistencias',
-                key: 'id',
-            }
+        f_inicio: {
+            type: DataTypes.DATEONLY,
+            allowNull: false
         },
-        id_empleado: {
-            type: DataTypes.INTEGER,
-            references: {
-                model: 'Empleados',
-                key: 'id',
-            }
+        f_fin: {
+            type: DataTypes.DATEONLY,
+            allowNull: false
+        },
+        ids_asistencia: {
+            type: DataTypes.ARRAY(DataTypes.UUID),
+            allowNull: false
         },
         state: {
             type: DataTypes.BOOLEAN,
@@ -40,7 +42,6 @@ module.exports = (sequelize) => {
     });
 
     Justificacion.associate = (db) => {
-        Justificacion.belongsTo(db.Asistencia, { foreignKey: 'id_asistencia', as: 'asistencia' });
         Justificacion.belongsTo(db.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
     };
 
