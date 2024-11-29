@@ -145,14 +145,6 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
 
 // Obtener ids asistencias con datos de empleado en un rango de fechas :
 const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
-    
-    const dias = [];
-
-    let fechaDate = new Date(inicio);
-    while (fechaDate <= new Date(fin)) {
-        dias.push(new Date(fechaDate).toISOString().split('T')[0]);
-        fechaDate.setDate(fechaDate.getDate() + 1);
-    }
 
     try {
         const asistencias = await Asistencia.findAll({
@@ -160,7 +152,8 @@ const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
                 fecha: { [Op.between]: [inicio, fin] },
                 id_empleado: id_empleado
             },
-            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
+            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }],
+            order: [['fecha', 'ASC']]
         });
         if (!asistencias) return null;
 

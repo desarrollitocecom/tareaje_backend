@@ -98,9 +98,24 @@ const deleteFile = (file) => {
     });
 };
 
+// Función para eliminar fotos :
+const deletePhoto = (file) => {
+    const filePath = path.join(FOTOS_RUTA, file);
+    return new Promise((resolve, reject) => {
+        const absolutePath = path.resolve(filePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlink(absolutePath, (err) => {
+                if (err) return reject(new Error(`Error al eliminar el archivo: ${err.message}`));
+                resolve(`Archivo eliminado correctamente: ${absolutePath}`);
+            });
+        } else resolve(`Archivo no encontrado: ${absolutePath}`);
+    });
+};
+
 module.exports = {
     saveImage,
     savePdf,
     multerError,
-    deleteFile
+    deleteFile,
+    deletePhoto
 };

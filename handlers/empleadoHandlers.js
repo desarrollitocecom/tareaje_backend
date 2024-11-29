@@ -3,6 +3,7 @@ const { getAllUniverseEmpleados, getAllEmpleados, getEmpleado, createEmpleado,
 
 const { createHistorial } = require('../controllers/historialController');
 const { createPerson, deletePerson } = require('../controllers/axxonController');
+const { deletePhoto } = require('../utils/filesFunctions');
 const fs = require('fs');
 const path = require('path');
 
@@ -164,14 +165,16 @@ const createEmpleadoHandler = async (req, res) => {
     if (!id_lugar_trabajo || isNaN(id_lugar_trabajo))
         errores.push('El id del lugar trabajo es requerido y debe ser un Numero')
 
-    if (errores.length > 0)
+    if (errores.length > 0) {
+        await deletePhoto(req.file.filename);
         return res.status(400).json({ errores });
+    }
     try {
         // Guardar en AXXON la imagen en base 64 :
         const fileBuffer = fs.readFileSync(req.file.path);
         const fileBase64 = fileBuffer.toString('base64');
         const consulta = await createPerson(nombres, apellidos, dni, String(id_funcion), String(id_turno), fileBase64);
-        if (!consulta) return null;
+        if (!consulta) console.warn(`No se pudo crear al empleado ${apellidos} ${nombres} con ${dni} en Axxon...`);
 
         // Guardar la ruta relativa de la imagen :
         const savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
@@ -183,7 +186,10 @@ const createEmpleadoHandler = async (req, res) => {
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
         );
 
-        if (!newEmpleado) return res.status(200).json({ message: 'No se encuentra empleado', data: [] })
+        if (!newEmpleado) {
+            await deletePhoto(req.file.filename);
+            return res.status(200).json({ message: 'No se encuentra empleado', data: [] });
+        }
 
         const historial = await createHistorial(
             'create',
@@ -201,6 +207,7 @@ const createEmpleadoHandler = async (req, res) => {
         res.status(500).json({ error: "Error interno del servidor al Crear el empleado." });
     }
 };
+
 const updateEmpleadoHandler = async (req, res) => {
 
     const { id } = req.params;
@@ -266,10 +273,10 @@ const updateEmpleadoHandler = async (req, res) => {
         const fileBase64 = fileBuffer.toString('base64');
 
         const consultaDelete = await deletePerson(dni);
-        if (!consultaDelete) return null;
+        if (!consultaDelete) console.warn(`No se pudo eliminar al empleado ${apellidos} ${nombres} con ${dni} en Axxon...`);
 
         const consultaCreate = await createPerson(nombres, apellidos, dni, String(id_cargo), String(id_turno), fileBase64);
-        if (!consultaCreate) return null;
+        if (!consultaCreate) console.warn(`No se pudo crear nuevamente al empleado ${apellidos} ${nombres} con ${dni} en Axxon...`);
 
         // Guardar la ruta relativa de la imagen :
         const savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
