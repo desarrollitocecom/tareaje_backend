@@ -68,7 +68,7 @@ const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio,
             { where: { id: { [Op.in]: ids_asistencia } } }
         );
 
-        const previo = (tipo === 'A') ? 'F' : tipo;
+        const previo = (tipo === 'A') ? 'F' : 'A';
         const historial = await createHistorial(
             'update',
             'Asistencia',
