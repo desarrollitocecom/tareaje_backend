@@ -162,6 +162,7 @@ const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
             },
             include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
         });
+        if (!asistencias) return null;
 
         const nombre = asistencias[0].empleado.nombres;
         const apellido = asistencias[0].empleado.apellidos;
@@ -171,7 +172,8 @@ const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
         asistencias.forEach(a => {
             const id = a.id;
             const fecha = a.fecha;
-            const carga = {id, fecha};
+            const estado = a.estado
+            const carga = {id, fecha, estado};
             info.push(carga);
         });
         

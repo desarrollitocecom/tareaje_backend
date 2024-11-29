@@ -90,7 +90,7 @@ const getDescansosHandler = async (req, res) => {
 // Handler para crear un descanso
 const createDescansosHandler = async (req, res) => {
 
-    const { fecha, observacion, id_empleado } = req.body;
+    const { fecha, tipo, observacion, id_empleado } = req.body;
     const token = req.user;
     const errores = [];
 
@@ -100,6 +100,9 @@ const createDescansosHandler = async (req, res) => {
     if (isNaN(Date.parse(fecha))) {
         errores.push('El campo fecha debe estar en un formato válido (YYYY-MM-DD)');
     }
+
+    if (!tipo) errores.push('El parámetro TIPO es obligatorio');
+    if (!['DM','DO','DC'].includes(tipo)) errores.push('El TIPO debe ser [DM, DO, DC]');
 
     if (!observacion) {
         errores.push('El campo observación es requerido');
@@ -120,7 +123,7 @@ const createDescansosHandler = async (req, res) => {
         return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
     try {
-        const response = await createDescansos({ fecha, observacion, id_empleado });
+        const response = await createDescansos({ fecha, tipo, observacion, id_empleado });
         if (!response) {
             return res.status(500).json({ message: "Error al crear el descanso" });
         }
@@ -128,9 +131,9 @@ const createDescansosHandler = async (req, res) => {
         const historial = await createHistorial(
             'create',
             'Descanso',
-            'fecha, observacion, id_empleado',
+            'fecha, tipo, observacion, id_empleado',
             null,
-            `${fecha}, ${observacion}, ${id_empleado}`,
+            `${fecha}, ${tipo}, ${observacion}, ${id_empleado}`,
             token
         );
         if (!historial) console.warn('No se agregó al historial...');
