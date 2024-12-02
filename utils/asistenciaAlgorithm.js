@@ -1,3 +1,4 @@
+const { Asistencia, RangoHorario, Descanso, Feriado, Vacacion } = require('../db_connection');
 const { getProtocols } = require('../controllers/axxonController');
 const { getEmpleadoIdDniByCargoTurno } = require('../controllers/empleadoController');
 const { getAllRangosHorariosTotal, getCargoTurnoIdsByInicio } = require('../controllers/rangohorarioController');

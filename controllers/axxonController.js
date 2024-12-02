@@ -47,7 +47,7 @@ const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
         "name": nombres,
         "surname": apellidos,
         "patronymic": dni,
-        "department": cargo,
+        "department": funcion,
         "comment": turno,
         "createPersonInIntellect": 1,
         "image": foto, // Base 64
