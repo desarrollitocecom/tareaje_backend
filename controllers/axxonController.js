@@ -47,7 +47,7 @@ const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
         "name": nombres,
         "surname": apellidos,
         "patronymic": dni,
-        "department": cargo,
+        "department": funcion,
         "comment": turno,
         "createPersonInIntellect": 1,
         "image": foto, // Base 64
@@ -66,7 +66,6 @@ const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
             return false;
         }
     } catch (error) {
-        console.error('Error al consulta la API CreatePerson: ', error);
         return false;
     }
 };
@@ -147,7 +146,6 @@ const updatePerson = async (nombres = null, apellidos = null, dni, cargo = null,
         }
     }
     else{
-        console.warn('Error al obtener el Id de la persona en Axxon');
         return false;
     }
 };
@@ -190,7 +188,6 @@ const deletePerson = async (dni) => {
         }
     }
     else{
-        console.warn('Error al obtener el Id de la persona en Axxon');
         return false;
     }
 }
@@ -215,7 +212,6 @@ const getEmpleadoId = async (dni) => {
             return false;
         }
     } catch (error) {
-        console.error('Error en la función getEmpleadoId: ', error);
         return false;
     }
 };
@@ -233,7 +229,6 @@ const getPhotoId = async (photo_id) => {
             return null;
         } 
     } catch (error) {
-        console.error("Error al obtener la imagen:", error);
         return false;
     }
 };

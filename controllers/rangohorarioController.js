@@ -45,10 +45,6 @@ const getAllRangosHorariosTotal = async () => {
     try {
         const rangosHorarios = await RangoHorario.findAll({
             where: { state: true },
-            include: [
-                { model: Cargo, as: 'cargo' },
-                { model: Turno, as: 'turno' }
-            ]
         });
         return rangosHorarios || null;
     } catch (error) {

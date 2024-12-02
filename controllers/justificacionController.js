@@ -25,7 +25,8 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
         const justificaciones = await Justificacion.findAndCountAll({
             limit,
             offset,
-            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
+            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }],
+            order: [['f_inicio', 'DESC']]
         });
         return {
             total: justificaciones.count,
