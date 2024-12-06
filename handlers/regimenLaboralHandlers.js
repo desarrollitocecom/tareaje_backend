@@ -88,11 +88,6 @@ const createRegimenLaboralHandler = async (req, res) => {
     if (typeof nombre !== 'string') {
         errores.push('El campo nombre debe ser una cadena de texto');
     }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
-
     if (errores.length > 0) {
         return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }
