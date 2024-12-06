@@ -3,7 +3,6 @@ const { AXXON_URL } = process.env;
 
 // CRUD URLs :
 const urlCreate = `${AXXON_URL}/firserver/CreatePerson`;
-const urlUpdate = `${AXXON_URL}/firserver/UpdatePerson`;
 const urlRead = `${AXXON_URL}/firserver/ReadPersons`;
 const urlDelete = `${AXXON_URL}/firserver/DeletePersons`;
 
@@ -58,11 +57,11 @@ const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
         const response = await axios.post(urlCreate, consulta);
         const status = response.data.Status;
         if(status === "SUCCESS"){
-            console.log('Usuario creado con éxito...');
+            console.log(`Usuario ${dni} creado con éxito...`);
             return true;
         }
         else{
-            console.warn('No se pudo crear al usuario...');
+            console.warn(`No se pudo crear al usuario ${dni}...`);
             return false;
         }
     } catch (error) {
@@ -98,54 +97,6 @@ const readPerson = async () => {
         return datosPersonalAxxon;
     } catch (error) {
         console.error('Error al consulta la API ReadPerson: ', error);
-        return false;
-    }
-};
-
-// Update Person en la Base de Datos de Axxon (SIN HANDLER):
-const updatePerson = async (nombres = null, apellidos = null, dni, cargo = null, turno = null) => {
-    
-    if(!dni){
-        console.error('El parámetro DNI es obligatorio ...');
-        return false;
-    }
-    if(dni.length !== 8){
-        console.error('El DNI debe tener 8 digitos...');
-        return false;
-    }
-
-    // Consulta getEmpleadoId para determinar el Id y proceder con el update :
-    const id = await getEmpleadoId(dni);
-
-    if(id) {
-        // Consulta formato JSON :
-        const consulta = {
-            "server_id": "1",
-            "id": id
-        };
-
-        if (nombres.lenght > 0) consulta.name = nombres;
-        if (apellidos.lenght > 0) consulta.surname = apellidos;
-        if (cargo.lenght > 0) consulta.department = cargo;
-        if (turno.lenght > 0) consulta.comment = turno;
-        
-        try {
-            const response = await axios.post(urlUpdate, consulta);
-            const status = response.data.Status;
-            if(status === "SUCCESS"){
-                console.log('Usuario actualizado con éxito...');
-                return true;
-            }
-            else{
-                console.warn('No se pudo actualizar al usuario...');
-                return false;
-            }
-        } catch (error) {
-            console.error('Error al consulta la API UpdatePerson: ', error);
-            return false;
-        }
-    }
-    else{
         return false;
     }
 };
@@ -251,10 +202,12 @@ const searchByFace = async (foto) => {
     try {
         const response = await axios.post(urlFindFaces, consulta);
         const findface = response.data.FaceList[0].PersonList[0];
+        const nombres = findface.Name;
+        const apellidos = findface.Surname;
         const dni = findface.Patronymic;
         const cargo = findface.Department;
         const turno = findface.Comment;
-        const personInfo = {dni, cargo, turno};
+        const personInfo = {nombres, apellidos, dni, cargo, turno};
         const similitud = findface.Sim;
         if(parseFloat(similitud) > 0.99) return personInfo;
         else{
@@ -268,12 +221,43 @@ const searchByFace = async (foto) => {
 };
 
 // Obtener los datos de las personas que hayan sido reconocidas en un rango :
-const getProtocols = async (inicio, final) => {
+const getProtocols = async (fecha, hora) => {
     
-    if(!inicio) return false;
-    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(inicio)) return false;
-    if(!final) return false;
-    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(final)) return false;
+    if (!fecha) return false;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return false;
+    if (!hora) return false;
+    if (isNaN(hora)) return false;
+
+    const nextDia = new Date(fecha);
+    nextDia.setDate(nextDia.getDate() + 1);
+    const nextDay = nextDia.toISOString().split('T')[0];
+    const formatInicio = ':06:00.000';
+    const formatFinal = ':05:59.999';
+    let firstInicio, firstFinal;
+
+    if (hora <= 4) {
+        firstInicio = `${fecha}T0${hora + 4}`;
+        firstFinal = `${fecha}T0${hora + 5}`;
+    }
+    else if (hora <= 5) {
+        firstInicio = `${fecha}T0${hora + 4}`;
+        firstFinal = `${fecha}T${hora + 5}`;
+    }
+    else if (hora <= 18) {
+        firstInicio = `${fecha}T${hora + 4}`;
+        firstFinal = `${fecha}T${hora + 5}`;
+    }
+    else if (hora <= 19) {
+        firstInicio = `${fecha}T${hora + 4}`;
+        firstFinal = `${nextDay}T0${hora - 19}`;
+    }
+    else {
+        firstInicio = `${nextDay}T0${hora - 20}`;
+        firstFinal = `${nextDay}T0${hora - 19}`;
+    }
+    
+    const inicio = firstInicio + formatInicio;
+    const final = firstFinal + formatFinal;
         
     // Consulta formato JSON :
     const consulta = {
@@ -290,7 +274,7 @@ const getProtocols = async (inicio, final) => {
         "sim_min": 1
     }
 
-    // Definición del Map: DNI - Fecha - Hora - Id Foto - Cargo - Turno :
+    // Definición del Map: DNI - Fecha - Hora - Id Foto - Id Función - Id Turno :
     const uniqueAsistentes = new Map();
 
     // Extracción de información por consulta :
@@ -299,12 +283,19 @@ const getProtocols = async (inicio, final) => {
         const protocols = response.data.Protocols;
         const fecha = inicio.split('T')[0];
         protocols.forEach(protocol => {
+
             if(protocol.Hits && protocol.Hits.length > 0){
                 const foto = protocol.id;
                 const dni = protocol.Hits[0].patronymic;
                 const funcion = protocol.Hits[0].department;
                 const turno = protocol.Hits[0].comment;
-                const hora = protocol.timestamp.split('T')[1].split('.')[0];
+                const horaProtocol = protocol.timestamp.split('T')[1].split('.')[0];
+
+                const [hh, mm, ss] = horaProtocol.split(':');
+                const numH = Number(hh);
+                const newH = (numH >= 5 ) ? (numH - 5) : (numH + 19);
+                const strH = (newH > 9) ? newH : `0${newH}`;
+                const hora = `${strH}:${mm}:${ss}`;
 
                 const id_funcion = parseInt(funcion) || null;
                 const id_turno = parseInt(turno) || null;
@@ -323,7 +314,9 @@ const getProtocols = async (inicio, final) => {
         });
 
         // Convertir el Map a un array para devolverlo :
-        return Array.from(uniqueAsistentes.values());
+        const result = Array.from(uniqueAsistentes.values());
+        console.log(result);
+        return result || null;
     }
     catch (error) {
         console.error('Error al consulta la API Protocols: ', error);
@@ -334,7 +327,6 @@ const getProtocols = async (inicio, final) => {
 module.exports = {
     createPerson,
     readPerson,
-    updatePerson,
     deletePerson,
     getEmpleadoId,
     getPhotoId,

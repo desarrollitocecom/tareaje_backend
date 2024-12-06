@@ -234,25 +234,31 @@ const getEmpleadoByDni = async (dni) => {
     }
 };
 
-// Obtención del empleado (ID, DNI) según el ID de Cargo y Turno :
-const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
+// Obtención del empleado (id, dni, id_funcion, id_turno) para el algoritmo de asistencia :
+const findEmpleado = async (ids_funcion, id_turno) => {
 
     try {
-        const empleados = await Empleado.findAll({
-            attributes: ['id', 'dni'],
+        const response = await Empleado.findAll({
+            attributes: ['id', 'dni', 'id_funcion', 'id_turno'],
             where: {
-                id_cargo: id_cargo,
+                state: true,
+                id_funcion: { [Op.in]: ids_funcion },
                 id_turno: id_turno
             }
         });
-        if (!empleados || empleados.length === 0) return null;
-        const result = empleados.map(empleado => ({
-            id: empleado.id,
-            dni: empleado.dni
+
+        if (!response) {
+            console.warn('No se obtuvo los empleados para estos ids de función y turno...');
+            return null;
+        }
+        const result = response.map(r => ({
+            ...r.dataValues,
+            state: false
         }));
         return result;
+
     } catch (error) {
-        console.error('Error al obtener los empleados por cargo y turno:', error);
+        console.error('Error al obtener los empleados por función y turno:', error);
         return false;
     }
 };
@@ -261,8 +267,8 @@ module.exports = {
     getAllUniverseEmpleados,
     getEmpleadoByDni,
     getAllEmpleados,
-    getEmpleadoIdDniByCargoTurno,
     getEmpleado,
+    findEmpleado,
     createEmpleado,
     deleteEmpleado,
     updateEmpleado
