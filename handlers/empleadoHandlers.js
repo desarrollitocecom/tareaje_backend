@@ -344,7 +344,10 @@ const deleteEmpleadoHandler = async (req, res) => {
         );
         if (!historial) console.warn('No se agregó al historial...');
 
-        return res.status(200).json({ message: 'Función eliminada correctamente (estado cambiado a inactivo)' },)
+        return res.status(200).json({
+            message: 'Empleado eliminado correctamente',
+            data: response
+        });
     } catch (error) {
         console.error("Error al eliminar el empleado:", error);
         res.status(500).json({ error: "Error interno del servidor al eliminar el empleado." });

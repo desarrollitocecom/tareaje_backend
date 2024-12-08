@@ -29,6 +29,7 @@ const createAsistencias = async (dia, hora) => {
     try {
         // Obtener horario, empleados y protocols correspondientes :
         const horario = await obtenerRangosHorario(hora);
+        if (horario) return null;
         const { ids_funcion, id_turno } = horario;
         const empleados = await findEmpleado(ids_funcion, id_turno);
         const protocols = await getProtocols(dia, hora);
