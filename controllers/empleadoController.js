@@ -2,8 +2,6 @@ const { Empleado, Cargo, RegimenLaboral, Sexo,
     Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion } = require('../db_connection');
 const { Op } = require('sequelize');
 
-const { deletePerson } = require('./axxonController');
-
 const getAllUniverseEmpleados = async () => {
 
     try {
@@ -146,14 +144,13 @@ const deleteEmpleado = async (id) => {
 
     try {
         const response = await Empleado.findByPk(id);
-        const consulta = await deletePerson(response.dni);
-        if (!consulta) return null;
-        response.state = false;
+        const info = response.state;
+        response.state = !info;
         await response.save();
         return response || null;
 
     } catch (error) {
-        console.error('Error al canbiar de estado al eliminar Eliminar');
+        console.error('Error al cambiar de estado...');
         return false;
     }
 
