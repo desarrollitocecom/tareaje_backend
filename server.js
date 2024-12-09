@@ -40,7 +40,7 @@ configurarCronJobs()
 
 server.listen(PORT_TAREAJE, () => {
   console.log(`TAREAJE: Server is running on port ${PORT_TAREAJE}`);
-  sequelize.sync({ alter: false })
+  sequelize.sync({ alter: true })
     .then(() => console.log("Database is connected"))
     .catch(err => console.error("Error connecting to the database:", err));
 });

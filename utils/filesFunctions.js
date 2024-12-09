@@ -14,8 +14,8 @@ const ensureDirectoryExists = (dir) => {
 };
 
 // Asegurarse de que las rutas existen :
-ensureDirectoryExists(FOTOS_RUTA);
-ensureDirectoryExists(PDF_RUTA);
+//ensureDirectoryExists(FOTOS_RUTA);
+//ensureDirectoryExists(PDF_RUTA);
 
 // Configuración de almacenamiento para fotos :
 const imageStorage = multer.diskStorage({

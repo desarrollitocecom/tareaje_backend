@@ -48,8 +48,7 @@ const getAllEmpleadosHandlers = async (req, res) => {
     }
     try {
         const response = await getAllEmpleados(Number(page), Number(limit), filters); // Llamamos a la función getEmpleados
-
-        if (response.length === 0 || page > limit) {
+        if (response.data.length === 0) {
             return res.status(200).json(
                 {
                     message: 'Ya no hay mas Empleados',
@@ -217,7 +216,6 @@ const createEmpleadoHandler = async (req, res) => {
             await deletePhoto(req.file.filename);
             return res.status(200).json({ message: 'No se encuentra empleado', data: [] });
         }
-
 /*         const historial = await createHistorial(
             'create',
             'Empleado',
@@ -267,7 +265,7 @@ const updateEmpleadoHandler = async (req, res) => {
     if (!domicilio || domicilio.length < 5) {
         errores.push("Domicilio debe tener al menos 5 caracteres");
     }
-    if (!/^\d{9}$/.test(celular) || !celular);
+    if (!/^\d{9}$/.test(celular) || !celular)
         errores.push("Número de celular debe tener entre 9 y 15 dígitos");
     if (!Date.parse(f_inicio) || !f_inicio)
         errores.push("Fecha de inicio debe tener el formato YYYY-MM-DD");
