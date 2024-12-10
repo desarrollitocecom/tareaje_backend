@@ -8,7 +8,8 @@ const {
     getEmpleadoIdHandler,
     getPhotoHandler,
     searchByFaceHandler,
-    getProtocolsHandler
+    getProtocolsHandler,
+    searchByFaceDNIHandler
 } = require('../handlers/axxonHandlers');
 const permisoAutorizacion = require("../checkers/roleAuth");
 
@@ -17,7 +18,8 @@ router.get('/', permisoAutorizacion(["all_system_access", "read_empleado"]), rea
 router.get('/delete/:dni', permisoAutorizacion(["all_system_access", "read_empleado"]), deletePersonHandler);
 router.get('/:dni', permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoIdHandler);
 router.get('/photo/:id', permisoAutorizacion(["all_system_access", "read_empleado"]), getPhotoHandler);
-router.post('/face/', permisoAutorizacion(["all_system_access", "photo_axxon"]), searchByFaceHandler);
+router.post('/facescan/', permisoAutorizacion(["all_system_access", "photo_axxon"]), searchByFaceHandler);
+router.post('/face/', permisoAutorizacion(["all_system_access", "photo_axxon"]), searchByFaceDNIHandler);
 router.post('/protocol/', permisoAutorizacion(["all_system_access", "read_asistencia"]),getProtocolsHandler);
 
 module.exports = router;

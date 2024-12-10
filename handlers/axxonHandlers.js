@@ -181,14 +181,47 @@ const searchByFaceHandler = async (req, res) => {
         if (personInfo) {
         const personId = await getEmpleadoByDni(personInfo.dni);
         //console.log("personID:",personId);
-        const personDetail = await getEmpleado(personId.dataValues.id)
+        const personDetail = await getEmpleado(personId.dataValues.id);
             return res.status(200).json({
                 message: 'Persona reconocida exitosamente',
                 data: {
                     nombres: personDetail.apellidos+" "+personDetail.nombres,
                     subgerencia: personDetail.subgerencia.nombre,
+                    estado: personDetail.state
                     //foto: personDetail.foto,
                 }
+            });
+        }
+        else {
+            return res.status(400).json({
+                message: 'Persona no reconocida',
+                success: false
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error en la consulta para obtener el usuario por foto',
+            error: error.message
+        });
+    }
+};
+
+const searchByFaceDNIHandler = async (req, res) => {
+
+    const { foto } = req.body;
+    if (!foto) {
+        return res.status(400).json({ message: 'El parámetro FOTO es requerido' });
+    }
+
+    try {
+        const personInfo = await searchByFace(foto);
+        if (personInfo) {
+        const personId = await getEmpleadoByDni(personInfo.dni);
+        //console.log("personID:",personId);
+        const personDetail = await getEmpleado(personId.dataValues.id);
+            return res.status(200).json({
+                message: `Bienvenido ${personDetail.nombres.split(" ")[0]} ${personDetail.apellidos.split(" ")[0]}`,
+                data: personDetail
             });
         }
         else {
@@ -249,5 +282,6 @@ module.exports = {
     getEmpleadoIdHandler,
     getPhotoHandler,
     searchByFaceHandler,
-    getProtocolsHandler
+    getProtocolsHandler,
+    searchByFaceDNIHandler
 };
