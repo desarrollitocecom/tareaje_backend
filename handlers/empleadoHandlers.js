@@ -2,7 +2,7 @@ const { getAllUniverseEmpleados, getAllEmpleados, getEmpleado, createEmpleado,
     updateEmpleado, deleteEmpleado, findEmpleado } = require('../controllers/empleadoController');
 
 const { createHistorial } = require('../controllers/historialController');
-const { createPerson, deletePerson } = require('../controllers/axxonController');
+const { createPerson } = require('../controllers/axxonController');
 const { deletePhoto } = require('../utils/filesFunctions');
 const fs = require('fs');
 const path = require('path');
@@ -245,7 +245,6 @@ const updateEmpleadoHandler = async (req, res) => {
     const token = req.user;
     const errores = [];
 
-    if (!req.file || req.file.length === 0) return res.status(400).json({ message: 'No se ha enviado foto' });
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(nombres))
         errores.push("Nombres deben contener solo letras y tener entre 2 y 50 caracteres");
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(apellidos))
@@ -292,28 +291,18 @@ const updateEmpleadoHandler = async (req, res) => {
 
     if (errores.length > 0)
         return res.status(400).json({ errores });
+
     try {
-        // Guardar en AXXON la imagen en base 64 :
-        const fileBuffer = fs.readFileSync(req.file.path);
-        const fileBase64 = fileBuffer.toString('base64');
-
-        const consultaDelete = await deletePerson(dni);
-        if (!consultaDelete) console.warn(`No se pudo eliminar al empleado ${apellidos} ${nombres} con ${dni} en Axxon...`);
-
-        const consultaCreate = await createPerson(nombres, apellidos, dni, String(id_cargo), String(id_turno), fileBase64);
-        if (!consultaCreate) console.warn(`No se pudo crear nuevamente al empleado ${apellidos} ${nombres} con ${dni} en Axxon...`);
-
-        // Guardar la ruta relativa de la imagen :
-        const savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
-
         const response = await updateEmpleado(id,
             nombres, apellidos, dni, ruc, hijos, edad,
-            f_nacimiento, correo, domicilio, celular, f_inicio, savedPath, observaciones,
+            f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
         );
-        if (!response) return res.status(404).json({ message: 'Empleado no encontrado', data: {} });
+        if (response === 1) return res.status(404).json({ message: 'Empleado no encontrado', data: {} });
+        if (!response) return res.status(400).json({ message: 'No se pudo actualizar al empleado', data: {} });
         return res.status(200).json({ message: 'Empleado Modificado', data: response });
+
     } catch (error) {
         console.error("Error al actualizar el empleado:", error);
         res.status(500).json({ error: "Error interno del servidor al Actualizar el empleado." });
@@ -325,12 +314,12 @@ const deleteEmpleadoHandler = async (req, res) => {
     const { id } = req.params;
     const token = req.user;
     
-    if (!id || isNaN(id)) {
-        return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
-    }
+    if (!id || isNaN(id)) return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
+
     try {
         const response = await deleteEmpleado(id);
-        if (!response) return res.status(200).json({ message: 'Empleado no encontrado', data: {} });
+        if (response === 1) return res.status(404).json({ message: 'Empleado no encontrado', data: {} });
+        if (!response) return res.status(400).json({ message: 'No se pudo eliminar al empleado', data: {} });
 
         const historial = await createHistorial(
             'create',

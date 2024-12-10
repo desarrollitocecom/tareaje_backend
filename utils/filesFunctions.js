@@ -6,17 +6,6 @@ const { v4: uuidv4 } = require('uuid');
 // Rutas para guardar las fotos y las justificaciones :
 const { FOTOS_RUTA, PDF_RUTA } = process.env;
 
-// Función para asegurarse de que las carpetas existen :
-const ensureDirectoryExists = (dir) => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-};
-
-// Asegurarse de que las rutas existen :
-//ensureDirectoryExists(FOTOS_RUTA);
-//ensureDirectoryExists(PDF_RUTA);
-
 // Configuración de almacenamiento para fotos :
 const imageStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -112,10 +101,13 @@ const deletePhoto = (file) => {
     });
 };
 
+const handlerFormData = multer().none();
+
 module.exports = {
     saveImage,
     savePdf,
     multerError,
     deleteFile,
-    deletePhoto
+    deletePhoto,
+    handlerFormData
 };
