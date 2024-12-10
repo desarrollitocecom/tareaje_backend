@@ -19,9 +19,21 @@ const getAllUniverseEmpleados = async () => {
 };
 
 const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
-    const { search, dni, state, cargo, subgerencia, turno } = filters; // Extraer filtros
+    const { search, dni, state, cargo, subgerencia, regimen, jurisdiccion, sexo, turno, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
     const offset = (page - 1) * limit;
     const parsedState = state === "true";
+
+    // Calcular fechas basadas en edad mínima y máxima
+    const today = new Date();
+    const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null; //
+    const dateFromEdadMax = edadMin ? new Date(today.getFullYear() - edadMin, today.getMonth(), today.getDate()) : null;
+
+    // Asegurarse de que dateFromEdadMin y dateFromEdadMax son fechas válidas
+    const validDateFromEdadMin = dateFromEdadMin instanceof Date && !isNaN(dateFromEdadMin);
+    const validDateFromEdadMax = dateFromEdadMax instanceof Date && !isNaN(dateFromEdadMax);
+
+    //console.log("EDAD: ", dateFromEdadMax, dateFromEdadMin);
+
     //console.log(search, dni, state, cargo, subgerencia, turno);
     try {
         // Construcción dinámica de condiciones
@@ -32,9 +44,23 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
                     { apellidos: { [Op.iLike]: `%${search}%` } },
                 ],
             }),
-            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }), // busca por dni que coincida con el filtro, puede ser el DNI completo o parte de él
-            ...(state !== undefined && { state: parsedState }), // Búsqueda exacta por estado: true o false
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(state !== undefined && { state: parsedState }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(validDateFromEdadMin && validDateFromEdadMax && {
+                f_nacimiento: {
+                    [Op.between]: [dateFromEdadMin, dateFromEdadMax],
+                },
+            }),
+            ...(hijosMin && hijosMax && {
+                hijos: {
+                    [Op.between]: [hijosMin, hijosMax]
+                }
+            })
         };
+
 
         const includeConditions = [
             {
@@ -59,13 +85,13 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
 
         const response = await Empleado.findAndCountAll({
             where: whereCondition,
-            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state', 'foto'],
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state', 'foto', 'f_nacimiento'],
             include: includeConditions,
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['f_nacimiento', 'DESC']]
         });
-
+        console.log("personas: ", response.count);
         return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
         console.error("Error al obtener todos los empleados:", error);

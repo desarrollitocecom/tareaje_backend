@@ -16,8 +16,9 @@ const getRangoHorarioById = async (id) => {
 
 // Obtener todos los Rango Horario con paginación :
 const getAllRangosHorarios = async (page = 1, limit = 20) => {
-    
-    const offset = (page - 1) * limit;
+
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
 
         const { count, rows } = await RangoHorario.findAndCountAll({
@@ -50,7 +51,7 @@ const getRangosHorariosHora = async (hora) => {
                 inicio: { [Op.in]: horas },
             }
         });
-        
+
         if (!response) {
             console.warn('No se obtuvo los rangos de horario en esta hora...');
             return null;
@@ -73,7 +74,7 @@ const getFuncionRangosHorarios = async (hora) => {
                 inicio: horaStr,
             }
         });
-        
+
         if (!response) {
             console.warn('No se obtuvo los rangos de horario en esta hora...');
             return null;
@@ -96,7 +97,7 @@ const createRangoHorario = async (nombre, inicio, fin, ids_funcion, id_turno, id
             inicio,
             fin,
             ids_funcion,
-            id_turno, 
+            id_turno,
             id_subgerencia
         });
         return response || null;
@@ -119,7 +120,7 @@ const updateRangoHorario = async (id, nombre, inicio, fin, ids_funcion, id_turno
             inicio,
             fin,
             ids_funcion,
-            id_turno, 
+            id_turno,
             id_subgerencia
         });
         return response || null;

@@ -20,7 +20,8 @@ const getJustificacionById = async (id) => {
 // Obtener todas las justificaciones :
 const getAllJustificaciones = async (page = 1, limit = 20) => {
 
-    const offset = (page - 1) * limit;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
         const justificaciones = await Justificacion.findAndCountAll({
             limit,
@@ -42,7 +43,7 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
 // Crear justificacion :
 // >> Tener en cuenta que se creará la justificación una vez se haya verificado que la justificación en cuestión sea VÁLIDA
 const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado, token) => {
-    
+
     try {
         const justificacion = await Justificacion.findAndCountAll({
             where: {
