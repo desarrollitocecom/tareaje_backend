@@ -76,74 +76,6 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
     }
 };
 
-// Obtener asistencias (todos los estados) en un rango de fechas :
-const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
-
-    const offset = (page - 1) * pageSize;
-    const limit = pageSize;
-    const dias = [];
-
-    let fechaDate = new Date(inicio);
-    while (fechaDate <= new Date(fin)) {
-        dias.push(new Date(fechaDate).toISOString().split('T')[0]);
-        fechaDate.setDate(fechaDate.getDate() + 1);
-    }
-
-    try {
-        const empleados = await Empleado.findAndCountAll({
-            include: [
-                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
-                { model: Turno, as: 'turno', attributes: ['nombre'] }
-            ],
-            limit,
-            offset,
-            order: [['apellidos', 'ASC']]
-        });
-
-        const asistencias = await Asistencia.findAll({
-            where: {
-                fecha: { [Op.between]: [inicio, fin] }
-            },
-            include: [{ model: Empleado, as: 'empleado', attributes: ['id'] }]
-        });
-
-        // Mapeo de las asistencias por empleado y fecha :
-        const asistenciaMap = {};
-        asistencias.forEach(asistencia => {
-            const { id, id_empleado, fecha, estado } = asistencia;
-            if (!asistenciaMap[id_empleado]) asistenciaMap[id_empleado] = {};
-            asistenciaMap[id_empleado][fecha] = { estado, id };
-        });
-
-        const result = empleados.rows.map(empleado => ({
-            id_empleado: empleado.id,
-            nombres: empleado.nombres,
-            apellidos: empleado.apellidos,
-            dni: empleado.dni,
-            cargo: empleado.cargo ? empleado.cargo.nombre : null,
-            turno: empleado.turno ? empleado.turno.nombre : null,
-            estados: dias.map(fecha => {
-                const asistencia = asistenciaMap[empleado.id]?.[fecha];
-                return {
-                    fecha,
-                    asistencia: asistencia ? asistencia.estado : null,
-                    id_asistencia: asistencia ? asistencia.id : null
-                };
-            })
-        }));
-
-        return {
-            data: result,
-            currentPage: page,
-            totalCount: empleados.count
-        };
-
-    } catch (error) {
-        console.error('Error al obtener las asistencias de un rango de fechas:', error);
-        return false;
-    }
-};
-
 // Obtener ids asistencias con datos de empleado en un rango de fechas :
 const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
 
@@ -173,6 +105,90 @@ const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
 
         const result = { nombre, apellido, dni, info };
         return result;
+
+    } catch (error) {
+        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        return false;
+    }
+};
+
+// Obtener asistencias (todos los estados) en un rango de fechas con filtros :
+const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin, filters = {}) => {
+
+    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = filters; // Extraer filtros
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
+    const dias = [];
+
+    let fechaDate = new Date(inicio);
+    while (fechaDate <= new Date(fin)) {
+        dias.push(new Date(fechaDate).toISOString().split('T')[0]);
+        fechaDate.setDate(fechaDate.getDate() + 1);
+    }
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            ...(search && {
+                [Op.or]: [
+                    { nombres: { [Op.iLike]: `%${search}%` } },
+                    { apellidos: { [Op.iLike]: `%${search}%` } },
+                ],
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(state !== undefined && { state: parsedState }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(turno && { id_turno: turno }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(sexo && { id_sexo: sexo })
+        };
+
+        const empleados = await Empleado.findAndCountAll({
+            where: whereCondition,
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        const asistencias = await Asistencia.findAll({
+            where: {
+                fecha: { [Op.between]: [inicio, fin] }
+            },
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id'] }]
+        });
+
+        // Mapeo de las asistencias por empleado y fecha :
+        const asistenciaMap = {};
+        asistencias.forEach(asistencia => {
+            const { id, id_empleado, fecha, estado} = asistencia;
+            if (!asistenciaMap[id_empleado]) asistenciaMap[id_empleado] = {};
+            asistenciaMap[id_empleado][fecha] = { estado, id};
+        });
+
+        const result = empleados.rows.map(empleado => ({
+            id_empleado: empleado.id,
+            nombres: empleado.nombres,
+            apellidos: empleado.apellidos,
+            dni: empleado.dni,
+            cargo: empleado.cargo ? empleado.cargo.nombre : null,
+            turno: empleado.turno ? empleado.turno.nombre : null,
+            estados: dias.map(fecha => {
+                const asistencia = asistenciaMap[empleado.id]?.[fecha];
+                return {
+                    fecha,
+                    asistencia: asistencia ? asistencia.estado : null,
+                    id_asistencia: asistencia ? asistencia.id : null
+                };
+            })
+        }));
+
+        return {
+            data: result,
+            currentPage: page,
+            totalCount: empleados.count
+        };
 
     } catch (error) {
         console.error('Error al obtener las asistencias de un rango de fechas:', error);

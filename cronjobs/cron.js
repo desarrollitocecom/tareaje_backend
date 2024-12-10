@@ -10,12 +10,12 @@ const configurarCronJobs = async () => {
     
     minutos.forEach(minute => {
         cron.schedule(`${minute} * * * *`, async () => {
+            console.log(`Ejecutando algoritmo de asistencia para el día ${diaString} a la hora ${hora}:${minute}:06`);
 
-            console.log(`Ejecutando createAsistenciasRango para el día ${diaString} a la hora ${hora}:${minute}`);
             try {
                 const create = await createAsistencias(diaString, hora);
-                if (!create) console.warn(`No se pudo crear las asistencias para las ${hora}:${minute}`);
-                else console.log(`createAsistencias ejecutado con éxito para las ${hora}:${minute}`);
+                if (!create) console.warn(`No se pudo crear las asistencias para las ${hora}:${minute}:06`);
+                else console.log(`Algoritmo de asistencia ejecutado con éxito para las ${hora}:${minute}:06`);
 
             } catch (error) {
                 console.error(`Error al ejecutar createAsistenciasRango para las ${hora}:${minute}:`, error);

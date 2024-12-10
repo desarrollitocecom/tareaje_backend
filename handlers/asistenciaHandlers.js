@@ -111,25 +111,26 @@ const getAsistenciaDiariaHandler = async (req, res) => {
 const getAsistenciaRangoHandler = async (req, res) => {
 
     const { inicio, fin } = req.body;
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state };
     const token = req.user;
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un número entero...');
-    if (page < 0) errores.push('El page debe ser mayor que cero...');
+    if (page <= 0) errores.push('El page debe ser mayor que cero...');
     if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
     if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
     if (!inicio) errores.push('La fecha de inicio es obligatoria...');
-    if (!fin) errores.push('La fecha de fin es obligatoria...')
+    if (!fin) errores.push('La fecha de fin es obligatoria...');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(inicio)) errores.push('El formato para INICIO es incorrecto, debe ser YYYY-MM-HH)');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fin)) errores.push('El formato para FIN es incorrecto, debe ser YYYY-MM-HH');
-    if(errores.length > 0) return res.status(400).json({ errores });
+    if (errores.length > 0) return res.status(400).json({ errores });
 
     const numPage = parseInt(page);
     const numLimit = parseInt(limit);
 
     try {
-        const response = await getAsistenciaRango(numPage, numLimit, inicio, fin);
+        const response = await getAsistenciaRango(numPage, numLimit, inicio, fin, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {

@@ -1,5 +1,4 @@
 const { RangoHorario, Funcion, Turno, Subgerencia } = require('../db_connection');
-const { Op } = require('sequelize');
 
 // Obtener un Rango Horario por ID :
 const getRangoHorarioById = async (id) => {
@@ -19,6 +18,7 @@ const getAllRangosHorarios = async (page = 1, limit = 20) => {
 
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
+
     try {
 
         const { count, rows } = await RangoHorario.findAndCountAll({
@@ -30,10 +30,10 @@ const getAllRangosHorarios = async (page = 1, limit = 20) => {
             limit,
             offset
         });
-        return { data: rows, total: count } || null;
+        return { data: rows, totalCount: count } || null;
 
     } catch (error) {
-        console.error('Error al obtener todos los Rangos Horario:', error);
+        console.error('Error al obtener todos los rangos de horario:', error);
         return false;
     }
 };
@@ -42,33 +42,9 @@ const getAllRangosHorarios = async (page = 1, limit = 20) => {
 const getRangosHorariosHora = async (hora) => {
 
     try {
-        const hora1 = (hora < 10) ? `0${hora}:00:00` : `${hora}:00:00`;
-        const hora2 = (hora + 1 < 10) ? `0${hora + 1}:00:00` : `${hora + 1}:00:00`;
-        const horas = [hora1, hora2];
-        const response = await RangoHorario.findAll({
-            where: {
-                state: true,
-                inicio: { [Op.in]: horas },
-            }
-        });
-
-        if (!response) {
-            console.warn('No se obtuvo los rangos de horario en esta hora...');
-            return null;
-        }
-        return response;
-
-    } catch (error) {
-        console.error('Error al obtener los rangos de horario por hora:', error);
-        return false;
-    }
-};
-
-const getFuncionRangosHorarios = async (hora) => {
-    try {
         const horaStr = (hora < 10) ? `0${hora}:00:00` : `${hora}:00:00`;
+
         const response = await RangoHorario.findAll({
-            attributes: ['ids_funcion'],
             where: {
                 state: true,
                 inicio: horaStr,
@@ -79,14 +55,14 @@ const getFuncionRangosHorarios = async (hora) => {
             console.warn('No se obtuvo los rangos de horario en esta hora...');
             return null;
         }
-
-
+        console.log(response);
+        return response;
 
     } catch (error) {
         console.error('Error al obtener los rangos de horario por hora:', error);
         return false;
     }
-}
+};
 
 // Crear un nuevo RangoHorario :
 const createRangoHorario = async (nombre, inicio, fin, ids_funcion, id_turno, id_subgerencia) => {
@@ -137,7 +113,7 @@ const deleteRangoHorario = async (id) => {
     try {
         const rango = await RangoHorario.findByPk(id);
         if (!rango) return 1;
-
+        
         rango.state = false;
         await rango.save();
         return rango || null;

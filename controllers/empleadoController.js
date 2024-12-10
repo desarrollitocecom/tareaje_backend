@@ -170,6 +170,8 @@ const deleteEmpleado = async (id) => {
 
     try {
         const response = await Empleado.findByPk(id);
+        if (!response) return 1;
+        
         const info = response.state;
         response.state = !info;
         await response.save();
@@ -182,67 +184,47 @@ const deleteEmpleado = async (id) => {
 
 };
 const updateEmpleado = async (
-    id,
-    nombres,
-    apellidos,
-    dni,
-    ruc,
-    hijos,
-    edad,
-    f_nacimiento,
-    correo,
-    domicilio,
-    celular,
-    f_inicio,
-    foto,
-    observaciones,
-    id_cargo,
-    id_turno,
-    id_regimen_laboral,
-    id_sexo,
-    id_jurisdiccion,
-    id_grado_estudios,
-    id_subgerencia,
-    id_funcion,
-    id_lugar_trabajo
+    id, nombres, apellidos, dni, ruc, hijos, edad,
+    f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
+    id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+    id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
 ) => {
 
     try {
-        const empleado = await getEmpleado(id);
-        if (!empleado) return null;
+        const empleado = await Empleado.findByPk(id);
+        if (!empleado) return 1;
 
-        if (empleado) {
-            await empleado.update({
-                nombres,
-                apellidos,
-                dni,
-                ruc,
-                hijos,
-                edad,
-                f_nacimiento,
-                correo,
-                domicilio,
-                celular,
-                f_inicio,
-                foto,
-                observaciones,
-                id_cargo,
-                id_turno,
-                id_regimen_laboral,
-                id_sexo,
-                id_jurisdiccion,
-                id_grado_estudios,
-                id_subgerencia,
-                id_funcion,
-                id_lugar_trabajo
-            });
-        }
+        await empleado.update({
+            nombres,
+            apellidos,
+            dni,
+            ruc,
+            hijos,
+            edad,
+            f_nacimiento,
+            correo,
+            domicilio,
+            celular,
+            f_inicio,
+            observaciones,
+            id_cargo,
+            id_turno,
+            id_regimen_laboral,
+            id_sexo,
+            id_jurisdiccion,
+            id_grado_estudios,
+            id_subgerencia,
+            id_funcion,
+            id_lugar_trabajo
+        });
         return empleado || null;
+
     } catch (error) {
         console.error("Error al modificar el empleado en el controlador:", error);
         return false;
     }
 };
+
 const getEmpleadoByDni = async (dni) => {
 
     try {
