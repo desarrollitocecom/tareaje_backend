@@ -18,7 +18,7 @@ const turnoRouter=require('./turnoRouter');
 const descansoRouter=require('./descansoRouter');
 const feriadoRouter=require('./feriadoRouter');
 const asistenciaRouter=require('./asistenciaRouter');
-const rangoHorarioRouter=require('./rangoHorarioRouter');
+const rangoHorarioRouter=require('./rangohorarioRouter');
 const justificacionRouter = require('./justificacionRouter');
 const historialRouter = require('./historialRouter');
 

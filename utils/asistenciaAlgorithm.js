@@ -8,7 +8,7 @@ const obtenerRangosHorario = async (hora) => {
     
     try {
         const rangos = await getRangosHorariosHora(hora);
-        if (!rangos) return [];
+        if (!rangos || rangos.length === 0) return [];
         const id_turno = rangos[0].id_turno;
         const ids_funcion = [];
         rangos.forEach(r => {
@@ -29,7 +29,7 @@ const createAsistencias = async (dia, hora) => {
     try {
         // Obtener horario, empleados y protocols correspondientes :
         const horario = await obtenerRangosHorario(hora);
-        if (horario) return null;
+        if (!horario || horario.length === 0) return null;
         const { ids_funcion, id_turno } = horario;
         const empleados = await findEmpleado(ids_funcion, id_turno);
         const protocols = await getProtocols(dia, hora);
