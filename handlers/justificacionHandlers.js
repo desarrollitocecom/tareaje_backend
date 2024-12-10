@@ -59,7 +59,7 @@ const getAllJustificacionesHandler = async (req, res) => {
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un entero');
-    if (page <= 0) errores.push('El page debe ser un entero mayor a cero');
+    if (page < 0) errores.push('El page debe ser un entero mayor a cero');
     if (isNaN(limit)) errores.push('El limit debe ser un entero');
     if (limit <= 0) errores.push('El limit debe ser un entero mayor a cero');
     

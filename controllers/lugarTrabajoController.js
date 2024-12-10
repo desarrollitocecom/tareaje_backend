@@ -2,7 +2,8 @@ const { LugarTrabajo } = require('../db_connection');
 
 //Trae todas las LugarTrabajoes
 const getLugarTrabajos = async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
         const { count, rows } = await LugarTrabajo.findAndCountAll({
             where: { state: true },
@@ -19,7 +20,7 @@ const getLugarTrabajos = async (page = 1, limit = 20) => {
 
 // Obtener un Lugar de Trabajo específico por id :
 const getLugarTrabajo = async (id) => {
-    
+
     try {
         const response = await LugarTrabajo.findOne({
             where: { id, state: true }

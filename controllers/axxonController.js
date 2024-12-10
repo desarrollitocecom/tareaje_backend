@@ -12,28 +12,28 @@ const urlFindFaces = `${AXXON_URL}/firserver/FindFaces`;
 
 // Create Person en la Base de Datos de Axxon (SIN HANDLER):
 const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
-    
-    if(!nombres){
+
+    if (!nombres) {
         console.error('El parámetro NOMBRES es requerido...');
         return false;
     }
-    if(!apellidos){
+    if (!apellidos) {
         console.error('El parámetro APELLIDOS es requerido...');
         return false;
     }
-    if(!dni){
+    if (!dni) {
         console.error('El parámetro DNI es requerido...');
         return false;
     }
-    if(!funcion){
+    if (!funcion) {
         console.error('El parámetro FUNCIÓN es requerido...');
         return false;
     }
-    if(!turno){
+    if (!turno) {
         console.error('El parámetro TURNO es requerido...');
         return false;
     }
-    if(!foto){
+    if (!foto) {
         console.error('El parámetro FOTO es requerido...');
         return false;
     }
@@ -56,11 +56,11 @@ const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
     try {
         const response = await axios.post(urlCreate, consulta);
         const status = response.data.Status;
-        if(status === "SUCCESS"){
+        if (status === "SUCCESS") {
             console.log(`Usuario ${dni} creado con éxito...`);
             return true;
         }
-        else{
+        else {
             console.warn(`No se pudo crear al usuario ${dni}...`);
             return false;
         }
@@ -71,7 +71,7 @@ const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
 
 // Read Person en la Base de Datos de Axxon (SIN HANDLER):
 const readPerson = async () => {
-    
+
     // Consulta formato JSON :
     const consulta = {
         "server_id": "1",
@@ -86,11 +86,11 @@ const readPerson = async () => {
         const response = await axios.post(urlRead, consulta);
         const data = response.data.PersonList;
         data.forEach(person => {
-            if(person){
+            if (person) {
                 const id = person.Id;
                 const dni = person.Patronymic;
                 const apellidos = person.Surname;
-                const personInfo = {id, dni, apellidos};
+                const personInfo = { id, dni, apellidos };
                 datosPersonalAxxon.push(personInfo);
             }
         });
@@ -104,11 +104,11 @@ const readPerson = async () => {
 // Delete Person en la Base de Datos de Axxon (SIN HANDLER):
 const deletePerson = async (dni) => {
 
-    if(!dni){
+    if (!dni) {
         console.error('El parámetro DNI KEY es obligatorio ...');
         return false;
     }
-    if(dni.length !== 8){
+    if (dni.length !== 8) {
         console.error('El DNI debe tener 8 digitos...');
         return false;
     }
@@ -116,20 +116,20 @@ const deletePerson = async (dni) => {
     // Consulta getEmpleadoId para determinar el Id y proceder con el update :
     const id = await getEmpleadoId(dni);
 
-    if(id) {
+    if (id) {
         // Consulta formato JSON :
         const consulta = {
-        "server_id": "1",
-        "id": [id]
+            "server_id": "1",
+            "id": [id]
         };
         try {
             const response = await axios.post(urlDelete, consulta);
             const status = response.data.Status;
-            if(status === "SUCCESS"){
+            if (status === "SUCCESS") {
                 console.log('Usuario eliminado con éxito...');
                 return true;
             }
-            else{
+            else {
                 console.warn('No se pudo eliminar al usuario...');
                 return false;
             }
@@ -138,18 +138,18 @@ const deletePerson = async (dni) => {
             return false;
         }
     }
-    else{
+    else {
         return false;
     }
 }
 
 // Obtener el Id de una persona de la Base de Datos de Axxon :
 const getEmpleadoId = async (dni) => {
-    
-    if(!dni){
+
+    if (!dni) {
         console.warn('El parámetro es requerido...');
     }
-    if(dni.length !== 8){
+    if (dni.length !== 8) {
         console.warn('El DNI necesariamente debe tener 8 digitos');
     }
 
@@ -157,8 +157,8 @@ const getEmpleadoId = async (dni) => {
     try {
         const dataAxxon = await readPerson();
         const persona = dataAxxon.find(persona => persona.dni === dni);
-        if(persona) return persona.id;
-        else{
+        if (persona) return persona.id;
+        else {
             console.warn('La persona no está registrada en la Base de Datos de Axxon...');
             return false;
         }
@@ -169,16 +169,16 @@ const getEmpleadoId = async (dni) => {
 
 // Obtener la Foto de la persona reconocida de Protocols Axxon (CON HANDLER) :
 const getPhotoId = async (photo_id) => {
-    
+
     // El url en esta ocasión se maneja dentro de la función getPhotoId :
     try {
         const response = await axios.get(`${AXXON_URL}/firserver/GetImage/1/${photo_id}`, { responseType: 'arraybuffer' });
-        if(response){
+        if (response) {
             return response;
         }
-        else{
+        else {
             return null;
-        } 
+        }
     } catch (error) {
         return false;
     }
@@ -187,11 +187,11 @@ const getPhotoId = async (photo_id) => {
 // Obtener los datos de una persona si la foto es reconocida (SIN HANDLER) :
 const searchByFace = async (foto) => {
 
-    if(!foto){
+    if (!foto) {
         console.error('El parámetro FOTO es obligatorio...');
         return false;
     }
-    
+
     // Consulta formato JSON :
     const consulta = {
         "server_id": "1",
@@ -207,10 +207,10 @@ const searchByFace = async (foto) => {
         const dni = findface.Patronymic;
         const cargo = findface.Department;
         const turno = findface.Comment;
-        const personInfo = {nombres, apellidos, dni, cargo, turno};
+        const personInfo = { nombres, apellidos, dni, cargo, turno };
         const similitud = findface.Sim;
-        if(parseFloat(similitud) > 0.99) return personInfo;
-        else{
+        if (parseFloat(similitud) > 0.99) return personInfo;
+        else {
             console.error('La persona no ha sido reconocida...');
             return false;
         }
@@ -222,7 +222,7 @@ const searchByFace = async (foto) => {
 
 // Obtener los datos de las personas que hayan sido reconocidas en un rango :
 const getProtocols = async (fecha, hora) => {
-    
+
     if (!fecha) return false;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return false;
     if (!hora) return false;
@@ -255,10 +255,10 @@ const getProtocols = async (fecha, hora) => {
         firstInicio = `${nextDay}T0${hora - 20}`;
         firstFinal = `${nextDay}T0${hora - 19}`;
     }
-    
+
     const inicio = firstInicio + formatInicio;
     const final = firstFinal + formatFinal;
-        
+
     // Consulta formato JSON :
     const consulta = {
         "server_id": "1",
@@ -278,13 +278,13 @@ const getProtocols = async (fecha, hora) => {
     const uniqueAsistentes = new Map();
 
     // Extracción de información por consulta :
-    try{
+    try {
         const response = await axios.post(urlProtocols, consulta);
         const protocols = response.data.Protocols;
         const fecha = inicio.split('T')[0];
         protocols.forEach(protocol => {
 
-            if(protocol.Hits && protocol.Hits.length > 0){
+            if (protocol.Hits && protocol.Hits.length > 0) {
                 const foto = protocol.id;
                 const dni = protocol.Hits[0].patronymic;
                 const funcion = protocol.Hits[0].department;
@@ -293,13 +293,13 @@ const getProtocols = async (fecha, hora) => {
 
                 const [hh, mm, ss] = horaProtocol.split(':');
                 const numH = Number(hh);
-                const newH = (numH >= 5 ) ? (numH - 5) : (numH + 19);
+                const newH = (numH >= 5) ? (numH - 5) : (numH + 19);
                 const strH = (newH > 9) ? newH : `0${newH}`;
                 const hora = `${strH}:${mm}:${ss}`;
 
                 const id_funcion = parseInt(funcion) || null;
                 const id_turno = parseInt(turno) || null;
-                const personInfo = {dni, fecha, hora, foto, id_funcion, id_turno};
+                const personInfo = { dni, fecha, hora, foto, id_funcion, id_turno };
 
                 // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana :
                 if (!uniqueAsistentes.has(dni)) {

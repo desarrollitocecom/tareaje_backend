@@ -50,7 +50,7 @@ const getAsistenciaDiariaHandler = async (req, res) => {
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un número entero...');
-    if (page <= 0) errores.push('El page debe ser mayor que cero...');
+    if (page < 0) errores.push('El page debe ser mayor que cero...');
     if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
     if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
     if (!fecha) errores.push('La fecha es obligatoria...')
@@ -116,7 +116,7 @@ const getAsistenciaRangoHandler = async (req, res) => {
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un número entero...');
-    if (page <= 0) errores.push('El page debe ser mayor que cero...');
+    if (page < 0) errores.push('El page debe ser mayor que cero...');
     if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
     if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
     if (!inicio) errores.push('La fecha de inicio es obligatoria...');
@@ -182,7 +182,7 @@ const getAllAsistenciasHandler = async (req, res) => {
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un número entero...');
-    if (page <= 0) errores.push('El page debe ser mayor que cero...');
+    if (page < 0) errores.push('El page debe ser mayor que cero...');
     if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
     if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
     if (errores.length > 0) return res.status(400).json({ errores });
@@ -303,7 +303,7 @@ const filtroAsistenciaDiariaHandler = async (req, res) => {
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un número entero...');
-    if (page <= 0) errores.push('El page debe ser mayor que cero...');
+    if (page < 0) errores.push('El page debe ser mayor que cero...');
     if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
     if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
     if (!fecha) errores.push('La fecha es obligatoria...')

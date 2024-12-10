@@ -1,18 +1,19 @@
-const{ Jurisdiccion}= require('../db_connection');
+const { Jurisdiccion } = require('../db_connection');
 
 //Trae todas las Jurisdicciones
-const getJurisdicciones=async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit;
+const getJurisdicciones = async (page = 1, limit = 20) => {
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
-        const { count, rows }=await Jurisdiccion.findAndCountAll({
+        const { count, rows } = await Jurisdiccion.findAndCountAll({
             where: { state: true },
             limit,
             offset,
             order: [['id', 'ASC']]
         });
-        return { totalCount: count, data: rows , currentPage:page }
+        return { totalCount: count, data: rows, currentPage: page }
     } catch (error) {
-        console.error('Error al Obtener todas las Jurisdicciones ',error);
+        console.error('Error al Obtener todas las Jurisdicciones ', error);
         return false
     }
 }
@@ -20,23 +21,25 @@ const getJurisdicciones=async (page = 1, limit = 20) => {
 //trae una Jurisdiccion especifica por id
 const getJurisdiccion = async (id) => {
     try {
-        const newJurisdiccion = await Jurisdiccion.findOne({where: {
-            id ,
-           
-        }});
+        const newJurisdiccion = await Jurisdiccion.findOne({
+            where: {
+                id,
+
+            }
+        });
         return newJurisdiccion || null;
     } catch (error) {
         console.error(`Error al obtener la Jurisdiccion: ${error.message}`);
-      return false
+        return false
     }
 };
 //Crea una nueva Jurisdiccion
-const createJurisdiccion = async ({nombre}) => {
+const createJurisdiccion = async ({ nombre }) => {
     try {
         const newJurisdiccion = await Jurisdiccion.create({ nombre });
-        return newJurisdiccion 
+        return newJurisdiccion
     } catch (error) {
-        console.error('Error al crear una nueva Jurisdiccion',error)
+        console.error('Error al crear una nueva Jurisdiccion', error)
         return false
     }
 };
@@ -46,7 +49,7 @@ const deleteJurisdiccion = async (id) => {
         const newJurisdiccion = await Jurisdiccion.findByPk(id);
         newJurisdiccion.state = false;
         await newJurisdiccion.save();
-       return newJurisdiccion || null
+        return newJurisdiccion || null
     } catch (error) {
         console.error('Error al canbiar de estado al eliminar Jurisdiccion');
         return false;
@@ -58,17 +61,17 @@ const updateJurisdiccion = async (id, nuevaJurisdiccion) => {
     if (id && nuevaJurisdiccion)
         try {
             const newJurisdiccion = await Jurisdiccion.findOne({ where: { id } });
-            if (newJurisdiccion) 
+            if (newJurisdiccion)
                 await newJurisdiccion.update(nuevaJurisdiccion);
-                return newJurisdiccion || null;
-            
+            return newJurisdiccion || null;
+
         } catch (error) {
             console.error('Error al actualizar la Jurisdiccion:', error.message);
             return false;
         }
     else
         return false;
-};  
+};
 
 
 

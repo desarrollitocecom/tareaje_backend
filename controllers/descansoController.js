@@ -1,11 +1,12 @@
-const { Descanso, Empleado } = require ("../db_connection");
+const { Descanso, Empleado } = require("../db_connection");
 
 const getAllDescansos = async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
-        const response = await Descanso.findAndCountAll({ 
+        const response = await Descanso.findAndCountAll({
             where: { state: true },
-           include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres','apellidos','dni'], }],
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'dni'], }],
             limit,
             offset,
             order: [['id', 'ASC']]
@@ -19,11 +20,12 @@ const getAllDescansos = async (page = 1, limit = 20) => {
 const getDescansos = async (id) => {
     try {
         const response = await Descanso.findOne({
-            where:{id , state:true},
-            include: [{ 
-                model: Empleado, 
-                as: 'empleado', 
-                attributes: ['id', 'nombres','apellidos']             }]
+            where: { id, state: true },
+            include: [{
+                model: Empleado,
+                as: 'empleado',
+                attributes: ['id', 'nombres', 'apellidos']
+            }]
         })
         return response || null
     } catch (error) {
@@ -63,7 +65,7 @@ const deleteDescanso = async (id) => {
 const updateDescanso = async (id, { fecha, observacion, id_empleado }) => {
     try {
         const response = await getDescansos(id);
-        if (response) await response.update({ fecha: fecha, observacion: observacion, id_empleado:id_empleado });
+        if (response) await response.update({ fecha: fecha, observacion: observacion, id_empleado: id_empleado });
         return response || null;
     } catch (error) {
         console.error("Error al modificar el descanso en el controlador:", error);

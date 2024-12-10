@@ -34,9 +34,9 @@ const getAllUniverseEmpleadosHandlers = async (req, res) => {
 
 const getAllEmpleadosHandlers = async (req, res) => {
 
-    const { page = 1, limit = 20, search, subgerencia, turno, cargo, dni, state } = req.query;
-    const filters = { search, subgerencia, turno, cargo, dni, state };
-    //console.log("filtros: ",filters);
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state, edadMin, edadMax, hijosMin, hijosMax } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state,edadMin, edadMax, hijosMin, hijosMax };
+    console.log("filtros: ",filters);
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -216,15 +216,15 @@ const createEmpleadoHandler = async (req, res) => {
             await deletePhoto(req.file.filename);
             return res.status(200).json({ message: 'No se encuentra empleado', data: [] });
         }
-/*         const historial = await createHistorial(
-            'create',
-            'Empleado',
-            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
-            null,
-            `${nombres}, ${apellidos}, ${id_cargo}, ${id_turno}, ${id_regimen_laboral}, ${id_sexo}, ${id_jurisdiccion}, ${id_grado_estudios}, ${id_subgerencia}, ${id_funcion}, ${id_lugar_trabajo}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...'); */
+        /*         const historial = await createHistorial(
+                    'create',
+                    'Empleado',
+                    'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
+                    null,
+                    `${nombres}, ${apellidos}, ${id_cargo}, ${id_turno}, ${id_regimen_laboral}, ${id_sexo}, ${id_jurisdiccion}, ${id_grado_estudios}, ${id_subgerencia}, ${id_funcion}, ${id_lugar_trabajo}`,
+                    token
+                );
+                if (!historial) console.warn('No se agregó al historial...'); */
 
         return res.status(200).json({ message: 'Nuevo Empleado Creado', data: newEmpleado })
     } catch (error) {
@@ -324,7 +324,7 @@ const deleteEmpleadoHandler = async (req, res) => {
 
     const { id } = req.params;
     const token = req.user;
-    
+
     if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
     }

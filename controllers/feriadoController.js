@@ -1,8 +1,9 @@
-const {Feriado} = require('../db_connection');
+const { Feriado } = require('../db_connection');
 
 //Trae todas las Feriadoes y las pagina 
 const getAllFeriados = async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit; // Cálculo del offset
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit; // Cálculo del offset
     try {
         const { count, rows } = await Feriado.findAndCountAll({
             where: { state: true },
@@ -10,7 +11,7 @@ const getAllFeriados = async (page = 1, limit = 20) => {
             offset,
             order: [['id', 'ASC']]
         });
-        return { totalCount: count, data: rows ,currentPage:page} || null;
+        return { totalCount: count, data: rows, currentPage: page } || null;
     } catch (error) {
         console.error('Error al obtener todas las Feriados', error);
         return false;
@@ -19,25 +20,27 @@ const getAllFeriados = async (page = 1, limit = 20) => {
 //trae una Feriado especifica por id
 const getFeriado = async (id) => {
     try {
-        const feriado = await Feriado.findOne({where: {
-            id,
-            state:true
-        }});
+        const feriado = await Feriado.findOne({
+            where: {
+                id,
+                state: true
+            }
+        });
 
         return feriado || null;
     } catch (error) {
         console.error(`Error al obtener el Feriado: ${error.message}`);
-      return false
+        return false
     }
 };
 //Crea una nueva Feriado
-const createFeriado = async ({nombre,fecha}) => {
+const createFeriado = async ({ nombre, fecha }) => {
     try {
-        const feriado = await Feriado.create({ nombre , fecha });
+        const feriado = await Feriado.create({ nombre, fecha });
         return feriado || null
 
     } catch (error) {
-        console.error('Error al crear una nueva Feriado',error)
+        console.error('Error al crear una nueva Feriado', error)
         return false
     }
 };
@@ -47,7 +50,7 @@ const deleteFeriado = async (id) => {
         const feriado = await Feriado.findByPk(id);
         feriado.state = false;
         await feriado.save();
-       return feriado || null
+        return feriado || null
     } catch (error) {
         console.error('Error al canbiar de estado al eliminar Feriado');
         return false;
@@ -55,21 +58,21 @@ const deleteFeriado = async (id) => {
 };
 
 
-const updateFeriado = async (id, {nombre,fecha}) => {
+const updateFeriado = async (id, { nombre, fecha }) => {
     if (id)
         try {
             const feriado = await getFeriado(id);
-            if (feriado) 
-                await feriado.update({nombre,fecha});
-                return feriado || null ;
-           
+            if (feriado)
+                await feriado.update({ nombre, fecha });
+            return feriado || null;
+
         } catch (error) {
             console.error('Error al actualizar la Feriado:', error.message);
             return false;
         }
     else
         return false;
-};  
+};
 
 
 

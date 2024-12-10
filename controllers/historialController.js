@@ -2,7 +2,7 @@ const { Historial } = require('../db_connection');
 const { getUserByToken } = require('../controllers/usuarioController');
 
 const createHistorial = async (accion, modelo, campo, valor_anterior, valor_nuevo, token) => {
-    
+
     if (!accion) {
         console.warn('No se registró ninguna acción...');
         return false;
@@ -27,8 +27,9 @@ const createHistorial = async (accion, modelo, campo, valor_anterior, valor_nuev
 };
 
 const getAllHistorial = async (page = 1, limit = 20) => {
-    
-    const offset = (page - 1) * limit;
+
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
 
     try {
         const response = await Historial.findAndCountAll({ limit, offset })
@@ -45,7 +46,7 @@ const getAllHistorial = async (page = 1, limit = 20) => {
 };
 
 const validateUsuarioHistorial = async (id_usuario) => {
-    
+
     try {
         const response = await Historial.findOne({ where: { id_usuario: id_usuario } });
         return response || null;
@@ -57,8 +58,9 @@ const validateUsuarioHistorial = async (id_usuario) => {
 }
 
 const getUsuarioHistorial = async (page = 1, limit = 20, id_usuario) => {
-    
-    const offset = (page - 1) * limit;
+
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
 
     try {
         const response = await Historial.findAndCountAll({

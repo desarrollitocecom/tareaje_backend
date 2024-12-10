@@ -1,18 +1,19 @@
-const {RegimenLaboral}= require('../db_connection');
+const { RegimenLaboral } = require('../db_connection');
 
 //Trae todas las RegimenLaborales
-const getRegimenLaborales=async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit;
+const getRegimenLaborales = async (page = 1, limit = 20) => {
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
-        const  { count, rows }=await RegimenLaboral.findAndCountAll({
+        const { count, rows } = await RegimenLaboral.findAndCountAll({
             where: { state: true },
             limit,
             offset,
             order: [['id', 'ASC']]
         });
-        return { totalCount: count, data: rows , currentPage:page } || null;
+        return { totalCount: count, data: rows, currentPage: page } || null;
     } catch (error) {
-        console.error('Error al Obtener todas las RegimenLaborales ',error);
+        console.error('Error al Obtener todas las RegimenLaborales ', error);
         return false
     }
 }
@@ -20,23 +21,25 @@ const getRegimenLaborales=async (page = 1, limit = 20) => {
 //trae una RegimenLaboral especifica por id
 const getRegimenLaboral = async (id) => {
     try {
-        const newRegimenLaboral = await RegimenLaboral.findOne({where: {
-            id,
-            state: true
-        }});
+        const newRegimenLaboral = await RegimenLaboral.findOne({
+            where: {
+                id,
+                state: true
+            }
+        });
         return newRegimenLaboral || null;
     } catch (error) {
         console.error(`Error al obtener la RegimenLaboral: ${error.message}`);
-      return false
+        return false
     }
 };
 //Crea una nueva RegimenLaboral
-const createRegimenLaboral = async ({nombre}) => {
+const createRegimenLaboral = async ({ nombre }) => {
     try {
         const newRegimenLaboral = await RegimenLaboral.create({ nombre });
-        return newRegimenLaboral 
+        return newRegimenLaboral
     } catch (error) {
-        console.error('Error al crear una nueva RegimenLaboral',error)
+        console.error('Error al crear una nueva RegimenLaboral', error)
         return false
     }
 };
@@ -46,7 +49,7 @@ const deleteRegimenLaboral = async (id) => {
         const newRegimenLaboral = await RegimenLaboral.findByPk(id);
         newRegimenLaboral.state = false;
         await newRegimenLaboral.save();
-       return newRegimenLaboral || null
+        return newRegimenLaboral || null
     } catch (error) {
         console.error('Error al canbiar de estado al eliminar RegimenLaboral');
         return false;
@@ -58,17 +61,17 @@ const updateRegimenLaboral = async (id, nuevoRegimenLaboral) => {
     if (id && nuevoRegimenLaboral)
         try {
             const RegimenLaboral = await getRegimenLaboral(id);
-            if (RegimenLaboral) 
+            if (RegimenLaboral)
                 await RegimenLaboral.update(nuevoRegimenLaboral);
-                return RegimenLaboral || null;
-            
+            return RegimenLaboral || null;
+
         } catch (error) {
             console.error('Error al actualizar la RegimenLaboral:', error.message);
             return false;
         }
     else
         return false;
-};  
+};
 
 
 
