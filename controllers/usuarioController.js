@@ -163,11 +163,12 @@ const getUserById = async (token) => {
             attributes: ['id', 'usuario', 'correo', 'state', 'id_rol', 'id_empleado'],
             include: [
                 { model: Rol, as: 'rol', attributes: ['nombre'] },
-                { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos'] }
+                { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos','foto'] }
             ]
         });
 
         if (user) {
+
             return user;
         } else {
             return null; // Retorna null si no se encontró el usuario
