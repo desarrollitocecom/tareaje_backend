@@ -101,13 +101,10 @@ const deletePhoto = (file) => {
     });
 };
 
-const handlerFormData = multer().none();
-
 module.exports = {
     saveImage,
     savePdf,
     multerError,
     deleteFile,
-    deletePhoto,
-    handlerFormData
+    deletePhoto
 };

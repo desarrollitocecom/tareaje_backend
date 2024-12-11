@@ -73,7 +73,7 @@ const getFuncionHandler = async (req, res) => {
 
 const createFuncionHandler = async (req, res) => {
 
-    const { nombre } = req.body;
+    const { nombre, tipo } = req.body;
     const token = req.user;
     const errores = [];
 
@@ -87,7 +87,7 @@ const createFuncionHandler = async (req, res) => {
     if (!validaNombre) {
         errores.push('El campo nombre contiene caracteres inválidos');
     }
-
+    if (!tipo) errores.push('El campo tipo es obligatorio');
     if (errores.length > 0) {
         return res.status(400).json({ errores });
     }

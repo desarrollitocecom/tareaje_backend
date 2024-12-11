@@ -49,6 +49,8 @@ const createAsistencias = async (dia, hora) => {
             }
         });
 
+        // Siguiente filtro
+
     } catch (error) {
         console.error(`Error al crear las asistencias a las ${hora}:06:00`);
         return false;

@@ -107,6 +107,25 @@ const updateRangoHorario = async (id, nombre, inicio, fin, ids_funcion, id_turno
     }
 };
 
+// Añadir un id de función al rango de horario correspondiente :
+const validationFuncionRangoHorario = async (tipo) => {
+    
+    try {
+        const tipos = await RangoHorario.findAll({
+            where: { state: true },
+            attributes: ['nombre']
+        });
+        const general = new Set();
+        tipos.forEach(e => general.add(e.nombre.split(' ')[0]));
+        if (!general.has(tipo)) return false;
+        return true;
+        
+    } catch (error) {
+        console.error('Error al agregar id de función al Rango de Horario:', error);
+        return false;
+    }
+};
+
 // Eliminar un Rango Horario (Cambio del state a false)
 const deleteRangoHorario = async (id) => {
 
@@ -130,5 +149,6 @@ module.exports = {
     getRangosHorariosHora,
     createRangoHorario,
     updateRangoHorario,
+    validationFuncionRangoHorario,
     deleteRangoHorario
 };
