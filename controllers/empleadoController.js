@@ -21,7 +21,7 @@ const getAllUniverseEmpleados = async () => {
 const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
     const { search, dni, state, cargo, subgerencia, regimen, jurisdiccion, sexo, turno, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
     const offset = (page - 1) * limit;
-    const parsedState = state === "true";
+    //const parsedState = state === "true";
 
     // Calcular fechas basadas en edad mínima y máxima
     const today = new Date();
@@ -45,7 +45,7 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
                 ],
             }),
             ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
-            ...(state !== undefined && { state: parsedState }),
+            ...(state !== undefined && { state }),
             ...(regimen && { id_regimen_laboral: regimen }),
             ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
             ...(sexo && { id_sexo: sexo }),
@@ -89,7 +89,7 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
             include: includeConditions,
             limit,
             offset,
-            order: [['f_nacimiento', 'DESC']]
+            order: [['apellidos', 'ASC']]
         });
         console.log("personas: ", response.count);
         return { totalCount: response.count, data: response.rows, currentPage: page } || null;

@@ -66,7 +66,7 @@ const getAsistenciaDiariaHandler = async (req, res) => {
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Página fuera de rango...",
                 data: {
                     asistencias: [],
@@ -134,7 +134,7 @@ const getAsistenciaRangoHandler = async (req, res) => {
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Página fuera de rango...",
                 data: {
                     asistencias: [],
@@ -196,7 +196,7 @@ const getAllAsistenciasHandler = async (req, res) => {
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Página fuera de rango...",
                 data: {
                     asistencias: [],
@@ -320,7 +320,7 @@ const filtroAsistenciaDiariaHandler = async (req, res) => {
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Página fuera de rango...",
                 data: {
                     asistencias: [],

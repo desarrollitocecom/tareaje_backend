@@ -12,7 +12,7 @@ const getAllUniverseEmpleadosHandlers = async (req, res) => {
     try {
         const response = await getAllUniverseEmpleados();
         if (!response) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: 'No se obtuvieron los empleados...',
                 data: {
                     data: [],
@@ -36,7 +36,7 @@ const getAllEmpleadosHandlers = async (req, res) => {
 
     const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state, edadMin, edadMax, hijosMin, hijosMax } = req.query;
     const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state,edadMin, edadMax, hijosMin, hijosMax };
-    console.log("filtros: ",filters);
+    //console.log("filtros: ",filters);
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -157,8 +157,8 @@ const createEmpleadoHandler = async (req, res) => {
     //    errores.push("Número de celular debe tener entre 9 y 15 dígitos");
     if (!Date.parse(f_inicio) && (f_inicio && f_inicio !== 'null'))
         errores.push("Fecha de inicio debe tener el formato YYYY-MM-DD");
-    if (observaciones.length > 200 && (observaciones && observaciones !== 'null'))
-        errores.push("Observaciones no pueden exceder 200 caracteres");
+    //if (observaciones.length > 200 && (observaciones && observaciones !== 'null'))
+       // errores.push("Observaciones no pueden exceder 200 caracteres");
     if (!id_cargo || isNaN(id_cargo))
         errores.push('El id del cargo es requerido y debe ser un Numero')
     if (!id_turno || isNaN(id_turno))
@@ -268,8 +268,8 @@ const updateEmpleadoHandler = async (req, res) => {
         errores.push("Número de celular debe tener entre 9 y 15 dígitos");
     if (!Date.parse(f_inicio) || !f_inicio)
         errores.push("Fecha de inicio debe tener el formato YYYY-MM-DD");
-    if ((observaciones && observaciones.length > 200) || !observaciones)
-        errores.push("Observaciones no pueden exceder 200 caracteres");
+    //if ((observaciones && observaciones.length > 200) || !observaciones)
+        //errores.push("Observaciones no pueden exceder 200 caracteres");
     if (!id_cargo || isNaN(id_cargo))
         errores.push('El id del cargo es requerido y debe ser un Numero')
     if (!id_turno || isNaN(id_turno))
@@ -351,7 +351,7 @@ const findEmpleadoHandler = async (req, res) => {
     try {
         const response = await findEmpleado(ids_funcion, id_turno);
         if (!response || response.length === 0) {
-            return res.status(400).json({
+            return res.status(200).json({
                 message: "No hay nada",
                 data: []
             });
