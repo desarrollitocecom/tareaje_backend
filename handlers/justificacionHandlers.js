@@ -22,7 +22,7 @@ const getJustificacionByIdHandler = async (req,res) => {
     try {
         const justificacion = await getJustificacionById(id);
         if (!justificacion){
-            return res.status(400).json({
+            return res.status(200).json({
                 message: 'La justificación no fue encontrada para este ID...',
                 data: []
             });
@@ -76,7 +76,7 @@ const getAllJustificacionesHandler = async (req, res) => {
         const totalPages = Math.ceil(response.total / numLimit);
 
         if (numPage > totalPages) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Página fuera de rango...",
                 data: {
                     data: [],
@@ -266,7 +266,7 @@ const createJustificacionRangoHandler = async (req, res) => {
         if (!datos) {
             errores.push(`No se obtuvieron los ids de asistencia desde ${f_inicio} hasta ${f_fin}`);
             for (const file of req.files) await deleteFile(file.filename);
-            return res.status(400).json({
+            return res.status(200).json({
                 message: 'Se encontraron los siguientes errores....',
                 data: errores
             });
@@ -410,7 +410,7 @@ const updateJustificacionHandler = async (req, res) => {
         }
 
         if (response === 1) {
-            return res.status(400).json({
+            return res.status(200).json({
                 message: 'Para este ID no hay justificación...',
                 data: []
             });

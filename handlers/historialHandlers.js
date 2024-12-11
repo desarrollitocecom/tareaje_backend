@@ -26,7 +26,7 @@ const getAllHistorialHandler = async (req,res) => {
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Página fuera de rango...",
                 data: {
                     historial: [],
@@ -88,7 +88,7 @@ const getUsuarioHistorialHandler = async (req,res) => {
     try {
         const validate = await validateUsuarioHistorial(id);
         if (!validate) {
-            return res.status(400).json({
+            return res.status(200).json({
                 message: "No se encontró historial para este usuario...",
                 data: []
             })
@@ -98,7 +98,7 @@ const getUsuarioHistorialHandler = async (req,res) => {
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Página fuera de rango...",
                 data: {
                     historial: [],
