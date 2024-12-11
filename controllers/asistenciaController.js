@@ -113,11 +113,11 @@ const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
 };
 
 // Obtener asistencias (todos los estados) en un rango de fechas con filtros :
-const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin, filters = {}) => {
+const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {}) => {
 
     const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = filters; // Extraer filtros
-    const offset = (page - 1) * pageSize;
-    const limit = pageSize;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     const dias = [];
 
     let fechaDate = new Date(inicio);
@@ -162,9 +162,9 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin, filters 
         // Mapeo de las asistencias por empleado y fecha :
         const asistenciaMap = {};
         asistencias.forEach(asistencia => {
-            const { id, id_empleado, fecha, estado} = asistencia;
+            const { id, id_empleado, fecha, estado } = asistencia;
             if (!asistenciaMap[id_empleado]) asistenciaMap[id_empleado] = {};
-            asistenciaMap[id_empleado][fecha] = { estado, id};
+            asistenciaMap[id_empleado][fecha] = { estado, id };
         });
 
         const result = empleados.rows.map(empleado => ({
