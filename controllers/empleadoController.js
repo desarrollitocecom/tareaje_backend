@@ -21,8 +21,9 @@ const getAllUniverseEmpleados = async () => {
 const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
     const { search, dni, state, cargo, subgerencia, regimen, jurisdiccion, sexo, turno, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
     const offset = (page - 1) * limit;
-    //const parsedState = state === "true";
+    limit = page == 0 ? null : limit;
 
+    //const parsedState = state === "true";
     // Calcular fechas basadas en edad mínima y máxima
     const today = new Date();
     const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null; //
