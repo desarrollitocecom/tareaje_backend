@@ -252,7 +252,6 @@ const updateEmpleadoHandler = async (req, res) => {
     const photo = foto !== 'Sin foto'
 
     if (file && photo) errores.push('Solo se puede subir la foto una vez');
-    if (!file && !photo) errores.push('Es necesario subir la foto');
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(nombres))
         errores.push("Nombres deben contener solo letras y tener entre 2 y 50 caracteres");
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(apellidos))
