@@ -4,7 +4,8 @@ const {
     getRangosHorariosHora,
     createRangoHorario,
     deleteRangoHorario,
-    updateRangoHorario
+    updateRangoHorario,
+    validationFuncionRangoHorario
 } = require('../controllers/rangohorarioController');
 
 // Handler para obtener un rango de horario por ID :
@@ -59,20 +60,15 @@ const getAllRangosHorariosHandler = async (req, res) => {
 // Handler para obtener todos los rangos de horario para una hora en específico:
 const getRangosHorariosHoraHandler = async (req, res) => {
 
-    const { page = 1, limit = 20 } = req.query;
     const { hora } = req.params;
     const errores = [];
 
-    if (isNaN(page)) errores.push("El page debe ser un numero");
-    if (page < 0) errores.push("El page debe ser mayor a 0 ");
-    if (isNaN(limit)) errores.push("El limit debe ser un numero");
-    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
     if (!hora) errores.push('La hora es un parámetro obligatorio');
     if (isNaN(hora)) errores.push('La hora debe ser un entero');
     if (errores.length > 0) return res.status(400).json({ message: "Se encontraron los siguentes errores:", data: errores });
 
     try {
-        const result = await getRangosHorariosHora(page, limit);
+        const result = await getRangosHorariosHora(hora);
         if (result.length === 0) return res.json({ message: 'No se obtuvieron los rangos de horario para esta hora', data: [] });
         return res.json({
             message: 'Rangos de horario obtenidos exitosamente',
@@ -93,7 +89,6 @@ const createRangoHorarioHandler = async (req, res) => {
     const { nombre, inicio, fin, ids_funcion, id_turno, id_subgerencia } = req.body;
     const errores = [];
 
-    if (!id) errores.push('El id es un parámetro obligatorio');
     if (!nombre) errores.push('El nombre es un parámetro obligatorio');
     if (!inicio) errores.push('La hora de inicio es un parámetro obligatorio');
     if (!fin) errores.push('La hora de fin es un parámetro obligatorio');
@@ -101,7 +96,6 @@ const createRangoHorarioHandler = async (req, res) => {
     if (!id_turno) errores.push('El id de turno es un parámetro obligatorio');
     if (!id_subgerencia) errores.push('El id de subgerencia es un parámetro obligatorio');
 
-    if (isNaN(id)) errores.push("El parámetro ID fue ingresado incorrectamente" );
     if (!/^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(inicio)) errores.push('El formato para la hora de inicio es HH:MM:SS');
     if (!/^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(fin)) errores.push('El formato para la hora de fin es HH:MM:SS');
     if (ids_funcion.length === 0) errores.push('La lista de ids de las funciones está vacía');
@@ -191,11 +185,30 @@ const deleteRangoHorarioHandler = async (req, res) => {
     }
 };
 
+const handler = async (req, res) => {
+
+    try {
+        const result = await validationFuncionRangoHorario();
+        if (result === false) return res.json({ message: 'No se obtuvieron los rangos de horario', data: [] });
+        return res.json({
+            message: 'Rangos de horario obtenidos exitosamente',
+            data: result
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error al obtener los rangos horarios',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getRangoHorarioByIdHandler,
     getAllRangosHorariosHandler,
     getRangosHorariosHoraHandler,
     createRangoHorarioHandler,
     deleteRangoHorarioHandler,
-    updateRangoHorarioHandler
+    updateRangoHorarioHandler,
+    handler
 };

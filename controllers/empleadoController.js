@@ -185,7 +185,7 @@ const deleteEmpleado = async (id) => {
 };
 const updateEmpleado = async (
     id, nombres, apellidos, dni, ruc, hijos, edad,
-    f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
+    f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, foto,
     id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
     id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
 ) => {
@@ -207,6 +207,7 @@ const updateEmpleado = async (
             celular,
             f_inicio,
             observaciones,
+            foto,
             id_cargo,
             id_turno,
             id_regimen_laboral,

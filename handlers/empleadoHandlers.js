@@ -180,7 +180,10 @@ const createEmpleadoHandler = async (req, res) => {
 
     if (errores.length > 0) {
         if (req.file) await deletePhoto(req.file.filename);
-        return res.status(400).json({ errores });
+        return res.status(400).json({
+            message: 'Se encontraron los siguientes errores...',
+            data: errores,
+        });
     }
     try {
         // Guardar en AXXON la imagen en base 64 :
@@ -238,13 +241,18 @@ const updateEmpleadoHandler = async (req, res) => {
     const { id } = req.params;
     const {
         nombres, apellidos, dni, ruc, hijos, edad,
-        f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
+        f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, foto,
         id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
         id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
     } = req.body;
     const token = req.user;
     const errores = [];
 
+    const file = req.file
+    const photo = foto !== 'Sin foto'
+
+    if (file && photo) errores.push('Solo se puede subir la foto una vez');
+    if (!file && !photo) errores.push('Es necesario subir la foto');
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(nombres))
         errores.push("Nombres deben contener solo letras y tener entre 2 y 50 caracteres");
     if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(apellidos))
@@ -289,18 +297,41 @@ const updateEmpleadoHandler = async (req, res) => {
     if (!id_lugar_trabajo || isNaN(id_lugar_trabajo))
         errores.push('El id del lugar trabajo es requerido y debe ser un Numero')
 
-    if (errores.length > 0)
-        return res.status(400).json({ errores });
+    if (errores.length > 0) {
+        if (req.file) await deletePhoto(req.file.filename);
+        return res.status(400).json({
+            message: 'Se encontraron los siguientes errores...',
+            data: errores,
+        });
+    }
 
     try {
+        let savedPath;
+        if (req.file) {
+            savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
+            const fileBuffer = fs.readFileSync(req.file.path);
+            const fileBase64 = fileBuffer.toString('base64');
+            const consulta = await createPerson(nombres, apellidos, dni, String(id_funcion), String(id_turno), fileBase64);
+            if (!consulta) console.warn(`No se pudo crear al empleado ${apellidos} ${nombres} con ${dni} en Axxon...`);
+        }
+        else savedPath = foto;
+
         const response = await updateEmpleado(id,
             nombres, apellidos, dni, ruc, hijos, edad,
-            f_nacimiento, correo, domicilio, celular, f_inicio, observaciones,
+            f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, savedPath,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
         );
-        if (response === 1) return res.status(404).json({ message: 'Empleado no encontrado', data: {} });
-        if (!response) return res.status(400).json({ message: 'No se pudo actualizar al empleado', data: {} });
+        if (response === 1) {
+            if (req.file) await deletePhoto(req.file.filename);
+            return res.status(200).json({ message: 'Empleado no encontrado', data: {} });
+        }
+
+        if (!response) {
+            if (req.file) await deletePhoto(req.file.filename);
+            return res.status(200).json({ message: 'No se pudo actualizar al empleado', data: {} });
+        }
+        
         return res.status(200).json({ message: 'Empleado Modificado', data: response });
 
     } catch (error) {
