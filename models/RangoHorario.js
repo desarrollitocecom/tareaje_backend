@@ -7,6 +7,10 @@ module.exports = (sequelize) => {
             autoIncrement: true,
             primaryKey: true
         },
+        nombre: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         inicio: {
             type: DataTypes.TIME,
             allowNull: false,
@@ -15,26 +19,14 @@ module.exports = (sequelize) => {
             type: DataTypes.TIME,
             allowNull: false
         },
+        ids_funcion: {
+            type: DataTypes.ARRAY(DataTypes.INTEGER),
+            allowNull: false
+        },
         state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        },
-        id_cargo: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            references: {
-                model: 'Cargos', // Nombre de la tabla referenciada
-                key: 'id'
-            }
-        },
-        id_turno: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            references: {
-                model: 'Turnos', // Nombre de la tabla referenciada
-                key: 'id'
-            }
         }
     }, {
         tableName: 'RangoHorarios',
@@ -42,8 +34,8 @@ module.exports = (sequelize) => {
     });
 
     RangoHorario.associate = (models) => {
-        RangoHorario.belongsTo(models.Cargo, { foreignKey: 'id_cargo', as: 'cargo' });
         RangoHorario.belongsTo(models.Turno, { foreignKey: 'id_turno', as: 'turno' });
+        RangoHorario.belongsTo(models.Subgerencia, { foreignKey: 'id_subgerencia', as: 'subgerencia' });
     };
 
     return RangoHorario;

@@ -2,7 +2,8 @@ const { GradoEstudios } = require('../db_connection');
 
 //Trae todas las GradoEstudioes
 const getGradoEstudios = async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
         const { count, rows } = await GradoEstudios.findAndCountAll({
             where: { state: true },

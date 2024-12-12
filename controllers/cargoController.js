@@ -9,18 +9,21 @@ const getCargoById = async (id) => {
             },
             include: [{ model: Subgerencia, as: 'Subgerencia' }]
         });
-        
+
         return cargo;
-           
+
     } catch (error) {
-        console.error('Error al obtener el cargo por ID:',error);
+        console.error('Error al obtener el cargo por ID:', error);
         throw error;
     }
 };
 
 // Obtener todos los Cargos con sus Subgerencias
 const getAllCargos = async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit;
+
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
     try {
         const cargos = await Cargo.findAndCountAll({
             where: { state: true },
@@ -31,7 +34,7 @@ const getAllCargos = async (page = 1, limit = 20) => {
         });
         return {
             totalCount: cargos.count,
-            data:cargos.rows,
+            data: cargos.rows,
             currentPage: page
         } || null;
     } catch (error) {

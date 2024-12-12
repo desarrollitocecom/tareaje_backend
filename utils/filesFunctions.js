@@ -1,20 +1,10 @@
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 // Rutas para guardar las fotos y las justificaciones :
 const { FOTOS_RUTA, PDF_RUTA } = process.env;
-
-// Función para asegurarse de que las carpetas existen :
-const ensureDirectoryExists = (dir) => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-};
-
-// Asegurarse de que las rutas existen :
-ensureDirectoryExists(FOTOS_RUTA);
-ensureDirectoryExists(PDF_RUTA);
 
 // Configuración de almacenamiento para fotos :
 const imageStorage = multer.diskStorage({
@@ -83,8 +73,38 @@ const multerError = (err, req, res, next) => {
     next();
 };
 
+// Función para eliminar archivos :
+const deleteFile = (file) => {
+    const filePath = path.join(PDF_RUTA, file);
+    return new Promise((resolve, reject) => {
+        const absolutePath = path.resolve(filePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlink(absolutePath, (err) => {
+                if (err) return reject(new Error(`Error al eliminar el archivo: ${err.message}`));
+                resolve(`Archivo eliminado correctamente: ${absolutePath}`);
+            });
+        } else resolve(`Archivo no encontrado: ${absolutePath}`);
+    });
+};
+
+// Función para eliminar fotos :
+const deletePhoto = (file) => {
+    const filePath = path.join(FOTOS_RUTA, file);
+    return new Promise((resolve, reject) => {
+        const absolutePath = path.resolve(filePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlink(absolutePath, (err) => {
+                if (err) return reject(new Error(`Error al eliminar el archivo: ${err.message}`));
+                resolve(`Archivo eliminado correctamente: ${absolutePath}`);
+            });
+        } else resolve(`Archivo no encontrado: ${absolutePath}`);
+    });
+};
+
 module.exports = {
     saveImage,
     savePdf,
     multerError,
+    deleteFile,
+    deletePhoto
 };

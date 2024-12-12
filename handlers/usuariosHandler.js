@@ -253,7 +253,7 @@ const getAllUsersHandler = async (req, res) => {
 
     const errores = [];
     if (isNaN(page)) errores.push("El page debe ser un numero");
-    if (page <= 0) errores.push("El page debe ser mayor a 0 ");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(pageSize)) errores.push("El pageSize debe ser un numero");
     if (pageSize <= 0) errores.push("El pageSize debe ser mayor a 0 ");
     if (errores.length > 0) {

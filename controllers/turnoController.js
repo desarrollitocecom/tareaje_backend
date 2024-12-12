@@ -1,19 +1,20 @@
-const {Turno}= require('../db_connection');
+const { Turno } = require('../db_connection');
 
 //Trae todas las Turnoes
-const getTurnos=async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit; 
+const getTurnos = async (page = 1, limit = 20) => {
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
-        const  { count, rows }=await Turno.findAndCountAll({
+        const { count, rows } = await Turno.findAndCountAll({
             where: { state: true },
             limit,
             offset,
             order: [['id', 'ASC']]
 
         });
-        return { total: count, data: rows , currentPage:page } || null;
+        return { data: rows, total: count } || null;
     } catch (error) {
-        console.error('Error al Obtener todas las Turnoes ',error);
+        console.error('Error al Obtener todas las Turnos...', error);
         return false
     }
 }
@@ -21,22 +22,24 @@ const getTurnos=async (page = 1, limit = 20) => {
 //trae una Turno especifica por id
 const getTurno = async (id) => {
     try {
-        const turno = await Turno.findOne({where: {
-            id ,
-        }});
+        const turno = await Turno.findOne({
+            where: {
+                id,
+            }
+        });
         return turno || null;
     } catch (error) {
         console.error(`Error al obtener la Turno: ${error.message}`);
-      return false
+        return false
     }
 };
 //Crea una nueva Turno
-const createTurno = async ({nombre}) => {
+const createTurno = async ({ nombre }) => {
     try {
         const newTurno = await Turno.create({ nombre });
-        return newTurno 
+        return newTurno
     } catch (error) {
-        console.error('Error al crear una nueva Turno',error)
+        console.error('Error al crear una nueva Turno', error)
         return false
     }
 };
@@ -46,7 +49,7 @@ const deleteTurno = async (id) => {
         const newTurno = await Turno.findByPk(id);
         newTurno.state = false;
         await newTurno.save();
-       return newTurno || null
+        return newTurno || null
     } catch (error) {
         return false;
     }
@@ -57,17 +60,17 @@ const updateTurno = async (id, nuevaTurno) => {
     if (id && nuevaTurno)
         try {
             const newTurno = await getTurno(id);
-            if (newTurno) 
+            if (newTurno)
                 await newTurno.update(nuevaTurno);
-                return newTurno || null;
-            
+            return newTurno || null;
+
         } catch (error) {
             console.error('Error al actualizar la Turno:', error.message);
             return false;
         }
     else
         return false;
-};  
+};
 
 
 

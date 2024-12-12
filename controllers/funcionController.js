@@ -2,7 +2,8 @@ const { Funcion } = require('../db_connection');
 
 //Trae todas las funciones y las pagina 
 const getFunciones = async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit; 
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     try {
         const { count, rows } = await Funcion.findAndCountAll({
             where: { state: true },
@@ -10,7 +11,7 @@ const getFunciones = async (page = 1, limit = 20) => {
             offset,
             order: [['id', 'ASC']]
         });
-        return { totalCount: count, data: rows , currentPage:page } || null;
+        return { totalCount: count, data: rows, currentPage: page } || null;
     } catch (error) {
         console.error('Error al obtener todas las funciones', error);
         return false;

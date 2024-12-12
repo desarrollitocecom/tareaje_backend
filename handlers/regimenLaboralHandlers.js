@@ -12,7 +12,7 @@ const getRegimenLaboralesHandler = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const errores = [];
     if (isNaN(page)) errores.push("El page debe ser un numero");
-    if (page <= 0) errores.push("El page debe ser mayor a 0 ");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
     if(errores.length>0){
@@ -88,11 +88,6 @@ const createRegimenLaboralHandler = async (req, res) => {
     if (typeof nombre !== 'string') {
         errores.push('El campo nombre debe ser una cadena de texto');
     }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
-
     if (errores.length > 0) {
         return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
     }

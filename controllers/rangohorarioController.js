@@ -1,145 +1,144 @@
-const { RangoHorario, Turno, Cargo } = require('../db_connection');
+const { RangoHorario, Funcion, Turno, Subgerencia } = require('../db_connection');
 
-// Obtener un RangoHorario por ID con su Turno
+// Obtener un Rango Horario por ID :
 const getRangoHorarioById = async (id) => {
+
     try {
-        const rangoHorario = await RangoHorario.findByPk(id, {
-            include: [
-                { model: Cargo, as: 'cargo' },
-                { model: Turno, as: 'turno' }
-            ]
-        });
-        return rangoHorario || null;
+        const rango = await RangoHorario.findByPk(id);
+        return rango || null;
+
     } catch (error) {
-        console.error('Error al obtener el rango horario por ID:', error);
+        console.error('Error al obtener el Rango Horario por ID:', error);
         return false;
     }
 };
 
-// Obtener todos los RangosHorario con paginación :
+// Obtener todos los Rango Horario con paginación :
 const getAllRangosHorarios = async (page = 1, limit = 20) => {
-    const offset = (page - 1) * limit;
+
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
     try {
-        const rangosHorarios = await RangoHorario.findAndCountAll({
+
+        const { count, rows } = await RangoHorario.findAndCountAll({
             where: { state: true },
             include: [
-                { model: Cargo, as: 'cargo' },
-                { model: Turno, as: 'turno' }
+                { model: Turno, as: 'turno', attributes: ['nombre'] },
+                { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] }
             ],
             limit,
             offset
         });
-        return {
-            totalCount: rangosHorarios.count,
-            data: rangosHorarios.rows,
-            currentPage: page
-        } || null;
+        return { data: rows, totalCount: count } || null;
+
     } catch (error) {
-        console.error('Error al obtener todos los rangos horarios:', error);
+        console.error('Error al obtener todos los rangos de horario:', error);
         return false;
     }
 };
 
 // Obtener todos los RangosHorario sin paginación (SIN HANDLER) :
-const getAllRangosHorariosTotal = async () => {
-    try {
-        const rangosHorarios = await RangoHorario.findAll({
-            where: { state: true },
-            include: [
-                { model: Cargo, as: 'cargo' },
-                { model: Turno, as: 'turno' }
-            ]
-        });
-        return rangosHorarios || null;
-    } catch (error) {
-        console.error('Error al obtener todos los rangos horarios:', error);
-        return false;
-    }
-};
+const getRangosHorariosHora = async (hora) => {
 
-// Obtener el Id de Cargo y Turno por Hora de Inicio (SIN HANDLER) :
-const getCargoTurnoIdsByInicio = async (hora_inicio) => {
     try {
-        const cargosConTurnos = await RangoHorario.findAll({
-            attributes: [],
+        const horaStr = (hora < 10) ? `0${hora}:00:00` : `${hora}:00:00`;
+
+        const response = await RangoHorario.findAll({
             where: {
-                inicio: hora_inicio,
-                state: true
-            },
-            include: [
-                {
-                    model: Cargo,
-                    as: 'cargo',
-                    attributes: ['id']
-                },
-                {
-                    model: Turno,
-                    as: 'turno',
-                    attributes: ['id']
-                }
-            ]
+                state: true,
+                inicio: horaStr,
+            }
         });
 
-        // Mapea el resultado para obtener solo los IDs
-        const ids = cargosConTurnos.map((rango) => ({
-            cargoId: rango.cargo.id,
-            turnoId: rango.turno.id
-        }));
+        if (!response) {
+            console.warn('No se obtuvo los rangos de horario en esta hora...');
+            return null;
+        }
+        console.log(response);
+        return response;
 
-        return ids || [];
     } catch (error) {
-        console.error('Error al obtener los IDs de cargos y turnos por hora de inicio:', error);
+        console.error('Error al obtener los rangos de horario por hora:', error);
         return false;
     }
 };
 
 // Crear un nuevo RangoHorario :
-const createRangoHorario = async (inicio, fin, id_cargo, id_turno) => {
-    const state = true;
+const createRangoHorario = async (nombre, inicio, fin, ids_funcion, id_turno, id_subgerencia) => {
+
     try {
-        const newRangoHorario = await RangoHorario.create({ inicio, fin, state, id_cargo, id_turno });
-        return newRangoHorario;
+        const response = await RangoHorario.create({
+            nombre,
+            inicio,
+            fin,
+            ids_funcion,
+            id_turno,
+            id_subgerencia
+        });
+        return response || null;
+
     } catch (error) {
-        console.error('Error al crear un nuevo rango horario:', error);
+        console.error('Error al crear un nuevo Rango Horario:', error);
         return false;
     }
 };
 
-// Actualizar un RangoHorario
-const updateRangoHorario = async (id, rangoHorarioData) => {
+// Actualizar un Rango Horario
+const updateRangoHorario = async (id, nombre, inicio, fin, ids_funcion, id_turno, id_subgerencia) => {
+
     try {
-        const rangoHorario = await RangoHorario.findByPk(id);
-        if (!rangoHorario) {
-            return null;
-        }
-        const updatedFields = {};
-        if (rangoHorarioData.inicio) {
-            updatedFields.inicio = rangoHorarioData.inicio;
-        }
-        if (rangoHorarioData.fin) {
-            updatedFields.fin = rangoHorarioData.fin;
-        }
-        await rangoHorario.update(updatedFields);
-        console.log('RangoHorario actualizado correctamente');
-        return rangoHorario;
+        const rango = await RangoHorario.findByPk(id);
+        if (!rango) return 1;
+
+        const response = await rango.update({
+            nombre,
+            inicio,
+            fin,
+            ids_funcion,
+            id_turno,
+            id_subgerencia
+        });
+        return response || null;
+
     } catch (error) {
-        console.error('Error al actualizar el rango horario:', error);
+        console.error('Error al actualizar el Rango Horario:', error);
         return false;
     }
 };
 
-// Eliminar un RangoHorario (Cambio del state a false)
+// Añadir un id de función al rango de horario correspondiente :
+const validationFuncionRangoHorario = async (tipo) => {
+    
+    try {
+        const tipos = await RangoHorario.findAll({
+            where: { state: true },
+            attributes: ['nombre']
+        });
+        const general = new Set();
+        tipos.forEach(e => general.add(e.nombre.split(' ')[0]));
+        if (!general.has(tipo)) return false;
+        return true;
+        
+    } catch (error) {
+        console.error('Error al agregar id de función al Rango de Horario:', error);
+        return false;
+    }
+};
+
+// Eliminar un Rango Horario (Cambio del state a false)
 const deleteRangoHorario = async (id) => {
+
     try {
-        const rangoHorario = await RangoHorario.findByPk(id);
-        if (!rangoHorario) {
-            return null;
-        }
-        rangoHorario.state = false;
-        await rangoHorario.save();
-        return rangoHorario || null;
+        const rango = await RangoHorario.findByPk(id);
+        if (!rango) return 1;
+        
+        rango.state = false;
+        await rango.save();
+        return rango || null;
+
     } catch (error) {
-        console.error('Error al eliminar el rango horario:', error);
+        console.error('Error al eliminar el Rango Horario:', error);
         return false
     }
 };
@@ -147,9 +146,9 @@ const deleteRangoHorario = async (id) => {
 module.exports = {
     getRangoHorarioById,
     getAllRangosHorarios,
-    getAllRangosHorariosTotal,
-    getCargoTurnoIdsByInicio,
+    getRangosHorariosHora,
     createRangoHorario,
     updateRangoHorario,
+    validationFuncionRangoHorario,
     deleteRangoHorario
 };

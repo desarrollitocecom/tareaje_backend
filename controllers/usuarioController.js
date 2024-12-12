@@ -58,8 +58,7 @@ const signToken = async (usuario, jwt) => {
         const user = await getUser(usuario);
         if (user) {
             const updatedUser = await user.update({ token: jwt });
-            console.log(usuario, ":", jwt);
-
+            //console.log(usuario, ":", jwt);
             return updatedUser;
         }
         return null;
@@ -93,7 +92,7 @@ const changeUserData = async (usuario, correo, id_rol) => {
 
     try {
         const user = await getUser(usuario);
-        console.log("usuario: ", user);
+        //console.log("usuario: ", user);
 
         if (user) {
             const updatedUser = await user.update({
@@ -110,10 +109,10 @@ const changeUserData = async (usuario, correo, id_rol) => {
 
 };
 
-const getAllUsers = async (page = 1, pageSize = 20) => {
+const getAllUsers = async (page = 1, limit = 20) => {
     try {
-        const offset = (page - 1) * pageSize;
-        const limit = pageSize;
+        const offset = page == 0 ? null : (page - 1) * limit;
+        limit = page == 0 ? null : limit;
 
         const response = await Usuario.findAndCountAll({
             attributes: ['id', 'usuario', 'correo', 'state', 'id_rol', 'id_empleado'],
@@ -128,7 +127,7 @@ const getAllUsers = async (page = 1, pageSize = 20) => {
         });
 
         // Calcular el número total de páginas basado en el total de registros y el tamaño de la página
-        const totalPages = Math.ceil(response.count / pageSize);
+        const totalPages = Math.ceil(response.count / limit);
 
         return {
             data: response.rows,                // Datos de los usuarios en la página actual
@@ -146,7 +145,7 @@ const getUserByToken = async (token) => {
 
     try {
         const user = await Usuario.findOne({
-            where: {token, token},
+            where: { token, token },
             attributes: ['id']
         });
         return user.id;
@@ -164,11 +163,12 @@ const getUserById = async (token) => {
             attributes: ['id', 'usuario', 'correo', 'state', 'id_rol', 'id_empleado'],
             include: [
                 { model: Rol, as: 'rol', attributes: ['nombre'] },
-                { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos'] }
+                { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos','foto'] }
             ]
         });
 
         if (user) {
+
             return user;
         } else {
             return null; // Retorna null si no se encontró el usuario

@@ -11,6 +11,10 @@ module.exports = (sequelize) => {
             type: DataTypes.DATEONLY,
             allowNull: false
         },
+        tipo: {
+            type: DataTypes.ENUM('DM','DO','DC'),
+            allowNull: false
+        },
         observacion: {
             type: DataTypes.TEXT,
             allowNull: false

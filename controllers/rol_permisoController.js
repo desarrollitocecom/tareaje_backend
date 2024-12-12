@@ -40,10 +40,10 @@ const createPermiso = async (action, resource, descripcion) => {
 
 };
 
-const getAllRols = async (page = 1, pageSize = 20) => {
+const getAllRols = async (page = 1, limit = 20) => {
     try {
-        const offset = (page - 1) * pageSize;
-        const limit = pageSize;
+        const offset = page == 0 ? null : (page - 1) * limit;
+        limit = page == 0 ? null : limit;
 
         const response = await Rol.findAndCountAll({
             where: { state: true },
@@ -72,7 +72,7 @@ const getAllRols = async (page = 1, pageSize = 20) => {
 const getRolById = async (id) => {
     try {
         const rol = await Rol.findByPk(id, {
-           
+
             include: {
                 model: Permiso,
                 as: 'permisos',
@@ -86,10 +86,10 @@ const getRolById = async (id) => {
     }
 };
 
-const getAllPermisos = async (page = 1, pageSize = 20) => {
+const getAllPermisos = async (page = 1, limit = 20) => {
     try {
-        const offset = (page - 1) * pageSize;
-        const limit = pageSize;
+        const offset = page == 0 ? null : (page - 1) * limit;
+        limit = page == 0 ? null : limit;
 
         const response = await Permiso.findAndCountAll({
             where: { state: true },

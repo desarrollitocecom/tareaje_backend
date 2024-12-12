@@ -2,12 +2,39 @@ const { Empleado, Cargo, RegimenLaboral, Sexo,
     Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion } = require('../db_connection');
 const { Op } = require('sequelize');
 
-const { deletePerson } = require('./axxonController');
+const getAllUniverseEmpleados = async () => {
+
+    try {
+        const response = await Empleado.findAndCountAll({
+            where: { state: true },
+            attributes: ['id', 'nombres', 'apellidos', 'dni'],
+            order: [['apellidos', 'ASC']]
+        });
+        return { totalCount: response.count, data: response.rows } || null;
+
+    } catch (error) {
+        console.error("Error al obtener todos los empleados:", error);
+        return false;
+    }
+};
 
 const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
-    const { search, dni, state, cargo, subgerencia, turno } = filters; // Extraer filtros
+    const { search, dni, state, cargo, subgerencia, regimen, jurisdiccion, sexo, turno, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
     const offset = (page - 1) * limit;
-    const parsedState = state === "true";
+    limit = page == 0 ? null : limit;
+
+    //const parsedState = state === "true";
+    // Calcular fechas basadas en edad mínima y máxima
+    const today = new Date();
+    const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null; //
+    const dateFromEdadMax = edadMin ? new Date(today.getFullYear() - edadMin, today.getMonth(), today.getDate()) : null;
+
+    // Asegurarse de que dateFromEdadMin y dateFromEdadMax son fechas válidas
+    const validDateFromEdadMin = dateFromEdadMin instanceof Date && !isNaN(dateFromEdadMin);
+    const validDateFromEdadMax = dateFromEdadMax instanceof Date && !isNaN(dateFromEdadMax);
+
+    //console.log("EDAD: ", dateFromEdadMax, dateFromEdadMin);
+
     //console.log(search, dni, state, cargo, subgerencia, turno);
     try {
         // Construcción dinámica de condiciones
@@ -18,9 +45,23 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
                     { apellidos: { [Op.iLike]: `%${search}%` } },
                 ],
             }),
-            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }), // busca por dni que coincida con el filtro, puede ser el DNI completo o parte de él
-            ...(state !== undefined && { state: parsedState }), // Búsqueda exacta por estado: true o false
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(state !== undefined && { state }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(validDateFromEdadMin && validDateFromEdadMax && {
+                f_nacimiento: {
+                    [Op.between]: [dateFromEdadMin, dateFromEdadMax],
+                },
+            }),
+            ...(hijosMin && hijosMax && {
+                hijos: {
+                    [Op.between]: [hijosMin, hijosMax]
+                }
+            })
         };
+
 
         const includeConditions = [
             {
@@ -45,20 +86,19 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
 
         const response = await Empleado.findAndCountAll({
             where: whereCondition,
-            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state'],
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state', 'foto', 'f_nacimiento'],
             include: includeConditions,
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['apellidos', 'ASC']]
         });
-
+        console.log("personas: ", response.count);
         return { totalCount: response.count, data: response.rows, currentPage: page } || null;
     } catch (error) {
         console.error("Error al obtener todos los empleados:", error);
         return false;
     }
 };
-
 
 const getEmpleado = async (id) => {
     try {
@@ -131,80 +171,62 @@ const deleteEmpleado = async (id) => {
 
     try {
         const response = await Empleado.findByPk(id);
-        const consulta = await deletePerson(response.dni);
-        if (!consulta) return null;
-        response.state = false;
+        if (!response) return 1;
+        
+        const info = response.state;
+        response.state = !info;
         await response.save();
         return response || null;
 
     } catch (error) {
-        console.error('Error al canbiar de estado al eliminar Eliminar');
+        console.error('Error al cambiar de estado...');
         return false;
     }
 
 };
 const updateEmpleado = async (
-    id,
-    nombres,
-    apellidos,
-    dni,
-    ruc,
-    hijos,
-    edad,
-    f_nacimiento,
-    correo,
-    domicilio,
-    celular,
-    f_inicio,
-    foto,
-    observaciones,
-    id_cargo,
-    id_turno,
-    id_regimen_laboral,
-    id_sexo,
-    id_jurisdiccion,
-    id_grado_estudios,
-    id_subgerencia,
-    id_funcion,
-    id_lugar_trabajo
+    id, nombres, apellidos, dni, ruc, hijos, edad,
+    f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, foto,
+    id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+    id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
 ) => {
 
     try {
-        const empleado = await getEmpleado(id);
-        if (!empleado) return null;
+        const empleado = await Empleado.findByPk(id);
+        if (!empleado) return 1;
 
-        if (empleado) {
-            await empleado.update({
-                nombres,
-                apellidos,
-                dni,
-                ruc,
-                hijos,
-                edad,
-                f_nacimiento,
-                correo,
-                domicilio,
-                celular,
-                f_inicio,
-                foto,
-                observaciones,
-                id_cargo,
-                id_turno,
-                id_regimen_laboral,
-                id_sexo,
-                id_jurisdiccion,
-                id_grado_estudios,
-                id_subgerencia,
-                id_funcion,
-                id_lugar_trabajo
-            });
-        }
+        await empleado.update({
+            nombres,
+            apellidos,
+            dni,
+            ruc,
+            hijos,
+            edad,
+            f_nacimiento,
+            correo,
+            domicilio,
+            celular,
+            f_inicio,
+            observaciones,
+            foto,
+            id_cargo,
+            id_turno,
+            id_regimen_laboral,
+            id_sexo,
+            id_jurisdiccion,
+            id_grado_estudios,
+            id_subgerencia,
+            id_funcion,
+            id_lugar_trabajo
+        });
         return empleado || null;
+
     } catch (error) {
         console.error("Error al modificar el empleado en el controlador:", error);
         return false;
     }
 };
+
 const getEmpleadoByDni = async (dni) => {
 
     try {
@@ -219,34 +241,41 @@ const getEmpleadoByDni = async (dni) => {
     }
 };
 
-// Obtención del empleado (ID, DNI) según el ID de Cargo y Turno :
-const getEmpleadoIdDniByCargoTurno = async (id_cargo, id_turno) => {
+// Obtención del empleado (id, dni, id_funcion, id_turno) para el algoritmo de asistencia :
+const findEmpleado = async (ids_funcion, id_turno) => {
 
     try {
-        const empleados = await Empleado.findAll({
-            attributes: ['id', 'dni'],
+        const response = await Empleado.findAll({
+            attributes: ['id', 'dni', 'id_funcion', 'id_turno'],
             where: {
-                id_cargo: id_cargo,
+                state: true,
+                id_funcion: { [Op.in]: ids_funcion },
                 id_turno: id_turno
             }
         });
-        if (!empleados || empleados.length === 0) return null;
-        const result = empleados.map(empleado => ({
-            id: empleado.id,
-            dni: empleado.dni
+
+        if (!response) {
+            console.warn('No se obtuvo los empleados para estos ids de función y turno...');
+            return null;
+        }
+        const result = response.map(r => ({
+            ...r.dataValues,
+            state: false
         }));
         return result;
+
     } catch (error) {
-        console.error('Error al obtener los empleados por cargo y turno:', error);
+        console.error('Error al obtener los empleados por función y turno:', error);
         return false;
     }
 };
 
 module.exports = {
+    getAllUniverseEmpleados,
     getEmpleadoByDni,
     getAllEmpleados,
-    getEmpleadoIdDniByCargoTurno,
     getEmpleado,
+    findEmpleado,
     createEmpleado,
     deleteEmpleado,
     updateEmpleado

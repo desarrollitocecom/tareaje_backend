@@ -15,8 +15,9 @@ const getAsistenciaById = async (id) => {
 
 // Obtener las asistencias (todos los estados) de un día determinado :
 const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
-    
-    const offset = (page - 1) * limit;
+
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
 
     try {
         const asistencias = await Asistencia.findAndCountAll({
@@ -27,7 +28,7 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
                 {
                     model: Empleado,
                     as: 'empleado',
-                    attributes: ['nombres', 'apellidos', 'dni'],
+                    attributes: ['nombres', 'apellidos', 'dni', 'foto'],
                     include: [
                         {
                             model: Cargo,
@@ -58,6 +59,7 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
             nombres: asistencia.empleado.nombres,
             apellidos: asistencia.empleado.apellidos,
             dni: asistencia.empleado.dni,
+            foto: asistencia.empleado.foto,
             cargo: asistencia.empleado.cargo ? asistencia.empleado.cargo.nombre : null,
             turno: asistencia.empleado.turno ? asistencia.empleado.turno.nombre : null
         }));
@@ -74,11 +76,48 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
     }
 };
 
-// Obtener asistencias (todos los estados) en un rango de fechas :
-const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
-    
-    const offset = (page - 1) * pageSize;
-    const limit = pageSize;
+// Obtener ids asistencias con datos de empleado en un rango de fechas :
+const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
+
+    try {
+        const asistencias = await Asistencia.findAll({
+            where: {
+                fecha: { [Op.between]: [inicio, fin] },
+                id_empleado: id_empleado
+            },
+            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }],
+            order: [['fecha', 'ASC']]
+        });
+        if (!asistencias) return null;
+
+        const nombre = asistencias[0].empleado.nombres;
+        const apellido = asistencias[0].empleado.apellidos;
+        const dni = asistencias[0].empleado.dni;
+
+        const info = [];
+        asistencias.forEach(a => {
+            const id = a.id;
+            const fecha = a.fecha;
+            const estado = a.estado
+            const carga = { id, fecha, estado };
+            info.push(carga);
+        });
+
+        const result = { nombre, apellido, dni, info };
+        return result;
+
+    } catch (error) {
+        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        return false;
+    }
+};
+
+// Obtener asistencias (todos los estados) en un rango de fechas con filtros :
+const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {}) => {
+
+    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = filters; // Extraer filtros
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     const dias = [];
 
     let fechaDate = new Date(inicio);
@@ -88,11 +127,26 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
     }
 
     try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            ...(search && {
+                [Op.or]: [
+                    { nombres: { [Op.iLike]: `%${search}%` } },
+                    { apellidos: { [Op.iLike]: `%${search}%` } },
+                ],
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(state !== undefined && { state: parsedState }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(turno && { id_turno: turno }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(sexo && { id_sexo: sexo })
+        };
+
         const empleados = await Empleado.findAndCountAll({
-            include: [
-                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
-                { model: Turno, as: 'turno', attributes: ['nombre'] }
-            ],
+            where: whereCondition,
             limit,
             offset,
             order: [['apellidos', 'ASC']]
@@ -108,9 +162,9 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
         // Mapeo de las asistencias por empleado y fecha :
         const asistenciaMap = {};
         asistencias.forEach(asistencia => {
-            const { id, id_empleado, fecha, estado} = asistencia;
+            const { id, id_empleado, fecha, estado } = asistencia;
             if (!asistenciaMap[id_empleado]) asistenciaMap[id_empleado] = {};
-            asistenciaMap[id_empleado][fecha] = { estado, id};
+            asistenciaMap[id_empleado][fecha] = { estado, id };
         });
 
         const result = empleados.rows.map(empleado => ({
@@ -142,50 +196,12 @@ const getAsistenciaRango = async (page = 1, pageSize = 20, inicio, fin) => {
     }
 };
 
-// Obtener ids asistencias con datos de empleado en un rango de fechas :
-const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
-    
-    const dias = [];
-
-    let fechaDate = new Date(inicio);
-    while (fechaDate <= new Date(fin)) {
-        dias.push(new Date(fechaDate).toISOString().split('T')[0]);
-        fechaDate.setDate(fechaDate.getDate() + 1);
-    }
-
-    try {
-        const asistencias = await Asistencia.findAll({
-            where: {
-                fecha: { [Op.between]: [inicio, fin] },
-                id_empleado: id_empleado
-            },
-            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
-        });
-
-        const nombre = asistencias[0].empleado.nombres;
-        const apellido = asistencias[0].empleado.apellidos;
-        const dni = asistencias[0].empleado.dni;
-
-        const ids = [];
-        asistencias.forEach(a => {
-            ids.push(a.id);
-        });
-        
-        const result = { nombre, apellido, dni, ids};
-        return result;
-
-    } catch (error) {
-        console.error('Error al obtener las asistencias de un rango de fechas:', error);
-        return false;
-    }
-};
-
 // Obtener todas las asistencias :
 const getAllAsistencias = async (page = 1, pageSize = 20) => {
-    
+
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
-    
+
     try {
         const response = await Asistencia.findAndCountAll({
             limit,
@@ -207,41 +223,41 @@ const getAllAsistencias = async (page = 1, pageSize = 20) => {
 
 // Crear Asistencia desde el algoritmo (SIN HANDLER) :
 const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
-    
+
     // Validaciones para crear de forma correcta la asistencia correspondiente :
-    if(!fecha){
+    if (!fecha) {
         console.error('Es necesario que exista el parámetro FECHA');
         return false;
     }
-    if(!hora){
+    if (!hora) {
         console.error('Es necesario que exista el parámetro HORA');
         return false;
     }
-    if(!estado){
+    if (!estado) {
         console.error('Es necesario que exista el parámetro ESTADO');
         return false;
     }
-    if(!id_empleado){
+    if (!id_empleado) {
         console.error('Es necesario que exista el parámetro ID EMPLEADO');
         return false;
     }
-    if(!photo_id){
+    if (!photo_id) {
         console.error('Es necesario que exista el parámetro PHOTO ID');
         return false;
     }
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(fecha)){
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
         console.error('El formato para la FECHA es incorrecto');
         return false;
     }
-    if(!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(hora)){
+    if (!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(hora)) {
         console.error('El formato para la HORA es incorrecto');
         return false;
     }
-    if(!["A", "F", "DM", "DO", "V", "DF", "LSG", "LCG", "LF", "PE"].includes(estado)){
+    if (!["A", "F", "DM", "DO", "V", "DF", "LSG", "LCG", "LF", "PE"].includes(estado)) {
         console.error('El estado ingresado no es el correspondiente');
         return false;
     }
-    if(isNaN(id_empleado)){
+    if (isNaN(id_empleado)) {
         console.error('El formato para el ID EMPLEADO debe ser un entero');
         return false;
     }
@@ -254,11 +270,11 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
             id_empleado: id_empleado,
             photo_id: photo_id
         });
-        if (newAsistencia){
+        if (newAsistencia) {
             console.log('Asistencia creada exitosamente');
             return newAsistencia;
         }
-        else{
+        else {
             console.warn('Resultado nulo: No se pudo crear la asistencia');
             return null;
         }
@@ -270,7 +286,7 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
 
 // Crear asistencia, esto lo realizará un usuario (sin photo_id) :
 const createAsistenciaUsuario = async (fecha, hora, estado, id_empleado) => {
-    
+
     try {
         const asistencias = await Asistencia.findAndCountAll({
             where: {
@@ -301,7 +317,7 @@ const createAsistenciaUsuario = async (fecha, hora, estado, id_empleado) => {
 
 // Filtrar solo las asistencias de un día determinado :
 const filtroAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
-    
+
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
 

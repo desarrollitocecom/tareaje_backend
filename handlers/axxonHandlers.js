@@ -1,49 +1,43 @@
-const { 
-    createPerson,
-    readPerson,
-    updatePerson,
-    deletePerson,
-    getEmpleadoId,
-    getPhotoId,
-    searchByFace,
-    getProtocols
-} = require('../controllers/axxonController');
+const { createPerson, readPerson, deletePerson, getEmpleadoId, getPhotoId, searchByFace, getProtocols } = require('../controllers/axxonController');
+const { getEmpleadoByDni, getEmpleado } = require("../controllers/empleadoController");
+
+
 
 // Handler CreatePerson (SOLO DE PRUEBA) :
 const createPersonHandler = async (req, res) => {
 
     const { nombres, apellidos, dni, cargo, turno, foto } = req.body;
-    if (!nombres){
+    if (!nombres) {
         return res.status(400).json({ message: 'El parámetro NOMBRES es requerido y debe ser un String' });
     }
-    if (!apellidos){
+    if (!apellidos) {
         return res.status(400).json({ message: 'El parámetro APELLIDOS es requerido y debe ser un String' });
     }
-    if (!dni || typeof(dni) !== 'string'){
+    if (!dni || typeof (dni) !== 'string') {
         return res.status(400).json({ message: 'El parámetro DNI es requerido y debe ser un String' });
     }
     if (dni.length !== 8) {
         return res.status(400).json({ message: 'El parámetro DNI debe tener 8 caracteres' });
     }
-    if (!cargo || typeof(cargo) !== 'string'){
+    if (!cargo || typeof (cargo) !== 'string') {
         return res.status(400).json({ message: 'El parámetro CARGO es requerido y debe ser un String' });
     }
-    if (!turno || typeof(turno) !== 'string'){
+    if (!turno || typeof (turno) !== 'string') {
         return res.status(400).json({ message: 'El parámetro TURNO es requerido y debe ser un String' });
     }
-    if (!foto || typeof(foto) !== 'string'){
+    if (!foto || typeof (foto) !== 'string') {
         return res.status(400).json({ message: 'El parámetro FOTO es requerido y debe ser un String' });
     }
 
     try {
         const result = await createPerson(nombres, apellidos, dni, cargo, turno, foto);
         if (result) {
-            return res.status(200).json({ 
+            return res.status(200).json({
                 message: 'Usuario creado con éxito',
                 success: result
             });
         } else {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 message: 'No se pudo crear al usuario',
                 success: result
             });
@@ -61,60 +55,16 @@ const readPersonHandler = async (req, res) => {
 
     try {
         const data = await readPerson();
-        if(data.length > 0){
+        if (data.length > 0) {
             return res.status(200).json({
                 message: 'Datos obtenidos exitosamente de ReadPerson',
                 data: { data }
             });
         }
-        else{
+        else {
             return res.status(400).json({
                 message: 'No se obtuvo ningún dato de ReadPerson',
                 data: null
-            });
-        }
-    } catch (error) {
-        return res.status(500).json({
-            message: 'Error en la consulta',
-            error: error.message
-        });
-    }
-};
-
-// Handler UpdatePerson (SOLO DE PRUEBA) :
-const updatePersonHandler = async (req, res) => {
-
-    const { nombres, apellidos, dni, cargo, turno } = req.body;
-    if (nombres !== null && typeof nombres !== 'string') {
-        return res.status(400).json({ message: 'El parámetro NOMBRES debe ser un String' });
-    }
-    if (apellidos !== null && typeof apellidos !== 'string') {
-        return res.status(400).json({ message: 'El parámetro APELLIDOS debe ser un String' });
-    }
-    if (!dni) {
-        return res.status(400).json({ message: 'El parámetro DNI es obligatorio' });
-    }
-    if (dni.length !== 8) {
-        return res.status(400).json({ message: 'El parámetro DNI debe tener 8 caracteres' });
-    }
-    if (cargo !== null && typeof cargo !== 'string') {
-        return res.status(400).json({ message: 'El parámetro CARGO debe ser un String' });
-    }
-    if (turno !== null && typeof turno !== 'string') {
-        return res.status(400).json({ message: 'El parámetro TURNO debe ser un String' });
-    }
-
-    try {
-        const result = await updatePerson(nombres, apellidos, dni, cargo, turno);
-        if (result) {
-            return res.status(200).json({
-                message: 'Usuario actualizado con éxito',
-                success: result
-            });
-        } else {
-            return res.status(400).json({
-                message: 'No se pudo actualizar al usuario',
-                success: result
             });
         }
     } catch (error) {
@@ -129,10 +79,10 @@ const updatePersonHandler = async (req, res) => {
 const deletePersonHandler = async (req, res) => {
 
     const { dni } = req.params;
-    if(!dni){
+    if (!dni) {
         return res.status(400).json({ message: 'El parámetro DNI es requerido y debe ser un String' });
     }
-    if(dni.length !== 8) {
+    if (dni.length !== 8) {
         return res.status(400).json({ message: 'El parámetro DNI debe tener 8 caracteres' });
     }
 
@@ -161,7 +111,7 @@ const deletePersonHandler = async (req, res) => {
 const getEmpleadoIdHandler = async (req, res) => {
 
     const { dni } = req.params;
-    if(!dni || typeof(dni) !== 'string'){
+    if (!dni || typeof (dni) !== 'string') {
         return res.status(400).json({ message: 'El parámetro DNI es requerido y debe ser un String' });
     }
     if (dni.length !== 8) {
@@ -170,14 +120,14 @@ const getEmpleadoIdHandler = async (req, res) => {
 
     try {
         const empleadoId = await getEmpleadoId(dni);
-        if (empleadoId){
+        if (empleadoId) {
             return res.status(200).json({
                 message: 'Usuario encontrado exitosamente',
                 success: true,
                 id: empleadoId
             });
         }
-        else{
+        else {
             return res.status(400).json({
                 message: 'Empleado no encontrado.',
                 success: false
@@ -195,21 +145,19 @@ const getEmpleadoIdHandler = async (req, res) => {
 const getPhotoHandler = async (req, res) => {
 
     const { id } = req.params;
-    if(!id || typeof(id) !== 'string'){
+    if (!id || typeof (id) !== 'string') {
         return res.status(400).json({ message: 'El parámetro ID es requerido y debe ser un String' });
     }
 
     try {
         const photo = await getPhotoId(id);
         if (photo) {
-            return res.status(200).json({
-                message: 'Imagen obtenida exitosamente',
-                data: photo
-            });
+            res.set('Content-Type', 'image/jpeg');
+            return res.status(200).send(photo.data);
         } else {
             return res.status(400).json({
                 message: 'No se pudo obtener la imagen',
-                data: null
+                data: []
             });
         }
     } catch (error) {
@@ -224,19 +172,59 @@ const getPhotoHandler = async (req, res) => {
 const searchByFaceHandler = async (req, res) => {
 
     const { foto } = req.body;
-    if(!foto){
+    if (!foto) {
         return res.status(400).json({ message: 'El parámetro FOTO es requerido' });
     }
-    
+
     try {
         const personInfo = await searchByFace(foto);
-        if (personInfo){
+        if (personInfo) {
+        const personId = await getEmpleadoByDni(personInfo.dni);
+        //console.log("personID:",personId);
+        const personDetail = await getEmpleado(personId.dataValues.id);
             return res.status(200).json({
                 message: 'Persona reconocida exitosamente',
-                data: personInfo
+                data: {
+                    nombres: personDetail.apellidos+" "+personDetail.nombres,
+                    subgerencia: personDetail.subgerencia.nombre,
+                    estado: personDetail.state
+                    //foto: personDetail.foto,
+                }
             });
         }
-        else{
+        else {
+            return res.status(400).json({
+                message: 'Persona no reconocida',
+                success: false
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error en la consulta para obtener el usuario por foto',
+            error: error.message
+        });
+    }
+};
+
+const searchByFaceDNIHandler = async (req, res) => {
+
+    const { foto } = req.body;
+    if (!foto) {
+        return res.status(400).json({ message: 'El parámetro FOTO es requerido' });
+    }
+
+    try {
+        const personInfo = await searchByFace(foto);
+        if (personInfo) {
+        const personId = await getEmpleadoByDni(personInfo.dni);
+        //console.log("personID:",personId);
+        const personDetail = await getEmpleado(personId.dataValues.id);
+            return res.status(200).json({
+                message: `Bienvenido ${personDetail.nombres.split(" ")[0]} ${personDetail.apellidos.split(" ")[0]}`,
+                data: personDetail
+            });
+        }
+        else {
             return res.status(400).json({
                 message: 'Persona no reconocida',
                 success: false
@@ -253,27 +241,27 @@ const searchByFaceHandler = async (req, res) => {
 // Handler GetProtocols (SOLO ES DE PRUEBA) :
 const getProtocolsHandler = async (req, res) => {
 
-    const { inicio, final } = req.body;
-    if(!inicio) return res.status(400).json({ message: 'El parámetro FECHA HORA INICIO es obligatorio'});
-    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(inicio)){
-        return res.status(400).json({ message: 'La FECHA HORA INICIO debe cumplir con el siguiente formato YYYY-MM-DDTHH:MM:SS.sss'});
+    const { fecha, hora } = req.body;
+    if (!fecha) return res.status(400).json({ message: 'El parámetro FECHA  es obligatorio' });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        return res.status(400).json({ message: 'La FECHA debe cumplir con el siguiente formato YYYY-MM-DD' });
 
     }
-    if(!final) return res.status(400).json({ message: 'El parámetro FECHA HORA FINAL es obligatorio'});
-    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(final)){
-        return res.status(400).json({ message: 'La FECHA HORA FINAL debe cumplir con el siguiente formato YYYY-MM-DDTHH:MM:SS.sss'});
+    if (!hora) return res.status(400).json({ message: 'El parámetro HORA es obligatorio' });
+    if (isNaN(hora)) {
+        return res.status(400).json({ message: 'La HORA debe ser un numero' });
 
     }
 
     try {
-        const protocols = await getProtocols(inicio, final);
-        if (protocols && protocols.length > 0){
+        const protocols = await getProtocols(fecha, hora);
+        if (protocols && protocols.length > 0) {
             return res.status(200).json({
                 message: 'Datos obtenidos exitosamente de Protocols',
                 data: protocols
             });
         }
-        else{
+        else {
             return res.status(400).json({
                 message: 'No se encontraron protocolos.',
                 data: null
@@ -290,10 +278,10 @@ const getProtocolsHandler = async (req, res) => {
 module.exports = {
     createPersonHandler,
     readPersonHandler,
-    updatePersonHandler,
     deletePersonHandler,
     getEmpleadoIdHandler,
     getPhotoHandler,
     searchByFaceHandler,
-    getProtocolsHandler
+    getProtocolsHandler,
+    searchByFaceDNIHandler
 };

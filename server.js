@@ -18,7 +18,22 @@ const app = express();
 
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
 app.use(cors());
+// app.use(cors({
+//   origin: '*',
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
+
+//app.options('*', cors()); // Responde a todas las solicitudes OPTIONS automáticamente
+
+// Permite que el servidor responda a solicitudes OPTIONS
+// app.options('/login', cors());
+// app.options('/uploads/fotos', cors());
+// app.options('/uploads/pdfs', cors());
+
+
 app.use(express.json());
 app.use("/login", usuariosRouter); // no aplica authMiddleware para el manejo de usuarios
 app.use(loginMiddleware); // usa el middleware globalmente para validar todas las rutas a las que se va a acceder en el sistema solo estando logeado
@@ -35,12 +50,12 @@ app.get("/", (req, res) => {
 
 // Configurar y ejecutar los CronJobs
 configurarCronJobs()
-    .then(() => console.log('CronJobs configurados exitosamente.'))
-    .catch(err => console.error('Error al configurar los CronJobs:', err));
+  .then(() => console.log('CronJobs configurados exitosamente.'))
+  .catch(err => console.error('Error al configurar los CronJobs:', err));
 
 server.listen(PORT_TAREAJE, () => {
   console.log(`TAREAJE: Server is running on port ${PORT_TAREAJE}`);
-  sequelize.sync({ alter: false })
+  sequelize.sync({ alter: true })
     .then(() => console.log("Database is connected"))
     .catch(err => console.error("Error connecting to the database:", err));
 });
