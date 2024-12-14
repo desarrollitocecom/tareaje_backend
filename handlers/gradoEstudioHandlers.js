@@ -10,39 +10,55 @@ const { createHistorial } = require('../controllers/historialController');
 
 // Handler para obtener todas las GradoEstudioes
 const getGradoEstudiosHandler = async (req, res) => {
-    const {page=1,limit=20}=req.query;
+
+    const { page = 1, limit = 20  } = req.query;
     const errores = [];
+
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-    if(errores.length>0){
-        return res.status(400).json({ errores });
-    }
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+
     try {
-        const response = await getGradoEstudios(Number(page),Number(limit));
-        
-        // Si no hay datos, devuelve un mensaje con estado 200
-        if(response.length === 0 || page>limit){
-            return res.status(200).json(
-                {message:'Ya no hay mas Grados de Estudios',
-                 data:{
+        const response = await getGradoEstudios(numPage, numLimit);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if(numPage > totalPages){
+            return res.status(200).json({
+                message:'Página fuera de rango...',
+                data:{
                     data:[],
-                    totalPage:response.currentPage,
-                    totalCount:response.totalCount
-                 }   
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
+                    totalPages: totalPages,
+                 }
                 }
             );
         }
-
-        // Si hay datos, devuélvelos con el mensaje correspondiente
+        
         return res.status(200).json({
-            message: 'Son las Grado de Estudios',
-            data: response
+            message: 'Grados de estudio obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
         });
+        
     } catch (error) {
-        console.error('Error al obtener todas las Grado de Estudios en el handler:', error);
-        return res.status(500).json({ message: "Error al obtener todas las Grado de Estudios" });
+        console.error('Error al obtener todos los grados de estudio en el handler', error);
+        return res.status(500).json({ message: "Error al obtener todos los grados de estudio en el handler" });
     }
 };
 // Handler para obtener una GradoEstudio por ID
