@@ -13,13 +13,32 @@ const getAsistenciaById = async (id) => {
     }
 };
 
-// Obtener las asistencias (todos los estados) de un día determinado :
-const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
+// Obtener las asistencias (todos los estados) de un día determinado con filtros :
+const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) => {
 
+    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = filters; // Extraer filtros
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
 
     try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            ...(search && {
+                [Op.or]: [
+                    { nombres: { [Op.iLike]: `%${search}%` } },
+                    { apellidos: { [Op.iLike]: `%${search}%` } },
+                ],
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(state !== undefined && { state: parsedState }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(turno && { id_turno: turno }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(sexo && { id_sexo: sexo })
+        };
+
         const asistencias = await Asistencia.findAndCountAll({
             where: {
                 fecha: fecha
@@ -29,17 +48,10 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
                     model: Empleado,
                     as: 'empleado',
                     attributes: ['nombres', 'apellidos', 'dni', 'foto'],
+                    where: whereCondition,
                     include: [
-                        {
-                            model: Cargo,
-                            as: 'cargo',
-                            attributes: ['nombre']
-                        },
-                        {
-                            model: Turno,
-                            as: 'turno',
-                            attributes: ['nombre']
-                        }
+                        { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+                        { model: Turno, as: 'turno', attributes: ['nombre'] }
                     ]
                 }
             ],
@@ -48,24 +60,8 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha) => {
             order: [['hora', 'ASC']]
         });
 
-        // Mapeo del resultado para estructurar de asistencia y empleado
-        const result = asistencias.rows.map(asistencia => ({
-            id_asistencia: asistencia.id,
-            fecha: asistencia.fecha,
-            hora: asistencia.hora,
-            estado: asistencia.estado,
-            id_empleado: asistencia.id_empleado,
-            photo_id: asistencia.photo_id,
-            nombres: asistencia.empleado.nombres,
-            apellidos: asistencia.empleado.apellidos,
-            dni: asistencia.empleado.dni,
-            foto: asistencia.empleado.foto,
-            cargo: asistencia.empleado.cargo ? asistencia.empleado.cargo.nombre : null,
-            turno: asistencia.empleado.turno ? asistencia.empleado.turno.nombre : null
-        }));
-
         return {
-            data: result,
+            data: asistencias.rows,
             currentPage: page,
             totalCount: asistencias.count
         };
