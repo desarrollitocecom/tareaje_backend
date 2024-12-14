@@ -9,15 +9,19 @@ const { createHistorial } = require('../controllers/historialController');
 
 //Handlers para obtener los Turnos
 const getTurnosHandler = async (req, res) => {
-    const { page = 1, limit = 20 } = req.query;
+
+    const { page = 1, limit = 20  } = req.query;
     const errores = [];
+
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-    if (errores.length > 0) {
-        return res.status(400).json({ errores });
-    }
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     const numPage = parseInt(page);
     const numLimit = parseInt(limit);
@@ -26,35 +30,34 @@ const getTurnosHandler = async (req, res) => {
         const response = await getTurnos(numPage, numLimit);
         const totalPages = Math.ceil(response.total / numLimit);
 
-        if (numPage > totalPages) {
-            return res.status(404).json(
-                {
-                    message: 'Página fuera de rango...',
-                    data: {
-                        data: [],
-                        currentPage: numPage,
-                        totalCount: response.total,
-                        totalPages: totalPages,
-                    }
+        if(numPage > totalPages){
+            return res.status(200).json({
+                message:'Página fuera de rango...',
+                data:{
+                    data:[],
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
+                    totalPages: totalPages,
+                 }
                 }
             );
         }
-
+        
         return res.status(200).json({
-            message: 'Mostrando los turnos...',
+            message: 'Turnos obtenidos exitosamente...',
             data: {
                 data: response.data,
-                currentPage: page,
+                currentPage: numPage,
+                pageCount: response.data.length,
                 totalCount: response.total,
-                totalPages: totalPages
+                totalPages: totalPages,
             }
         });
+        
     } catch (error) {
-        console.error('Error al obtener todas los turnos:', error);
-        return res.status(500).json({
-            message: "Error al obtener todos los turnos",
-            error: error.message
-        });
+        console.error('Error al obtener todos los turnos en el handler', error);
+        return res.status(500).json({ message: "Error al obtener todos los turnos en el handler" });
     }
 };
 //Handlers para obtener una Turno 
