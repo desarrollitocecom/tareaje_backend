@@ -6,6 +6,7 @@ const { getFunciones,
 } = require('../controllers/funcionController');
 
 const { createHistorial } = require('../controllers/historialController');
+const { validationFuncionRangoHorario } = require('../controllers/rangohorarioController')
 
 const getFuncionesHandler = async (req, res) => {
     const { page=1,limit=20  } = req.query; 
@@ -77,23 +78,27 @@ const createFuncionHandler = async (req, res) => {
     const token = req.user;
     const errores = [];
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre contiene caracteres inválidos');
-    }
+    if (!validaNombre) errores.push('El campo nombre contiene caracteres inválidos');
     if (!tipo) errores.push('El campo tipo es obligatorio');
-    if (errores.length > 0) {
-        return res.status(400).json({ errores });
-    }
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     try {
-        const nuevaFuncion = await createFuncion({ nombre });
+/*         const validacion = await validationFuncionRangoHorario(tipo);
+        if (!validacion) {
+            errores.push('El tipo ingresado no es el correcto');
+            return res.status(400).json({
+                message: 'Se encontraron los siguientes errores...',
+                data: errores,
+            });
+        } */
+    
+        const nuevaFuncion = await createFuncion(nombre, tipo);
         if (!nuevaFuncion) {
             return res.status(500).json({ message: "Error al crear la función" });
         }

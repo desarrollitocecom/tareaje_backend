@@ -32,8 +32,10 @@ const getFuncion = async (id) => {
         return false
     }
 };
-//Crea una nueva Funcion
-const createFuncion = async ({ nombre }) => {
+
+// Crear una nueva función 
+const createFuncion = async (nombre, tipo) => {
+
     try {
         const funcion = await Funcion.create({ nombre });
         return funcion
@@ -43,6 +45,7 @@ const createFuncion = async ({ nombre }) => {
         return false
     }
 };
+
 //elimina la funcion o canbia el estado
 const deleteFuncion = async (id) => {
     try {

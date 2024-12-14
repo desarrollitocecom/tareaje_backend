@@ -1,4 +1,5 @@
 const { RangoHorario, Funcion, Turno, Subgerencia } = require('../db_connection');
+const { Op } = require('sequelize');
 
 // Obtener un Rango Horario por ID :
 const getRangoHorarioById = async (id) => {
@@ -79,7 +80,7 @@ const createRangoHorario = async (nombre, inicio, fin, ids_funcion, id_turno, id
         return response || null;
 
     } catch (error) {
-        console.error('Error al crear un nuevo Rango Horario:', error);
+        console.error('Error al crear un nuevo rango de horario:', error);
         return false;
     }
 };
@@ -102,12 +103,29 @@ const updateRangoHorario = async (id, nombre, inicio, fin, ids_funcion, id_turno
         return response || null;
 
     } catch (error) {
-        console.error('Error al actualizar el Rango Horario:', error);
+        console.error('Error al actualizar el rango de horario:', error);
         return false;
     }
 };
 
-// Añadir un id de función al rango de horario correspondiente :
+// Añadir un id de función a un rango de horario determinado :
+const addIdFuncionRangoHorario = async (tipo, id_funcion) => {
+    
+    try {
+        const tipos = await RangoHorario.findAll({
+            where: { state: true },
+            attributes: ['nombre']
+        });
+        const general = [];
+        tipos.forEach(e => general.push(e.nombre));
+
+    } catch (error) {
+        console.error('Error al añadir función a un rango de horario:', error);
+        return false;
+    }
+}
+
+// Validar si el tipo pertenece a un rango de horario determinado :
 const validationFuncionRangoHorario = async (tipo) => {
     
     try {
@@ -121,7 +139,7 @@ const validationFuncionRangoHorario = async (tipo) => {
         return true;
         
     } catch (error) {
-        console.error('Error al agregar id de función al Rango de Horario:', error);
+        console.error('Error al agregar id de función al rango de horario:', error);
         return false;
     }
 };
