@@ -6,34 +6,53 @@ const { getFunciones,
 } = require('../controllers/funcionController');
 
 const { createHistorial } = require('../controllers/historialController');
+const { validationFuncionRangoHorario } = require('../controllers/rangohorarioController')
 
 const getFuncionesHandler = async (req, res) => {
-    const { page=1,limit=20  } = req.query; 
+
+    const { page = 1, limit = 20  } = req.query;
     const errores = [];
+
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-    if(errores.length>0){
-        return res.status(400).json({ errores });
-    }
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+
     try {
-      
-        const response = await getFunciones(Number(page), Number(limit));   
-        if(response.length === 0 || page>limit){
-            return res.status(200).json(
-                {message:'Ya no hay mas Funciones',
-                 data:{
+        const response = await getFunciones(numPage, numLimit);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if(numPage > totalPages){
+            return res.status(200).json({
+                message:'Página fuera de rango...',
+                data:{
                     data:[],
-                    totalPage:response.currentPage,
-                    totalCount:response.totalCount
-                 }   
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
+                    totalPages: totalPages,
+                 }
                 }
             );
         }
+        
         return res.status(200).json({
-            message: 'Son las funciones',
-            data: response
+            message: 'Funciones obtenidas exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
         });
         
     } catch (error) {
@@ -61,6 +80,7 @@ const getFuncionHandler = async (req, res) => {
             message: "Función encontrada",
             data: response
         });
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({
@@ -77,23 +97,27 @@ const createFuncionHandler = async (req, res) => {
     const token = req.user;
     const errores = [];
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
     const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre contiene caracteres inválidos');
-    }
+    if (!validaNombre) errores.push('El campo nombre contiene caracteres inválidos');
     if (!tipo) errores.push('El campo tipo es obligatorio');
-    if (errores.length > 0) {
-        return res.status(400).json({ errores });
-    }
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     try {
-        const nuevaFuncion = await createFuncion({ nombre });
+/*         const validacion = await validationFuncionRangoHorario(tipo);
+        if (!validacion) {
+            errores.push('El tipo ingresado no es el correcto');
+            return res.status(400).json({
+                message: 'Se encontraron los siguientes errores...',
+                data: errores,
+            });
+        } */
+    
+        const nuevaFuncion = await createFuncion(nombre, tipo);
         if (!nuevaFuncion) {
             return res.status(500).json({ message: "Error al crear la función" });
         }

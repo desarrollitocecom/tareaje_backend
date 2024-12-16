@@ -6,50 +6,54 @@ const { createHistorial } = require('../controllers/historialController');
 // Handler para obtener todos los descansos con paginación
 const getAllDescansosHandler = async (req, res) => {
 
-    const { page=1,limit=20 } = req.query;
-    const token = req.user;
+    const { page = 1, limit = 20  } = req.query;
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-    if(errores.length>0){
-        return res.status(400).json({ errores });
-    }
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
 
     try {
-        const response = await getAllDescansos(Number(page) || 1, Number(limit) || 20);
-        
-        if(response.length === 0 || page>limit){
-            return res.status(200).json(
-                {message:'Ya no hay mas descansos',
-                 data:{
+        const response = await getAllDescansos(numPage, numLimit);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if(numPage > totalPages){
+            return res.status(200).json({
+                message:'Página fuera de rango...',
+                data:{
                     data:[],
-                    totalPage:response.currentPage,
-                    totalCount:response.totalCount
-                 }   
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
+                    totalPages: totalPages,
+                 }
                 }
             );
         }
-
-        const historial = await createHistorial(
-            'read',
-            'Descanso',
-            'Read All Descansos',
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
+        
         return res.status(200).json({
-            message: "Descansos obtenidos correctamente",
-            data: response,
+            message: 'Descansos obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
         });
+        
     } catch (error) {
-        console.error("Error al obtener descansos:", error);
-        res.status(500).json({ error: "Error interno del servidor al obtener los descansos." });
+        console.error('Error al obtener todos los cargos en el handler', error);
+        return res.status(500).json({ message: "Error al obtener todos los cargos en el handler" });
     }
 };
 

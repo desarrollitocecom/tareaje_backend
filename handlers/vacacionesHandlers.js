@@ -26,38 +26,58 @@ const getVacacionHandler = async (req, res) => {
   }
 };
 const getVacacionesHandler = async (req, res) => {
-  const { page = 1, limit = 20 } = req.query;
-  const errores = [];
-    if (isNaN(page)) errores.push("El page debe ser un numero");
-    if (page < 0) errores.push("El page debe ser mayor a 0 ");
-    if (isNaN(limit)) errores.push("El limit debe ser un numero");
-    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-    if(errores.length>0){
-        return res.status(400).json({ errores });
-    }
-  try {
-    const response = await getVacaciones(Number(page),Number(limit));
-    if(response.length === 0 || page>limit){
-      return res.status(200).json(
-          {message:'Ya no hay mas descansos',
-           data:{
-              data:[],
-              totalPage:response.currentPage,
-              totalCount:response.totalCount
-           }   
-          }
-      );
-  }
-    return res.status(200).json({
-      message: "Todas las Vacaciones",
-      data: response,
-    });
-  } catch (error) {
-    console.error(error);
 
-    return res.status(500).json(error);
+  const { page = 1, limit = 20  } = req.query;
+  const errores = [];
+
+  if (isNaN(page)) errores.push("El page debe ser un numero");
+  if (page < 0) errores.push("El page debe ser mayor a 0 ");
+  if (isNaN(limit)) errores.push("El limit debe ser un numero");
+  if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+
+  if (errores.length > 0) return res.status(400).json({
+      message: 'Se encontraron los siguientes errores...',
+      data: errores,
+  });
+
+  const numPage = parseInt(page);
+  const numLimit = parseInt(limit);
+
+  try {
+      const response = await getVacaciones(numPage, numLimit);
+      const totalPages = Math.ceil(response.totalCount / numLimit);
+
+      if(numPage > totalPages){
+          return res.status(200).json({
+              message:'Página fuera de rango...',
+              data:{
+                  data:[],
+                  currentPage: numPage,
+                  pageCount: response.data.length,
+                  totalCount: response.totalCount,
+                  totalPages: totalPages,
+               }
+              }
+          );
+      }
+      
+      return res.status(200).json({
+          message: 'Vacaciones obtenidas exitosamente...',
+          data: {
+              data: response.data,
+              currentPage: numPage,
+              pageCount: response.data.length,
+              totalCount: response.totalCount,
+              totalPages: totalPages,
+          }
+      });
+      
+  } catch (error) {
+      console.error('Error al obtener todas las vacaciones en el handler', error);
+      return res.status(500).json({ message: "Error al obtener todas las vacaciones en el handler" });
   }
 };
+
 const createVacacionesHandler = async (req, res) => {
 
   const { f_inicio}= req.body;

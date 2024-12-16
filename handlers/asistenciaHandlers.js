@@ -45,7 +45,8 @@ const getAsistenciaByIdHandler = async (req,res) => {
 const getAsistenciaDiariaHandler = async (req, res) => {
 
     const { fecha } = req.params;
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state };
     const token = req.user;
     const errores = [];
 
@@ -62,7 +63,7 @@ const getAsistenciaDiariaHandler = async (req, res) => {
     const numLimit = parseInt(limit);
 
     try {
-        const response = await getAsistenciaDiaria(numPage, numLimit, fecha);
+        const response = await getAsistenciaDiaria(numPage, numLimit, fecha, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {
