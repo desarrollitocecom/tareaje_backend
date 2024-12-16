@@ -3,7 +3,7 @@ const { getJurisdicciones,
     getJurisdiccion,
     updateJurisdiccion,
     deleteJurisdiccion
-} = require('../controllers/JurisdiccionController');
+} = require('../controllers/jurisdiccionController');
 
 const { createHistorial } = require('../controllers/historialController');
 

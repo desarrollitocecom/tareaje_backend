@@ -3,7 +3,7 @@ const { getRegimenLaborales,
     getRegimenLaboral,
     updateRegimenLaboral,
     deleteRegimenLaboral
-} = require('../controllers/RegimenLaboralController');
+} = require('../controllers/regimenLaboralController');
 
 const { createHistorial } = require('../controllers/historialController');
 
