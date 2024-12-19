@@ -362,43 +362,40 @@ const deleteUserHandler = async (req, res) => {
 
 
 const logoutHandler = async (req, res) => {
-    
-    const { usuario } = req.body;
-    const token = req.user;
 
-    if (!usuario) {
-        return res.status(400).json({ message: "El nombre de usuario es requerido para cerrar sesión" });
-    }
-
-    try {
-        const result = await logoutUser(usuario);
-
-        if (!result) return res.status(404).json({ message: "Usuario no encontrado" });
-
-        // Emitir evento de logout si el usuario está conectado
-        const socket = userSockets.get(usuario);
-        if (socket) {
-            socket.emit("logout", { message: "Sesión cerrada", usuario: usuario });
-            userSockets.delete(usuario);
-        }
+    const authHeader = req.headers.authorization; 
+    const token = authHeader.split(" ")[1];
   
-        const historial = await createHistorial(
-            'read',
-            'Usuario',
-            'Logout',
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        return res.status(200).json({ message: "Sesión cerrada correctamente" });
-
+    let usuario;
+    try {
+      usuario = jwt.verify(token, process.env.JWT_SECRET).usuario;
     } catch (error) {
-        console.error("Error en logoutHandler:", error.message);
-        return res.status(500).json({ message: "Error al cerrar sesión", error: error.message });
+      return res.status(401).json({ message: "Token inválido o expirado" });
     }
-};
+  
+    if (!usuario) {
+      return res.status(400).json({ message: "El nombre de usuario es requerido para cerrar sesión" });
+    }
+  
+    try {
+      const result = await logoutUser(usuario);
+      if (!result) return res.status(404).json({ message: "Usuario no encontrado" });
+  
+      // Emitir evento de logout si el usuario está conectado
+      const socket = userSockets.get(usuario);
+      if (socket) {
+        socket.emit("logout", { message: "Sesión cerrada", usuario });
+        userSockets.delete(usuario);
+      }
+  
+      res.status(200).json({ message: "Sesión cerrada correctamente" });
+    } catch (error) {
+      console.error("Error en logoutHandler:", error.message);
+      res.status(500).json({ message: "Error al cerrar sesión", error: error.message });
+    }
+
+  };
+
 
 module.exports = {
     createUserHandler,

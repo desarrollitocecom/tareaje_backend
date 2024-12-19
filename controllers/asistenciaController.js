@@ -145,7 +145,8 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {
             where: whereCondition,
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
-                { model: Turno, as: 'turno', attributes: ['nombre']}
+                { model: Turno, as: 'turno', attributes: ['nombre'] }
+
             ],
             limit,
             offset,
