@@ -236,23 +236,23 @@ const getProtocols = async (fecha, hora) => {
     let firstInicio, firstFinal;
 
     if (hora <= 4) {
-        firstInicio = `${fecha}T0${hora + 4}`;
+        firstInicio = `${fecha}T0${hora + 3}`;
         firstFinal = `${fecha}T0${hora + 5}`;
     }
-    else if (hora <= 5) {
-        firstInicio = `${fecha}T0${hora + 4}`;
+    else if (hora <= 6) {
+        firstInicio = `${fecha}T0${hora + 3}`;
         firstFinal = `${fecha}T${hora + 5}`;
     }
     else if (hora <= 18) {
-        firstInicio = `${fecha}T${hora + 4}`;
+        firstInicio = `${fecha}T${hora + 3}`;
         firstFinal = `${fecha}T${hora + 5}`;
     }
-    else if (hora <= 19) {
-        firstInicio = `${fecha}T${hora + 4}`;
+    else if (hora <= 20) {
+        firstInicio = `${fecha}T${hora + 3}`;
         firstFinal = `${nextDay}T0${hora - 19}`;
     }
     else {
-        firstInicio = `${nextDay}T0${hora - 20}`;
+        firstInicio = `${nextDay}T0${hora - 21}`;
         firstFinal = `${nextDay}T0${hora - 19}`;
     }
 
@@ -266,11 +266,11 @@ const getProtocols = async (fecha, hora) => {
         "genders": [0, 1, 2],
         "dateTimeFrom": inicio,
         "dateTimeTo": final,
-        "cameraIds": ["1"],
+        "cameraIds": ["1","2","3"],
         "minAge": 0,
         "maxAge": 1000,
         "page": 1,
-        "pageSize": 5000,
+        "pageSize": 10000,
         "sim_min": 1
     }
 
@@ -315,8 +315,7 @@ const getProtocols = async (fecha, hora) => {
 
         // Convertir el Map a un array para devolverlo :
         const result = Array.from(uniqueAsistentes.values());
-        console.log(result);
-        return result || null;
+        return result || [];
     }
     catch (error) {
         console.error('Error al consulta la API Protocols: ', error);

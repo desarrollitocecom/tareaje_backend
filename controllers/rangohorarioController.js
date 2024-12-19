@@ -44,20 +44,20 @@ const getRangosHorariosHora = async (hora) => {
 
     try {
         const horaStr = (hora < 10) ? `0${hora}:00:00` : `${hora}:00:00`;
-
         const response = await RangoHorario.findAll({
             where: {
                 state: true,
                 inicio: horaStr,
-            }
+            },
+            attributes: ['ids_funcion', 'id_turno'],
+            raw: true
         });
-
-        if (!response) {
-            console.warn('No se obtuvo los rangos de horario en esta hora...');
-            return null;
-        }
-        console.log(response);
-        return response;
+        if(response.length === 0) return null;
+        const result = {
+            ids_funcion: response.flatMap(item => item.ids_funcion),
+            id_turno: response[0].id_turno,
+        };
+        return result;
 
     } catch (error) {
         console.error('Error al obtener los rangos de horario por hora:', error);

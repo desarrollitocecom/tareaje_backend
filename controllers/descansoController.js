@@ -72,9 +72,31 @@ const updateDescanso = async (id, { fecha, observacion, id_empleado }) => {
         return false;
     }
 };
+
+const getDescansosDiario = async (fecha) => {
+    
+    try {
+        const response = await Descanso.findAll({
+            where: {
+                state: true,
+                fecha: fecha
+            },
+            attributes: ['tipo', 'id_empleado'],
+            raw: true
+        });
+
+        return response || null;
+        
+    } catch (error) {
+        console.error('Error al obtener los descansos en un día:', error);
+        return false;
+    }
+};
+
 module.exports = {
     getAllDescansos,
     getDescansos,
+    getDescansosDiario,
     updateDescanso,
     createDescansos,
     deleteDescanso
