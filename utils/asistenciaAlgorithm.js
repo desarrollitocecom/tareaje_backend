@@ -2,57 +2,52 @@ const { getRangosHorariosHora } = require('../controllers/rangohorarioController
 const { findEmpleado } = require('../controllers/empleadoController');
 const { getProtocols } = require('../controllers/axxonController');
 const { createAsistencia } = require('../controllers/asistenciaController');
-
-// Obtener los ids_funcion y el id_turno de Rangos de Horario por hora :
-const obtenerRangosHorario = async (hora) => {
-    
-    try {
-        const rangos = await getRangosHorariosHora(hora);
-        if (!rangos || rangos.length === 0) return [];
-        const id_turno = rangos[0].id_turno;
-        const ids_funcion = [];
-        rangos.forEach(r => {
-            ids_funcion.push(r.id_funcion);
-        });
-        const horario = { ids_funcion, id_turno };
-        return horario;
-
-    } catch (error) {
-        console.error(`Error al obtener los rangos de horarios a las ${hora}:`, error);
-        return false;
-    }
-};
+const { getVacacionDiaria } = require('../controllers/vacacionesController');
+const { getDescansosDiario } = require('../controllers/descansoController');
+const { getFeriadoDiario } = require('../controllers/feriadoController');
 
 // Crear la asistencia (ALGORITMO DE ASISTENCIA) :
 const createAsistencias = async (dia, hora) => {
     
     try {
         // Obtener horario, empleados y protocols correspondientes :
-        const horario = await obtenerRangosHorario(hora);
+        const horario = await getRangosHorariosHora(hora);
         if (!horario || horario.length === 0) return null;
+        const horaStr = (hora < 10) ? `0${hora}` : `${hora}`;
         const { ids_funcion, id_turno } = horario;
         const empleados = await findEmpleado(ids_funcion, id_turno);
         const protocols = await getProtocols(dia, hora);
 
-        // Realizar el match entre empleados y protocols (ASISTENCIA) :
-        empleados.forEach(async empleado => {
+        // Obtener los ids de los empleados que presenten vacaciones, descansos o feriado :
+        const e_vacaciones = await getVacacionDiaria(dia);
+        const e_descansos = await getDescansosDiario(dia);
+        const e_feriado = await getFeriadoDiario(dia);
 
-            const match = protocols.find(protocol =>
-                protocol.dni === empleado.dni &&
-                protocol.id_funcion === empleado.id_funcion &&
-                protocol.id_turno === empleado.id_turno
-            );
-
-            if (match) {
-                empleado.state = true;
-                await createAsistencia(dia, match.hora, 'A', empleado.id, match.foto);
+        // Crear la asistencia siguiente el flujo correspondiente :
+        for (const empleado of empleados) {
+            
+            let match1 = false;
+            if (protocols.length > 0) {
+                match1 = protocols.find(protocol =>
+                    protocol.dni === empleado.dni &&
+                    protocol.id_funcion === empleado.id_funcion &&
+                    protocol.id_turno === empleado.id_turno
+                );
             }
-        });
 
-        // Siguiente filtro
+            const match2 = (e_vacaciones.length > 0) ? e_vacaciones.includes(empleado.id) : false;
+            const match3 = (e_descansos.length > 0) ? e_descansos.find(e => e.id_empleado === empleado.id) : false;
+            const match4 = (e_feriado.length > 0) ? e_feriado.includes(empleado.id) : false;
+
+            if (match1) await createAsistencia(dia, match1.hora, 'A', empleado.id, match1.foto);
+            else if (match2) await createAsistencia(dia, `${horaStr}:00:00`, 'V', empleado.id, 'Sin foto');
+            else if (match3) await createAsistencia(dia, `${horaStr}:00:00`, match3.tipo, empleado.id, 'Sin foto');
+            else if (match4) await createAsistencia(dia, `${horaStr}:00:00`, 'DF', empleado.id, 'Sin foto');
+            else createAsistencia(dia, `${hora}:06:00`, 'F', empleado.id, 'Sin foto');
+        }
 
     } catch (error) {
-        console.error(`Error al crear las asistencias a las ${hora}:06:00`);
+        console.error(`Error al crear las asistencias a las ${hora}:06:00`, error);
         return false;
     }
 }

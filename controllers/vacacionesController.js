@@ -1,5 +1,5 @@
-//const {sequelize} = require("../db_connection.js")
-const { Empleado, Vacacion } = require('../db_connection')
+const { Empleado, Vacacion } = require('../db_connection');
+const { Op } = require('sequelize');
 
 const getVacaciones = async (page = 1, limit = 20) => {
   const offset = page == 0 ? null : (page - 1) * limit;
@@ -84,9 +84,33 @@ const updateVacaciones = async (id, f_inicio, f_fin, id_empleado) => {
   }
 };
 
+const getVacacionDiaria = async (fecha) => {
+
+    try {
+        const response = await Vacacion.findAll({
+            where: {
+                state: true,
+                f_inicio: { [Op.lte]: fecha },
+                f_fin: { [Op.gte]: fecha }
+            },
+            attributes: ['id_empleado'],
+            raw: true
+        });
+        
+        if (!response) return null;
+        const result = response.map(r => r.id_empleado);
+        return result;
+      
+    } catch (error) {
+        console.error('Error al obtener las vacaciones en un día:', error);
+        return false;
+    }
+};
+
 module.exports = {
   getVacacion,
   getVacaciones,
+  getVacacionDiaria,
   createVacaciones,
   deleteVaciones,
   updateVacaciones,

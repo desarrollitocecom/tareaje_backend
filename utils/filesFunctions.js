@@ -37,38 +37,62 @@ function getFileExtension(filename) {
 // Middleware para manejar la subida de una foto :
 const saveImage = multer({
     storage: imageStorage,
-    limits: {
-        fileSize: 2 * 1024 * 1024, // 2 MB
-    },
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!allowedTypes.includes(file.mimetype)) {
-            return cb(new Error('Formato no permitido. Solo se aceptan imágenes en formato JPEG, JPG o PNG.'));
+            const error = new Error('Formato de archivo no permitido. Solo se aceptan imágenes en formato JPEG, JPG o PNG.');
+            error.code = 'INVALID_FORMAT';
+            return cb(error);
         }
         cb(null, true);
     },
 }).single('photo');
 
-// Middleware para manejar la subida de hasta 5 PDFs :
+// Middleware para manejar la subida de hasta 100 PDFs :
 const savePdf = multer({
     storage: pdfStorage,
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5 MB
-    },
+    limits: { fileSize: 150 * 1024 * 1024 }, // 150 MB por cada PDF
     fileFilter: (req, file, cb) => {
         if (file.mimetype !== 'application/pdf') {
-            return cb(new Error('Formato no permitido. Solo se aceptan archivos PDF.'));
+            const error = new Error('Formato de archivo no permitido. Solo se aceptan archivos PDF.');
+            error.code = 'INVALID_FORMAT';
+            return cb(error);
         }
         cb(null, true);
     },
-}).array('documents', 5);
+}).array('documents', 100);
 
 // Middleware para manejar errores de Multer :
 const multerError = (err, req, res, next) => {
-    if (err instanceof multer.MulterError) {
-        return res.status(400).json({ message: `Error de carga de archivos: ${err.message}` });
+    
+    if (err instanceof multer.MulterError || err.code === 'INVALID_FORMAT') {
+        const errores = [];
+        switch (err.code) {
+            case 'INVALID_FORMAT':
+                errores.push(err.message);
+                break;
+            case 'LIMIT_FILE_SIZE':
+                errores.push(`El archivo excede el tamaño permitido. Máximo permitido: ${err.field === 'photo' ? '50 MB' : '150 MB'}`);
+                break;
+            case 'LIMIT_FILE_COUNT':
+                errores.push('Se ha excedido el límite de archivos permitidos. Máximo permitido: 30 PDFs.');
+                break;
+            default:
+                errores.push('Ocurrió un error con la carga de archivos.');
+                break;
+        }
+
+        return res.status(400).json({
+            message: 'Se encontraron los siguientes errores...',
+            data: errores,
+        });
+
     } else if (err) {
-        return res.status(400).json({ message: `Error: ${err.message}` });
+        return res.status(400).json({
+            message: 'Error inesperado',
+            data: [err.message],
+        });
     }
     next();
 };

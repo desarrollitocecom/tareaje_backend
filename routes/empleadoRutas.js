@@ -7,7 +7,6 @@ const {
     createEmpleadoHandler,
     updateEmpleadoHandler,
     deleteEmpleadoHandler,
-    findEmpleadoHandler
 } = require('../handlers/empleadoHandlers');
 
 const { saveImage, multerError } = require('../utils/filesFunctions');
@@ -19,5 +18,4 @@ rutas.post('/', permisoAutorizacion(["all_system_access", "create_empleado"]), s
 rutas.get('/:id',permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoHandler);
 rutas.patch('/:id', permisoAutorizacion(["all_system_access", "create_empleado"]), saveImage, multerError, updateEmpleadoHandler);
 rutas.delete('/:id',permisoAutorizacion(["all_system_access", "delete_empleado"]), deleteEmpleadoHandler);
-rutas.post('/turno/',permisoAutorizacion(["all_system_access", "read_empleado"]), findEmpleadoHandler);
 module.exports = rutas;

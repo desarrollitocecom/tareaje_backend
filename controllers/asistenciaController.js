@@ -146,6 +146,7 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Turno, as: 'turno', attributes: ['nombre'] }
+
             ],
             limit,
             offset,
