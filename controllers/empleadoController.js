@@ -7,7 +7,11 @@ const getAllUniverseEmpleados = async () => {
     try {
         const response = await Empleado.findAndCountAll({
             where: { state: true },
-            attributes: ['id', 'nombres', 'apellidos', 'dni'],
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'state'],
+            include: [
+                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+                { model: Turno, as: 'turno', attributes: ['nombre'] }
+            ],
             order: [['apellidos', 'ASC']]
         });
         return { totalCount: response.count, data: response.rows } || null;

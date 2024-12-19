@@ -337,6 +337,8 @@ const deleteUserHandler = async (req, res) => {
     const { usuario } = req.params;
     const token = req.user;
 
+
+
     try {
         const user = await deleteUser(usuario);
         if (!user) return res.status(404).json({ message: "Usuario no encontrado", data: false });
@@ -363,8 +365,9 @@ const deleteUserHandler = async (req, res) => {
 
 const logoutHandler = async (req, res) => {
     
-    const { usuario } = req.body;
-    const token = req.user;
+    
+    const token = req.headers.authorization.split("___")[1];
+    const usuario = jwt.verify(token, process.env.JWT_SECRET).usuario;
 
     if (!usuario) {
         return res.status(400).json({ message: "El nombre de usuario es requerido para cerrar sesión" });
@@ -382,15 +385,15 @@ const logoutHandler = async (req, res) => {
             userSockets.delete(usuario);
         }
   
-        const historial = await createHistorial(
-            'read',
-            'Usuario',
-            'Logout',
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        // const historial = await createHistorial(
+        //     'read',
+        //     'Usuario',
+        //     'Logout',
+        //     null,
+        //     null,
+        //     token
+        // );
+        // if (!historial) console.warn('No se agregó al historial...');
 
         return res.status(200).json({ message: "Sesión cerrada correctamente" });
 
