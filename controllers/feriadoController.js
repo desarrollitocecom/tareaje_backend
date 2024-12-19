@@ -1,4 +1,5 @@
-const { Feriado } = require('../db_connection');
+const { Feriado, Empleado } = require('../db_connection');
+const { Op } = require('sequelize');
 
 //Trae todas las Feriadoes y las pagina 
 const getAllFeriados = async (page = 1, limit = 20) => {
@@ -74,12 +75,39 @@ const updateFeriado = async (id, { nombre, fecha }) => {
         return false;
 };
 
+const getFeriadoDiario = async (fecha) => {
+    
+    try {
+        const response = await Feriado.findAll({
+            where: {
+                state: true,
+                fecha: fecha
+            },
+            raw: true
+        });
+        if (!response || response.length === 0) return [];
 
+        const empleados = await Empleado.findAll({
+            where: {
+                state: true,
+                id_regimen_laboral: { [Op.ne]: 1 }
+            },
+            attributes: ['id']
+        });
+        const result = empleados.map(r => r.id);
+        return result;
+        
+    } catch (error) {
+        console.error('Error al obtener los descansos en un día:', error);
+        return false;
+    }
+};
 
 module.exports = {
     getAllFeriados,
     createFeriado,
     getFeriado,
+    getFeriadoDiario,
     updateFeriado,
     deleteFeriado
 };

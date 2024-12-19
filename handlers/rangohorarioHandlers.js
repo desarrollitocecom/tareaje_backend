@@ -43,8 +43,8 @@ const getAllRangosHorariosHandler = async (req, res) => {
 
     try {
         const result = await getAllRangosHorarios(page, limit);
-        if (!result || result.data.length === 0) return res.json({ message: 'No se obtuvieron los rangos de horario', data: [] });
-        return res.json({
+        if (!result || result.data.length === 0) return res.status(200).json({ message: 'No se obtuvieron los rangos de horario', data: [] });
+        return res.status(200).json({
             message: 'Rangos de horario obtenidos exitosamente',
             data: result
         });

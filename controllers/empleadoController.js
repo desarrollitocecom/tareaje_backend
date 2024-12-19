@@ -6,9 +6,15 @@ const getAllUniverseEmpleados = async () => {
 
     try {
         const response = await Empleado.findAndCountAll({
-            where: { state: true },
-            attributes: ['id', 'nombres', 'apellidos', 'dni'],
-            order: [['apellidos', 'ASC']]
+            attributes: [
+                'id', 'nombres', 'apellidos', 'dni',
+                'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
+                'celular', 'f_inicio', 'observaciones', 'foto', 'state',
+                'id_cargo', 'id_turno', 'id_regimen_laboral', 'id_sexo',
+                'id_grado_estudios', 'id_jurisdiccion', 'id_lugar_trabajo',
+                'id_subgerencia', 'id_lugar_trabajo', 'id_funcion'
+            ],
+            order: [['dni', 'ASC']]
         });
         return { totalCount: response.count, data: response.rows } || null;
 
@@ -251,18 +257,10 @@ const findEmpleado = async (ids_funcion, id_turno) => {
                 state: true,
                 id_funcion: { [Op.in]: ids_funcion },
                 id_turno: id_turno
-            }
+            },
+            raw: true
         });
-
-        if (!response) {
-            console.warn('No se obtuvo los empleados para estos ids de función y turno...');
-            return null;
-        }
-        const result = response.map(r => ({
-            ...r.dataValues,
-            state: false
-        }));
-        return result;
+        return response || null;
 
     } catch (error) {
         console.error('Error al obtener los empleados por función y turno:', error);

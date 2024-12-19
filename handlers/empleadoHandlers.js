@@ -1,5 +1,5 @@
 const { getAllUniverseEmpleados, getAllEmpleados, getEmpleado, createEmpleado,
-    updateEmpleado, deleteEmpleado, findEmpleado } = require('../controllers/empleadoController');
+    updateEmpleado, deleteEmpleado } = require('../controllers/empleadoController');
 
 const { createHistorial } = require('../controllers/historialController');
 const { createPerson } = require('../controllers/axxonController');
@@ -251,14 +251,25 @@ const updateEmpleadoHandler = async (req, res) => {
     const file = req.file
     const photo = foto !== 'Sin foto'
 
+    let correo_v = correo;
+    let domicilio_v = domicilio;
+    let celular_v = celular;
+    let f_inicio_v = f_inicio;
+    let observaciones_v = observaciones;
+    if (correo === 'null') correo_v = null;
+    if (domicilio === 'null') domicilio_v = null;
+    if (celular === 'null') celular_v = null;
+    if (f_inicio === 'null') f_inicio_v = null;
+    if (observaciones === 'null') observaciones_v = null;
+
     if (file && photo) errores.push('Solo se puede subir la foto una vez');
-    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(nombres))
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]{2,30}$/.test(nombres))
         errores.push("Nombres deben contener solo letras y tener entre 2 y 50 caracteres");
-    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,30}$/.test(apellidos))
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]{2,30}$/.test(apellidos))
         errores.push("Apellidos deben contener solo letras y tener entre 2 y 50 caracteres");
     if (!/^\d{8}$/.test(dni))
         errores.push("DNI debe tener exactamente 8 dígitos");
-    if (!/^\d{11}$/.test(ruc))
+    if (!/^\d{11}$/.test(ruc) && (ruc && ruc !== 'NO TIENE RUC'))
         errores.push("RUC debe tener exactamente 11 dígitos");
     if (isNaN(hijos))
         errores.push("Número de hijos debe ser un número entero positivo");
@@ -266,17 +277,17 @@ const updateEmpleadoHandler = async (req, res) => {
         errores.push("Edad debe ser un número entre 0 y 120 años");
     if (!Date.parse(f_nacimiento))
         errores.push("Fecha de nacimiento debe tener el formato YYYY - MM - DD");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) && (correo && correo !== 'null'))
         errores.push("Correo electrónico no válido");
-    if (!domicilio || domicilio.length < 5) {
+    if (domicilio.length < 5 && (domicilio && domicilio !== 'null')) {
         errores.push("Domicilio debe tener al menos 5 caracteres");
     }
-    if (!/^\d{9}$/.test(celular) || !celular)
-        errores.push("Número de celular debe tener entre 9 y 15 dígitos");
-    if (!Date.parse(f_inicio) || !f_inicio)
+    // if (!/^\d{9}$/.test(celular) && (celular && celular !== 'null'))
+    //    errores.push("Número de celular debe tener entre 9 y 15 dígitos");
+    if (!Date.parse(f_inicio) && (f_inicio && f_inicio !== 'null'))
         errores.push("Fecha de inicio debe tener el formato YYYY-MM-DD");
-    //if ((observaciones && observaciones.length > 200) || !observaciones)
-        //errores.push("Observaciones no pueden exceder 200 caracteres");
+    //if (observaciones.length > 200 && (observaciones && observaciones !== 'null'))
+       // errores.push("Observaciones no pueden exceder 200 caracteres");
     if (!id_cargo || isNaN(id_cargo))
         errores.push('El id del cargo es requerido y debe ser un Numero')
     if (!id_turno || isNaN(id_turno))
@@ -317,7 +328,7 @@ const updateEmpleadoHandler = async (req, res) => {
 
         const response = await updateEmpleado(id,
             nombres, apellidos, dni, ruc, hijos, edad,
-            f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, savedPath,
+            f_nacimiento, correo_v, domicilio_v, celular_v, f_inicio_v, observaciones_v, savedPath,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo
         );
@@ -372,33 +383,6 @@ const deleteEmpleadoHandler = async (req, res) => {
     }
 };
 
-const findEmpleadoHandler = async (req, res) => {
-
-    const { ids_funcion, id_turno } = req.body;
-    if (!ids_funcion) return res.status(400).json({ message: "El cargo es obligatorio" });
-    if (!id_turno) return res.status(400).json({ message: "El turno es obligatorio" });
-
-    try {
-        const response = await findEmpleado(ids_funcion, id_turno);
-        if (!response || response.length === 0) {
-            return res.status(200).json({
-                message: "No hay nada",
-                data: []
-            });
-        }
-        return res.status(200).json({
-            message: 'Mostrando empleados...',
-            data: response
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            message: "Error al obtener todas las asistencias por día en el handler",
-            error: error.message
-        });
-    }
-}
-
 module.exports = {
     getAllUniverseEmpleadosHandlers,
     getAllEmpleadosHandlers,
@@ -406,5 +390,4 @@ module.exports = {
     createEmpleadoHandler,
     updateEmpleadoHandler,
     deleteEmpleadoHandler,
-    findEmpleadoHandler
 };

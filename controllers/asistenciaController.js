@@ -143,6 +143,10 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {
 
         const empleados = await Empleado.findAndCountAll({
             where: whereCondition,
+            include: [
+                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+                { model: Turno, as: 'turno', attributes: ['nombre']}
+            ],
             limit,
             offset,
             order: [['apellidos', 'ASC']]
