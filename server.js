@@ -35,6 +35,7 @@ app.use(cors());
 
 
 app.use(express.json());
+app.use('/.well-known/acme-challenge/', express.static(path.resolve('/var/www/tareaje_backend/.well-known/acme-challenge'))); // Para certificado SSL
 app.use("/login", usuariosRouter); // no aplica authMiddleware para el manejo de usuarios
 app.use(loginMiddleware); // usa el middleware globalmente para validar todas las rutas a las que se va a acceder en el sistema solo estando logeado
 const server = http.createServer(app); // servidor http a partir de express
