@@ -1,23 +1,35 @@
 const { Turno } = require('../db_connection');
+const { Op } = require('sequelize');
 
-//Trae todas las Turnoes
-const getTurnos = async (page = 1, limit = 20) => {
+// Obtener los turnos con paginación y búsqueda :
+const getTurnos = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
+
     try {
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            })
+        };
+
         const { count, rows } = await Turno.findAndCountAll({
-            where: { state: true },
+            where: whereCondition,
             limit,
             offset,
             order: [['id', 'ASC']]
 
         });
         return { data: rows, total: count } || null;
+
     } catch (error) {
-        console.error('Error al Obtener todas las Turnos...', error);
+        console.error('Error al obtener los turnos:', error);
         return false
     }
-}
+};
 
 //trae una Turno especifica por id
 const getTurno = async (id) => {

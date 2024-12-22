@@ -8,10 +8,11 @@ const {
 
 const { createHistorial } = require('../controllers/historialController');
 
-// Handler para obtener todas las GradoEstudioes
+// Handler para obtener todos los grados de estudio con paginación y búsqueda :
 const getGradoEstudiosHandler = async (req, res) => {
 
-    const { page = 1, limit = 20  } = req.query;
+    const { page = 1, limit = 20, search } = req.query;
+    const filters = { search };
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -28,7 +29,7 @@ const getGradoEstudiosHandler = async (req, res) => {
     const numLimit = parseInt(limit);
 
     try {
-        const response = await getGradoEstudios(numPage, numLimit);
+        const response = await getGradoEstudios(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if(numPage > totalPages){

@@ -1,4 +1,5 @@
 const { Rol, Permiso } = require("../db_connection");
+const { Op } = require('sequelize');
 
 const createRol = async (nombre, descripcion, permisos) => {
 
@@ -40,13 +41,23 @@ const createPermiso = async (action, resource, descripcion) => {
 
 };
 
-const getAllRols = async (page = 1, limit = 20) => {
+// Obtener los roles con paginación y búsqueda :
+const getAllRols = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
     try {
-        const offset = page == 0 ? null : (page - 1) * limit;
-        limit = page == 0 ? null : limit;
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            })
+        };
 
         const response = await Rol.findAndCountAll({
-            where: { state: true },
+            where: whereCondition,
             include: {
                 model: Permiso,
                 as: 'permisos',
@@ -56,12 +67,13 @@ const getAllRols = async (page = 1, limit = 20) => {
             offset,
             order: [['nombre', 'DESC']]
         });
-        //console.log(page, response.count);
+        
         return {
             data: response.rows,
             currentPage: page,
             totalCount: response.rows.length,
         };
+
     } catch (error) {
         console.error('Error al obtener los roles:', error);
         return false;
@@ -86,13 +98,23 @@ const getRolById = async (id) => {
     }
 };
 
-const getAllPermisos = async (page = 1, limit = 20) => {
+// Obtener los permisos con paginación y búsqueda :
+const getAllPermisos = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
     try {
-        const offset = page == 0 ? null : (page - 1) * limit;
-        limit = page == 0 ? null : limit;
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            })
+        };
 
         const response = await Permiso.findAndCountAll({
-            where: { state: true },
+            where: whereCondition,
             limit,
             offset,
             order: [['id', 'ASC']]
@@ -103,8 +125,9 @@ const getAllPermisos = async (page = 1, limit = 20) => {
             currentPage: page,
             totalCount: response.rows.length,
         };
+
     } catch (error) {
-        console.error("Error en getAllPermisos ", error.message);
+        console.error("Error al obtener los permisos:", error.message);
         return false;
     }
 };

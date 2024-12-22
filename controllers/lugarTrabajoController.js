@@ -1,19 +1,31 @@
 const { LugarTrabajo } = require('../db_connection');
+const { Op } = require('sequelize');
 
-//Trae todas las LugarTrabajoes
-const getLugarTrabajos = async (page = 1, limit = 20) => {
+// Obtener los lugares de trabajo con paginación y búsqueda :
+const getLugarTrabajos = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
+
     try {
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            })
+        };
+        
         const { count, rows } = await LugarTrabajo.findAndCountAll({
-            where: { state: true },
+            where: whereCondition,
             limit,
             offset,
             order: [['id', 'ASC']]
         });
         return { totalCount: count, data: rows, currentPage: page } || null;
+
     } catch (error) {
-        console.error('Error al Obtener todas las LugarTrabajoes', error);
+        console.error('Error al obtener los lugares de trabajo:', error);
         return false
     }
 }
