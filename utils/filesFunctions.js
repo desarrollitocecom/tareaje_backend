@@ -37,7 +37,7 @@ function getFileExtension(filename) {
 // Middleware para manejar la subida de una foto :
 const saveImage = multer({
     storage: imageStorage,
-    limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
+    limits: { fileSize: Infinity }, // 100 MB
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!allowedTypes.includes(file.mimetype)) {
