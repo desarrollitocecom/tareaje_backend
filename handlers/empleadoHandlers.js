@@ -1,5 +1,5 @@
 const { getAllUniverseEmpleados, getAllEmpleados, getEmpleado, createEmpleado,
-    updateEmpleado, deleteEmpleado } = require('../controllers/empleadoController');
+    updateEmpleado, deleteEmpleado, findEmpleado } = require('../controllers/empleadoController');
 
 const { createHistorial } = require('../controllers/historialController');
 const { createPerson } = require('../controllers/axxonController');
@@ -383,6 +383,33 @@ const deleteEmpleadoHandler = async (req, res) => {
     }
 };
 
+const findEmpleadoHandler = async (req, res) => {
+
+    const { ids_funcion, id_turno } = req.body;
+    if (!ids_funcion) return res.status(400).json({ message: "El cargo es obligatorio" });
+    if (!id_turno) return res.status(400).json({ message: "El turno es obligatorio" });
+
+    try {
+        const response = await findEmpleado(ids_funcion, id_turno);
+        if (!response || response.length === 0) {
+            return res.status(400).json({
+                message: "No hay nada",
+                data: []
+            });
+        }
+        return res.status(200).json({
+            message: 'Mostrando empleados...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error al obtener todas las asistencias por día en el handler",
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     getAllUniverseEmpleadosHandlers,
     getAllEmpleadosHandlers,
@@ -390,4 +417,5 @@ module.exports = {
     createEmpleadoHandler,
     updateEmpleadoHandler,
     deleteEmpleadoHandler,
+    findEmpleadoHandler
 };
