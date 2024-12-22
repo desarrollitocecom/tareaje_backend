@@ -1,19 +1,31 @@
 const { Jurisdiccion } = require('../db_connection');
+const { Op } = require('sequelize');
 
-//Trae todas las Jurisdicciones
-const getJurisdicciones = async (page = 1, limit = 20) => {
+// Obtener las jurisdicciones con paginación y búsqueda :
+const getJurisdicciones = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
+
     try {
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            })
+        };
+
         const { count, rows } = await Jurisdiccion.findAndCountAll({
-            where: { state: true },
+            where: whereCondition,
             limit,
             offset,
             order: [['id', 'ASC']]
         });
-        return { totalCount: count, data: rows, currentPage: page }
+        return { totalCount: count, data: rows, currentPage: page };
+
     } catch (error) {
-        console.error('Error al Obtener todas las Jurisdicciones ', error);
+        console.error('Error al obtener todas las jurisdicciones:', error);
         return false
     }
 }

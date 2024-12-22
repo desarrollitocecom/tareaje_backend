@@ -99,9 +99,11 @@ const createRolHandler = async (req, res) => {
     }
 };
 
+// Handler para obtener todos los roles con paginación y búsqueda :
 const getAllRolsHandler = async (req, res) => {
 
-    const { page = 1, pageSize = 20 } = req.query;
+    const { page = 1, pageSize = 20, search } = req.query;
+    const filters = { search };
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -112,7 +114,7 @@ const getAllRolsHandler = async (req, res) => {
         return res.status(400).json({ errores });
     }
     try {
-        const rols = await getAllRols(page, pageSize);
+        const rols = await getAllRols(page, pageSize, search);
 
         // Calcular el total de páginas
         const totalPages = Math.ceil(rols.totalCount / pageSize);
@@ -161,12 +163,14 @@ const getRolByIdHandler = async (req, res) => {
     }
 };
 
+// Handler para obtener todos los permisos con paginación y búsqueda :
 const getAllPermisosHandler = async (req, res) => {
 
-    const { page = 1, pageSize = 20 } = req.query;
+    const { page = 1, pageSize = 20, search } = req.query;
+    const filters = { search };
 
     try {
-        const permisos = await getAllPermisos(page, pageSize);
+        const permisos = await getAllPermisos(page, pageSize, filters);
 
         const totalPages = Math.ceil(permisos.totalCount / pageSize);
 

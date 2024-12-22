@@ -6,11 +6,13 @@ const { getFunciones,
 } = require('../controllers/funcionController');
 
 const { createHistorial } = require('../controllers/historialController');
-const { validationFuncionRangoHorario } = require('../controllers/rangohorarioController')
+const { updateFuncionRangoHorario } = require('../controllers/rangohorarioController')
 
+// Handler para obtener todos las funciones con paginación y búsqueda :
 const getFuncionesHandler = async (req, res) => {
 
-    const { page = 1, limit = 20  } = req.query;
+    const { page = 1, limit = 20, search } = req.query;
+    const filters = { search };
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -27,7 +29,7 @@ const getFuncionesHandler = async (req, res) => {
     const numLimit = parseInt(limit);
 
     try {
-        const response = await getFunciones(numPage, numLimit);
+        const response = await getFunciones(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if(numPage > totalPages){
@@ -108,19 +110,8 @@ const createFuncionHandler = async (req, res) => {
     });
 
     try {
-/*         const validacion = await validationFuncionRangoHorario(tipo);
-        if (!validacion) {
-            errores.push('El tipo ingresado no es el correcto');
-            return res.status(400).json({
-                message: 'Se encontraron los siguientes errores...',
-                data: errores,
-            });
-        } */
-    
-        const nuevaFuncion = await createFuncion(nombre, tipo);
-        if (!nuevaFuncion) {
-            return res.status(500).json({ message: "Error al crear la función" });
-        }
+        const response = await createFuncion(nombre, tipo);
+        if (!response) return res.status(400).json({ message: "No se pudo crear la función", data: [] });
 
         const historial = await createHistorial(
             'create',
@@ -131,11 +122,13 @@ const createFuncionHandler = async (req, res) => {
             token
         );
         if (!historial) console.warn('No se agregó al historial...');
-    
+
+        await updateFuncionRangoHorario(tipo, response.id)
         return res.status(201).json({
             message: "Función creada exitosamente",
-            data: nuevaFuncion
+            data: response
         });
+
     } catch (error) {
         console.error("Error al crear función:", error);
         return res.status(500).json({ message: "Error interno del servidor al crear la función.", error });

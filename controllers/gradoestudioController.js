@@ -1,17 +1,28 @@
 const { GradoEstudios } = require('../db_connection');
+const { Op } = require('sequelize');
 
-//Trae todas las GradoEstudioes
-const getGradoEstudios = async (page = 1, limit = 20) => {
+// Obtener los grados de estudio con paginación y búsqueda :
+const getGradoEstudios = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
     try {
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            })
+        };
+
         const { count, rows } = await GradoEstudios.findAndCountAll({
-            where: { state: true },
+            where: whereCondition,
             limit,
             offset,
             order: [['id', 'ASC']]
         });
         return { totalCount: count, data: rows, currentPage: page } || null;
+
     } catch (error) {
         console.error('Error al Obtener todas los Grado Estudios', error);
         return false

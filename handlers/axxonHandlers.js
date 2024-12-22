@@ -255,7 +255,7 @@ const getProtocolsHandler = async (req, res) => {
 
     try {
         const protocols = await getProtocols(fecha, hora);
-        if (protocols && protocols.length > 0) {
+        if (protocols || protocols.length > 0) {
             return res.status(200).json({
                 message: 'Datos obtenidos exitosamente de Protocols',
                 data: protocols

@@ -7,10 +7,11 @@ const { getSubgerencias,
 
 const { createHistorial } = require('../controllers/historialController');
 
-//Handlers para obtener las Subgerenciaes
+// Handler para obtener todos las subgerencias con paginación y búsqueda :
 const getSubgerenciasHandler = async (req, res) => {
     
-    const { page = 1, limit = 20  } = req.query;
+    const { page = 1, limit = 20, search } = req.query;
+    const filters = { search };
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -27,7 +28,7 @@ const getSubgerenciasHandler = async (req, res) => {
     const numLimit = parseInt(limit);
 
     try {
-        const response = await getSubgerencias(numPage, numLimit);
+        const response = await getSubgerencias(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if(numPage > totalPages){

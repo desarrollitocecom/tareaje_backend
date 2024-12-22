@@ -11,9 +11,9 @@ const createAsistencias = async (dia, hora) => {
     
     try {
         // Obtener horario, empleados y protocols correspondientes :
+        const horaStr = (hora < 10) ? `0${hora}` : `${hora}`;
         const horario = await getRangosHorariosHora(hora);
         if (!horario || horario.length === 0) return null;
-        const horaStr = (hora < 10) ? `0${hora}` : `${hora}`;
         const { ids_funcion, id_turno } = horario;
         const empleados = await findEmpleado(ids_funcion, id_turno);
         const protocols = await getProtocols(dia, hora);
@@ -43,7 +43,7 @@ const createAsistencias = async (dia, hora) => {
             else if (match2) await createAsistencia(dia, `${horaStr}:00:00`, 'V', empleado.id, 'Sin foto');
             else if (match3) await createAsistencia(dia, `${horaStr}:00:00`, match3.tipo, empleado.id, 'Sin foto');
             else if (match4) await createAsistencia(dia, `${horaStr}:00:00`, 'DF', empleado.id, 'Sin foto');
-            else createAsistencia(dia, `${hora}:06:00`, 'F', empleado.id, 'Sin foto');
+            else createAsistencia(dia, `${horaStr}:06:00`, 'F', empleado.id, 'Sin foto');
         }
 
     } catch (error) {
