@@ -246,9 +246,11 @@ const getTokenHandler = async (req, res) => {
 
 };
 
+// Handler para obtener todos los usuarios con paginación y búsqueda :
 const getAllUsersHandler = async (req, res) => {
 
-    const { page = 1, pageSize = 20 } = req.query;
+    const { page = 1, pageSize = 20, search } = req.query;
+    const filters = { search };
     const token = req.user;
 
     const errores = [];
@@ -261,7 +263,7 @@ const getAllUsersHandler = async (req, res) => {
     }
 
     try {
-        const users = await getAllUsers(page, pageSize);
+        const users = await getAllUsers(page, pageSize, filters);
         const totalPages = Math.ceil(users.totalCount / pageSize);
 
         // Verificar si la página solicitada está fuera de rango

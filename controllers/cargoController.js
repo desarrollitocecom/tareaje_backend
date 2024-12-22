@@ -1,4 +1,5 @@
 const { Cargo, Subgerencia } = require('../db_connection');
+const { Op } = require('sequelize');
 
 // Obtener un Cargo por ID con su Subgerencia
 const getCargoById = async (id) => {
@@ -19,24 +20,34 @@ const getCargoById = async (id) => {
 };
 
 // Obtener todos los Cargos con sus Subgerencias
-const getAllCargos = async (page = 1, limit = 20) => {
+const getAllCargos = async (page = 1, limit = 20, filters = {}) => {
 
+    const { search } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
 
     try {
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            })
+        };
+
         const cargos = await Cargo.findAndCountAll({
-            where: { state: true },
+            where: whereCondition,
             include: [{ model: Subgerencia, as: 'Subgerencia' }],
             limit,
             offset,
             order: [['id', 'ASC']]
         });
+
         return {
             totalCount: cargos.count,
             data: cargos.rows,
             currentPage: page
         } || null;
+
     } catch (error) {
         console.error('Error al obtener todos los cargos:', error);
         throw error;

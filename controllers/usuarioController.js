@@ -1,4 +1,5 @@
 const { Usuario, Rol, Empleado } = require("../db_connection");
+const { Op } = require('sequelize');
 
 const createUser = async ({ usuario, contraseña, correo, id_rol, id_empleado }) => {
 
@@ -109,14 +110,24 @@ const changeUserData = async (usuario, correo, id_rol) => {
 
 };
 
-const getAllUsers = async (page = 1, limit = 20) => {
+// Obtener los usuarios con paginación y búsqueda :
+const getAllUsers = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
     try {
-        const offset = page == 0 ? null : (page - 1) * limit;
-        limit = page == 0 ? null : limit;
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            })
+        };
 
         const response = await Usuario.findAndCountAll({
             attributes: ['id', 'usuario', 'correo', 'state', 'id_rol', 'id_empleado'],
-            where: { state: true },
+            where: whereCondition,
             include: [
                 { model: Rol, as: 'rol', attributes: ['nombre'] },
                 { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos'] }
@@ -135,6 +146,7 @@ const getAllUsers = async (page = 1, limit = 20) => {
             totalPages: totalPages,              // Total de páginas calculadas
             totalCount: response.count           // Total de registros en la base de datos
         };
+        
     } catch (error) {
         console.error("Error en getAllUsers:", error.message);
         return false;

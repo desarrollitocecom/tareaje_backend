@@ -5,7 +5,7 @@ const {
     createRangoHorario,
     deleteRangoHorario,
     updateRangoHorario,
-    validationFuncionRangoHorario
+    getAreaRangoHorario
 } = require('../controllers/rangohorarioController');
 
 // Handler para obtener un rango de horario por ID :
@@ -29,24 +29,53 @@ const getRangoHorarioByIdHandler = async (req, res) => {
     }
 };
 
-// Handler para obtener todos los rangos de horario :
+// Handler para obtener todos los horarios con paginación y búsqueda :
 const getAllRangosHorariosHandler = async (req, res) => {
 
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, search } = req.query;
+    const filters = { search };
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-    if(errores.length > 0) return res.status(400).json({ message: "Se encontraron los siguentes errores:", data: errores });
+
+    if (errores.length > 0) return res.status(400).json({
+        message: "Se encontraron los siguentes errores:",
+        data: errores
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
 
     try {
-        const result = await getAllRangosHorarios(page, limit);
-        if (!result || result.data.length === 0) return res.status(200).json({ message: 'No se obtuvieron los rangos de horario', data: [] });
+        const response = await getAllRangosHorarios(page, limit, filters);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) {
+            return res.status(200).json({
+                message:'Página fuera de rango...',
+                data:{
+                    data:[],
+                    currentPage: numPage,
+                    pageCount: response.data.length,
+                    totalCount: response.totalCount,
+                    totalPages: totalPages,
+                 }
+                }
+            );
+        }
+
         return res.status(200).json({
-            message: 'Rangos de horario obtenidos exitosamente',
-            data: result
+            message: 'Horarios obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
         });
 
     } catch (error) {
@@ -72,6 +101,25 @@ const getRangosHorariosHoraHandler = async (req, res) => {
         if (result.length === 0) return res.json({ message: 'No se obtuvieron los rangos de horario para esta hora', data: [] });
         return res.json({
             message: 'Rangos de horario obtenidos exitosamente',
+            data: result
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error al obtener los rangos horarios',
+            error: error.message
+        });
+    }
+};
+
+// Handler para obtener las áreas de los Rangos de Horario :
+const getAreaRangoHorarioHandler = async (req, res) => {
+
+    try {
+        const result = await getAreaRangoHorario();
+        if (!result) return res.status(200).json({ message: 'No se obtuvieron las áreas de los horarios', data: [] });
+        return res.status(200).json({
+            message: 'Áreas de los horarios obtenidas exitosamente',
             data: result
         });
 
@@ -185,24 +233,6 @@ const deleteRangoHorarioHandler = async (req, res) => {
     }
 };
 
-const handler = async (req, res) => {
-
-    try {
-        const result = await validationFuncionRangoHorario();
-        if (result === false) return res.json({ message: 'No se obtuvieron los rangos de horario', data: [] });
-        return res.json({
-            message: 'Rangos de horario obtenidos exitosamente',
-            data: result
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            message: 'Error al obtener los rangos horarios',
-            error: error.message
-        });
-    }
-};
-
 module.exports = {
     getRangoHorarioByIdHandler,
     getAllRangosHorariosHandler,
@@ -210,5 +240,5 @@ module.exports = {
     createRangoHorarioHandler,
     deleteRangoHorarioHandler,
     updateRangoHorarioHandler,
-    handler
+    getAreaRangoHorarioHandler
 };

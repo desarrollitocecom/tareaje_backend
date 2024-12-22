@@ -266,7 +266,7 @@ const getProtocols = async (fecha, hora) => {
         "genders": [0, 1, 2],
         "dateTimeFrom": inicio,
         "dateTimeTo": final,
-        "cameraIds": ["1","2","3"],
+        "cameraIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],
         "minAge": 0,
         "maxAge": 1000,
         "page": 1,
