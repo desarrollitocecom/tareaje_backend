@@ -316,6 +316,31 @@ const createAsistenciaUsuario = async (fecha, hora, estado, id_empleado) => {
 // Actualizar la asistencia :
 // >> Dirigirse al controlador de Justificaciones: createJustificacion
 
+// PROVISIONAL, SOLO PARA LA PRESENTACIÓN :
+const updateAsistencia = async (fecha, hora, estado, photo_id, id_empleado) => {
+    
+    try {
+        const asistencia = await Asistencia.findOne({
+            where: {
+                fecha: fecha,
+                id_empleado: id_empleado
+            }
+        });
+
+        if (!asistencia || asistencia.length === 0) return null;
+        await asistencia.update({
+            hora: hora,
+            estado: estado,
+            photo_id: photo_id
+        });
+        return asistencia;
+
+    } catch (error) {
+        console.log('Error al actualizar la asistencia:', error);
+        return false;
+    }
+}
+
 // Filtrar solo las asistencias de un día determinado :
 const filtroAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
 
@@ -386,5 +411,6 @@ module.exports = {
     getAllAsistencias,
     createAsistencia,
     createAsistenciaUsuario,
+    updateAsistencia,
     filtroAsistenciaDiaria
 };

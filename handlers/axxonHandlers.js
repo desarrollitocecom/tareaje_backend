@@ -1,7 +1,17 @@
-const { createPerson, readPerson, deletePerson, getEmpleadoId, getPhotoId, searchByFace, getProtocols } = require('../controllers/axxonController');
-const { getEmpleadoByDni, getEmpleado } = require("../controllers/empleadoController");
+const { 
+    createPerson,
+    readPerson, 
+    deletePerson, 
+    getEmpleadoId,
+    getPhotoId,
+    searchByFace,
+    getProtocols 
+} = require('../controllers/axxonController');
 
-
+const {
+    getEmpleadoByDni,
+    getEmpleado
+} = require("../controllers/empleadoController");
 
 // Handler CreatePerson (SOLO DE PRUEBA) :
 const createPersonHandler = async (req, res) => {
@@ -264,7 +274,7 @@ const getProtocolsHandler = async (req, res) => {
         else {
             return res.status(400).json({
                 message: 'No se encontraron protocolos.',
-                data: null
+                data: []
             });
         }
     } catch (error) {

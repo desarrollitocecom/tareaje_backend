@@ -1,5 +1,6 @@
 const axios = require('axios');
-const { AXXON_URL } = process.env;
+
+const { AXXON_URL }= process.env; // URL base de la API
 
 // CRUD URLs :
 const urlCreate = `${AXXON_URL}/firserver/CreatePerson`;
@@ -10,31 +11,31 @@ const urlDelete = `${AXXON_URL}/firserver/DeletePersons`;
 const urlProtocols = `${AXXON_URL}/firserver/GetProtocols`;
 const urlFindFaces = `${AXXON_URL}/firserver/FindFaces`;
 
-// Create Person en la Base de Datos de Axxon (SIN HANDLER):
+// Create Person en la Base de Datos de Axxon (HANDLER PROVISIONAL) :
 const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
 
     if (!nombres) {
-        console.error('El parámetro NOMBRES es requerido...');
+        console.warn('El parámetro NOMBRES es requerido...');
         return false;
     }
     if (!apellidos) {
-        console.error('El parámetro APELLIDOS es requerido...');
+        console.warn('El parámetro APELLIDOS es requerido...');
         return false;
     }
     if (!dni) {
-        console.error('El parámetro DNI es requerido...');
+        console.warn('El parámetro DNI es requerido...');
         return false;
     }
     if (!funcion) {
-        console.error('El parámetro FUNCIÓN es requerido...');
+        console.warn('El parámetro FUNCIÓN es requerido...');
         return false;
     }
     if (!turno) {
-        console.error('El parámetro TURNO es requerido...');
+        console.warn('El parámetro TURNO es requerido...');
         return false;
     }
     if (!foto) {
-        console.error('El parámetro FOTO es requerido...');
+        console.warn('El parámetro FOTO es requerido...');
         return false;
     }
 
@@ -64,12 +65,13 @@ const createPerson = async (nombres, apellidos, dni, funcion, turno, foto) => {
             console.warn(`No se pudo crear al usuario ${dni}...`);
             return false;
         }
+
     } catch (error) {
         return false;
     }
 };
 
-// Read Person en la Base de Datos de Axxon (SIN HANDLER):
+// Read Person en la Base de Datos de Axxon (HANDLER PROVISIONAL):
 const readPerson = async () => {
 
     // Consulta formato JSON :
@@ -95,96 +97,99 @@ const readPerson = async () => {
             }
         });
         return datosPersonalAxxon;
+
     } catch (error) {
         console.error('Error al consulta la API ReadPerson: ', error);
         return false;
     }
 };
 
-// Delete Person en la Base de Datos de Axxon (SIN HANDLER):
+// Delete Person en la Base de Datos de Axxon (HANDLER PROVISIONAL) :
 const deletePerson = async (dni) => {
 
     if (!dni) {
-        console.error('El parámetro DNI KEY es obligatorio ...');
+        console.warn('El parámetro DNI KEY es obligatorio ...');
         return false;
     }
     if (dni.length !== 8) {
-        console.error('El DNI debe tener 8 digitos...');
+        console.warn('El DNI debe tener 8 digitos...');
         return false;
     }
 
-    // Consulta getEmpleadoId para determinar el Id y proceder con el update :
+    // Obtener el id del empleado por medio del DNI :
     const id = await getEmpleadoId(dni);
+    if (!id) return false;
 
-    if (id) {
-        // Consulta formato JSON :
-        const consulta = {
-            "server_id": "1",
-            "id": [id]
-        };
-        try {
-            const response = await axios.post(urlDelete, consulta);
-            const status = response.data.Status;
-            if (status === "SUCCESS") {
-                console.log('Usuario eliminado con éxito...');
-                return true;
-            }
-            else {
-                console.warn('No se pudo eliminar al usuario...');
-                return false;
-            }
-        } catch (error) {
-            console.error('Error al consulta la API DeletePerson: ', error);
+    // Consulta formato JSON :
+    const consulta = {
+        "server_id": "1",
+        "id": [id]
+    };
+
+    try {
+        const response = await axios.post(urlDelete, consulta);
+        const status = response.data.Status;
+        if (status === "SUCCESS") {
+            console.log('Usuario eliminado con éxito...');
+            return true;
+        }
+        else {
+            console.warn('No se pudo eliminar al usuario...');
             return false;
         }
-    }
-    else {
+
+    } catch (error) {
+        console.error('Error al consulta la API DeletePerson: ', error);
         return false;
     }
 }
 
-// Obtener el Id de una persona de la Base de Datos de Axxon :
+// Obtener el Id de una persona de la Base de Datos de Axxon (HANDLER PROVISIONAL):
 const getEmpleadoId = async (dni) => {
 
     if (!dni) {
         console.warn('El parámetro es requerido...');
+        return false;
     }
     if (dni.length !== 8) {
         console.warn('El DNI necesariamente debe tener 8 digitos');
+        return false;
     }
 
     // Consulta Read Person para determinar el Id :
     try {
         const dataAxxon = await readPerson();
+        if (!dataAxxon) {
+            console.warn('No se pudo obtener la Base de Datos de Axxon');
+            return false;
+        }
+
         const persona = dataAxxon.find(persona => persona.dni === dni);
-        if (persona) return persona.id;
-        else {
+        if (!persona) {
             console.warn('La persona no está registrada en la Base de Datos de Axxon...');
             return false;
         }
+        return persona.id;
+
     } catch (error) {
         return false;
     }
 };
 
-// Obtener la Foto de la persona reconocida de Protocols Axxon (CON HANDLER) :
+// Obtener la Foto de la persona reconocida de Protocols Axxon (HANDLER NECESARIO) :
 const getPhotoId = async (photo_id) => {
 
-    // El url en esta ocasión se maneja dentro de la función getPhotoId :
+    // El URL en esta ocasión se maneja dentro de la función :
     try {
         const response = await axios.get(`${AXXON_URL}/firserver/GetImage/1/${photo_id}`, { responseType: 'arraybuffer' });
-        if (response) {
-            return response;
-        }
-        else {
-            return null;
-        }
+        return response || null;
+
     } catch (error) {
         return false;
     }
 };
 
-// Obtener los datos de una persona si la foto es reconocida (SIN HANDLER) :
+// Obtener los datos de una persona si la foto es reconocida (HANDLER NECESARIO) :
 const searchByFace = async (foto) => {
 
     if (!foto) {
@@ -209,18 +214,19 @@ const searchByFace = async (foto) => {
         const turno = findface.Comment;
         const personInfo = { nombres, apellidos, dni, cargo, turno };
         const similitud = findface.Sim;
-        if (parseFloat(similitud) > 0.99) return personInfo;
-        else {
+        if (parseFloat(similitud) < 0.99) {
             console.error('La persona no ha sido reconocida...');
             return false;
         }
+        return personInfo;
+
     } catch (error) {
         console.error('Error al consulta la API: ', error);
         return false;
     }
 };
 
-// Obtener los datos de las personas que hayan sido reconocidas en un rango :
+// Obtener los datos de las personas que hayan sido reconocidas en un rango (HANDLER PROVISIONAL) :
 const getProtocols = async (fecha, hora) => {
 
     if (!fecha) return false;
@@ -263,14 +269,9 @@ const getProtocols = async (fecha, hora) => {
     const consulta = {
         "server_id": "1",
         "onlineRefresh": 1,
-        "genders": [0, 1, 2],
         "dateTimeFrom": inicio,
         "dateTimeTo": final,
-        "cameraIds": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],
-        "minAge": 0,
-        "maxAge": 1000,
-        "page": 1,
-        "pageSize": 10000,
+        "pageSize": 20000,
         "sim_min": 1
     }
 
@@ -280,8 +281,8 @@ const getProtocols = async (fecha, hora) => {
     // Extracción de información por consulta :
     try {
         const response = await axios.post(urlProtocols, consulta);
+        if (!response) return [];
         const protocols = response.data.Protocols;
-        const fecha = inicio.split('T')[0];
         protocols.forEach(protocol => {
 
             if (protocol.Hits && protocol.Hits.length > 0) {
@@ -294,20 +295,20 @@ const getProtocols = async (fecha, hora) => {
                 const [hh, mm, ss] = horaProtocol.split(':');
                 const numH = Number(hh);
                 const newH = (numH >= 5) ? (numH - 5) : (numH + 19);
-                const strH = (newH > 9) ? newH : `0${newH}`;
-                const hora = `${strH}:${mm}:${ss}`;
+                const strH = (newH > 9) ? `${newH}` : `0${newH}`;
+                const horaSend = `${strH}:${mm}:${ss}`;
 
                 const id_funcion = parseInt(funcion) || null;
                 const id_turno = parseInt(turno) || null;
-                const personInfo = { dni, fecha, hora, foto, id_funcion, id_turno };
+                const personInfo = { dni, fecha, horaSend, foto, id_funcion, id_turno };
 
                 // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana :
                 if (!uniqueAsistentes.has(dni)) {
-                    uniqueAsistentes.set(dni, personInfo);  // Si no existe, lo agregamos
+                    uniqueAsistentes.set(dni, personInfo);  // Si no existe, se agrega
                 } else {
                     const existingPerson = uniqueAsistentes.get(dni);
                     if (new Date('1970-01-01T' + personInfo.hora) < new Date('1970-01-01T' + existingPerson.hora)) {
-                        uniqueAsistentes.set(dni, personInfo);  // Si la nueva hora es más temprana, actualizamos el registro
+                        uniqueAsistentes.set(dni, personInfo);  // Si la nueva hora es más temprana, se actualiza el registro
                     }
                 }
             }
