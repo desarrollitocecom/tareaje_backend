@@ -16,7 +16,7 @@ const getAsistenciaById = async (id) => {
 // Obtener las asistencias (todos los estados) de un día determinado con filtros :
 const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) => {
 
-    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = filters; // Extraer filtros
+    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state, estado } = filters; // Extraer filtros
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
 
@@ -41,7 +41,8 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) =>
 
         const asistencias = await Asistencia.findAndCountAll({
             where: {
-                fecha: fecha
+                fecha: fecha,
+                ...(estado && { estado })
             },
             include: [
                 {
@@ -264,21 +265,19 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
     }
 
     try {
-        const newAsistencia = await Asistencia.create({
+        const response = await Asistencia.create({
             fecha: fecha,
             hora: hora,
             estado: estado,
             id_empleado: id_empleado,
             photo_id: photo_id
         });
-        if (newAsistencia) {
-            console.log('Asistencia creada exitosamente');
-            return newAsistencia;
-        }
-        else {
+        if (!response) {
             console.warn('Resultado nulo: No se pudo crear la asistencia');
-            return null;
+            return false;
         }
+        return true;
+
     } catch (error) {
         console.error('Error al crear una nueva asistencia:', error);
         return false;
@@ -339,68 +338,6 @@ const updateAsistencia = async (fecha, hora, estado, photo_id, id_empleado) => {
         console.log('Error al actualizar la asistencia:', error);
         return false;
     }
-}
-
-// Filtrar solo las asistencias de un día determinado :
-const filtroAsistenciaDiaria = async (page = 1, pageSize = 20, fecha) => {
-
-    const offset = (page - 1) * pageSize;
-    const limit = pageSize;
-
-    try {
-        const asistencias = await Asistencia.findAndCountAll({
-            where: {
-                fecha: fecha,
-                estado: 'A'
-            },
-            limit,
-            offset,
-            include: [
-                {
-                    model: Empleado,
-                    as: 'empleado',
-                    attributes: ['nombres', 'apellidos', 'dni'],
-                    include: [
-                        {
-                            model: Cargo,
-                            as: 'cargo',
-                            attributes: ['nombre']
-                        },
-                        {
-                            model: Turno,
-                            as: 'turno',
-                            attributes: ['nombre']
-                        }
-                    ]
-                }
-            ],
-            order: [['hora', 'ASC']]
-        });
-
-        // Mapeo del resultado para estructurar de asistencia y empleado
-        const result = asistencias.rows.map(asistencia => ({
-            id_asistencia: asistencia.id,
-            fecha: asistencia.fecha,
-            hora: asistencia.hora,
-            estado: asistencia.estado,
-            id_empleado: asistencia.id_empleado,
-            photo_id: asistencia.photo_id,
-            nombres: asistencia.empleado.nombres,
-            apellidos: asistencia.empleado.apellidos,
-            dni: asistencia.empleado.dni,
-            cargo: asistencia.empleado.cargo ? asistencia.empleado.cargo.nombre : null,
-            turno: asistencia.empleado.turno ? asistencia.empleado.turno.nombre : null
-        }));
-
-        return {
-            data: result,
-            currentPage: page,
-            totalCount: asistencias.count
-        };
-    } catch (error) {
-        console.error('Error al obtener las asistencias de un día determinado:', error);
-        return false;
-    }
 };
 
 module.exports = {
@@ -412,5 +349,4 @@ module.exports = {
     createAsistencia,
     createAsistenciaUsuario,
     updateAsistencia,
-    filtroAsistenciaDiaria
 };
