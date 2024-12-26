@@ -1,5 +1,12 @@
-const { getAllUniverseEmpleados, getAllEmpleados, getEmpleado, createEmpleado,
-    updateEmpleado, deleteEmpleado, findEmpleado } = require('../controllers/empleadoController');
+const {
+    getAllUniverseEmpleados,
+    getAllEmpleados,
+    getEmpleado,
+    getEmpleadoByDni,
+    createEmpleado,
+    updateEmpleado,
+    deleteEmpleado,
+    findEmpleado } = require('../controllers/empleadoController');
 
 const { createHistorial } = require('../controllers/historialController');
 const { createPerson } = require('../controllers/axxonController');
@@ -88,25 +95,47 @@ const getEmpleadoHandler = async (req, res) => {
             })
         };
 
-        const historial = await createHistorial(
-            'read',
-            'Empleado',
-            `Read Empleado Id ${id}`,
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
         return res.status(201).json({
             message: 'Enpleado encontrado',
             data: response,
         });
+
     } catch (error) {
         console.error("Error al obtener el empleado:", error);
         res.status(500).json({ error: "Error interno del servidor al obtener el empleado." });
     }
 };
+
+const getEmpleadoByDniHandler = async (req, res) => {
+    
+    const { dni } = req.params;
+    const errores = [];
+
+    if (!dni) errores.push('El DNI es un parámetro obligatorio');
+    if (!/^\d{8}$/.test(dni)) errores.push("El DNI debe tener exactamente 8 dígitos");
+    if (errores.length > 0) return res.status(400).json({
+        message: "Se encontraron los siguentes errores:",
+        data: errores
+    });
+
+    try {
+        const response = await getEmpleadoByDni(dni);
+        if (!response) {
+            return res.status(200).json({
+                message: "Empleado no identificado en la base de datos...",
+                data: []
+            });
+        }
+        return res.status(200).json({
+            message: "Empleado identificado en la base de datos...",
+            data: response
+        });
+        
+    } catch (error) {
+        console.error("Error al obtener el empleado:", error);
+        res.status(500).json({ error: "Error interno del servidor al obtener el empleado." });
+    }
+}
 
 const createEmpleadoHandler = async (req, res) => {
 
@@ -200,10 +229,10 @@ const createEmpleadoHandler = async (req, res) => {
         let savedPath;
         if (req.file) {
             savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
-            const fileBuffer = fs.readFileSync(req.file.path);
+/*             const fileBuffer = fs.readFileSync(req.file.path);
             const fileBase64 = fileBuffer.toString('base64');
             const consulta = await createPerson(nombres, apellidos, dni, String(id_funcion), String(id_turno), fileBase64);
-            if (!consulta) console.warn(`No se pudo crear al empleado ${apellidos} ${nombres} con ${dni} en Axxon...`);
+            if (!consulta) console.warn(`No se pudo crear al empleado ${apellidos} ${nombres} con ${dni} en Axxon...`); */
         }
         else savedPath = 'Sin foto';
         // ------------------------------------------------------------------------------------------------------------
@@ -408,12 +437,13 @@ const findEmpleadoHandler = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
 module.exports = {
     getAllUniverseEmpleadosHandlers,
     getAllEmpleadosHandlers,
     getEmpleadoHandler,
+    getEmpleadoByDniHandler,
     createEmpleadoHandler,
     updateEmpleadoHandler,
     deleteEmpleadoHandler,

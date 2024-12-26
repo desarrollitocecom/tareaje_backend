@@ -237,10 +237,11 @@ const getEmpleadoByDni = async (dni) => {
 
     try {
         const empleado = await Empleado.findOne({
-            attributes: ['id'],
+            attributes: ['nombres','apellidos'],
             where: { dni }
         });
         return empleado || null;
+
     } catch (error) {
         console.error("Error al buscar el empleado por DNI:", error);
         return false;
@@ -273,6 +274,7 @@ module.exports = {
     getEmpleadoByDni,
     getAllEmpleados,
     getEmpleado,
+    getEmpleadoByDni,
     findEmpleado,
     createEmpleado,
     deleteEmpleado,
