@@ -29,23 +29,23 @@ const getFunciones = async (page = 1, limit = 20, filters = {}) => {
         return false;
     }
 };
-//trae una funcion especifica por id
+
+// Obtener una función específica por ID :
 const getFuncion = async (id) => {
+
     try {
         const funcion = await Funcion.findOne({
-            where: {
-                id,
-            }
+            where: { id }
         });
-
         return funcion || null;
+
     } catch (error) {
         console.error(`Error al obtener la Función: ${error.message}`);
         return false
     }
 };
 
-// Crear una nueva función 
+// Crear una nueva función :
 const createFuncion = async (nombre) => {
 
     try {
@@ -58,42 +58,40 @@ const createFuncion = async (nombre) => {
     }
 };
 
-//elimina la funcion o canbia el estado
+// Actualizar una función :
+const updateFuncion = async (id, nombre) => {
+
+    try {
+        const funcion = await getFuncion(id);
+        if (funcion) await funcion.update({ nombre: nombre });
+        return funcion || null;
+
+    } catch (error) {
+        console.error('Error al actualizar la funcion:', error.message);
+        return false;
+    }
+};
+
+// Eliminar una función o cambiar el state :
 const deleteFuncion = async (id) => {
+
     try {
         const funcion = await Funcion.findByPk(id);
+        if (!funcion) return null;
         funcion.state = false;
         await funcion.save();
-        return funcion || null
+        return funcion || null;
+
     } catch (error) {
         console.error('Error al canbiar de estado al eliminar Funcion');
         return false;
     }
 };
 
-
-const updateFuncion = async (id, nuevaFuncion) => {
-    if (id && nuevaFuncion)
-        try {
-            const funcion = await getFuncion(id);
-            if (funcion)
-                await funcion.update(nuevaFuncion);
-            return funcion || null;
-
-        } catch (error) {
-            console.error('Error al actualizar la funcion:', error.message);
-            return false;
-        }
-    else
-        return false;
-};
-
-
-
 module.exports = {
     getFunciones,
-    createFuncion,
     getFuncion,
+    createFuncion,
     updateFuncion,
     deleteFuncion
 };
