@@ -5,18 +5,41 @@ const { createAsistencia } = require('../controllers/asistenciaController');
 const { getVacacionDiaria } = require('../controllers/vacacionesController');
 const { getDescansosDiario } = require('../controllers/descansoController');
 const { getFeriadoDiario } = require('../controllers/feriadoController');
+const { rotativoEmpleado } = require('../controllers/empleadoController');
 
 // Crear la asistencia (ALGORITMO DE ASISTENCIA) :
 const createAsistencias = async (dia, hora) => {
     
     try {
-        // Obtener horario, empleados y protocols correspondientes :
+        // Obtener todos los registros de Protocols en una hora determinada :
+        const protocols = await getProtocols(dia, hora);
+
+        // Obtener asistencias de rotativos :
+        if (hora > 6 || hora < 17) {
+            let asistenciaRot;
+            const rotativos = await rotativoEmpleado();
+            if (!rotativos || rotativos.length === 0) return;
+            const asistenciaRotativa = [];
+        
+            for (const rotativo of rotativos) {
+                const match = (protocols.length > 0) ? protocols.find(protocol => protocol.dni === rotativo.dni) : false;
+                if (match) {
+                    asistenciaRot = await createAsistencia(dia, match.hora, 'A', rotativo.id, match.foto);
+                    if (!asistenciaRot) console.warn(`Asistencia no creada para el empleado con ID ${rotativo.id}`);
+                    else if (asistenciaRot === 1) console.warn(`La asistencia ya fue creada para el empleado con ID ${rotativo.id}`);
+                    else asistenciaRotativa.push(rotativo.dni);
+                }
+            }
+        
+            if (asistenciaRotativa.length > 0) console.log('Asistencias creadas para rotativos:', asistenciaRotativa);
+        }
+
+        // Obtener horario, empleados correspondientes :
         const horaStr = (hora < 10) ? `0${hora}` : `${hora}`;
         const horario = await getRangosHorariosHora(hora);
         if (!horario || horario.length === 0) return null;
         const { ids_funcion, id_turno } = horario;
         const empleados = await findEmpleado(ids_funcion, id_turno);
-        const protocols = await getProtocols(dia, hora);
 
         // Obtener los ids de los empleados que presenten vacaciones, descansos o feriado :
         const e_vacaciones = await getVacacionDiaria(dia);

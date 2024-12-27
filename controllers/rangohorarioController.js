@@ -14,6 +14,25 @@ const getRangoHorarioById = async (id) => {
     }
 };
 
+// Obtener un Rango Horario por ID de función :
+const getRangoHorarioByFuncion = async (id_funcion) => {
+    
+    try {
+        const response = await RangoHorario.findOne({
+            where: {
+                state: true,
+                ids_funcion: { [Op.contains]: [id_funcion] }
+            },
+            raw: true
+        })
+        return response || null;
+
+    } catch (error) {
+        console.error('Error al obtener el horario por el id de función');
+        return false;
+    }
+}
+
 // Obtener los Rangos de Horario con paginación y búsqueda :
 const getAllRangosHorarios = async (page = 1, limit = 20, filters = {}) => {
 
@@ -191,6 +210,7 @@ const deleteFuncionRangoHorario = async (id_funcion) => {
 
 module.exports = {
     getRangoHorarioById,
+    getRangoHorarioByFuncion,
     getAllRangosHorarios,
     getRangosHorariosHora,
     getAreaRangoHorario,

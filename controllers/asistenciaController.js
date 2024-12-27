@@ -265,6 +265,12 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
     }
 
     try {
+        const result = await Asistencia.findOne({
+            where: { fecha: fecha, id_empleado: id_empleado },
+            raw: true
+        });
+        if (result) return 1;
+
         const response = await Asistencia.create({
             fecha: fecha,
             hora: hora,

@@ -231,8 +231,6 @@ const getProtocols = async (fecha, hora) => {
 
     if (!fecha) return false;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return false;
-    //if (!hora) return false;
-    // if (!hora) return false;
     if (isNaN(hora)) return false;
 
     const nextDia = new Date(fecha);
@@ -272,7 +270,6 @@ const getProtocols = async (fecha, hora) => {
         "onlineRefresh": 1,
         "dateTimeFrom": inicio,
         "dateTimeTo": final,
-        "cameraIds": ["1"],
         "pageSize": 20000,
         "sim_min": 1
     }
