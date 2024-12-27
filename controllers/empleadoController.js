@@ -26,7 +26,7 @@ const getAllUniverseEmpleados = async () => {
 
 const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
     const { search, dni, state, cargo, subgerencia, regimen, jurisdiccion, sexo, turno, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
-    const offset = (page - 1) * limit;
+    const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
 
     //const parsedState = state === "true";
