@@ -1,12 +1,18 @@
-const { getFunciones,
+const {
+    getFunciones,
     createFuncion,
     getFuncion,
     updateFuncion,
     deleteFuncion
 } = require('../controllers/funcionController');
 
+const { 
+    getRangoHorarioByFuncion,
+    updateFuncionRangoHorario,
+    deleteFuncionRangoHorario
+} = require('../controllers/rangohorarioController');
+
 const { createHistorial } = require('../controllers/historialController');
-const { updateFuncionRangoHorario, deleteFuncionRangoHorario } = require('../controllers/rangohorarioController')
 
 // Handler para obtener todos las funciones con paginación y búsqueda :
 const getFuncionesHandler = async (req, res) => {
@@ -63,20 +69,31 @@ const getFuncionesHandler = async (req, res) => {
     }
 }
 
+// Handler para obtener una función con el área y la subgerencia respectiva :
 const getFuncionHandler = async (req, res) => {
+
     const id = req.params.id;
-    if (!id || isNaN(id)) {
-        return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
-    }
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
     try {
         const response = await getFuncion(id);
-
         if (!response || response.length === 0) {
             return res.status(404).json({
                 message: "Función no encontrada",
                 data: []
             });
         }
+
+        const horario = await getRangoHorarioByFuncion(response.id);
+        response.tipo = horario.nombre;
+        response.id_subgerencia = horario.id_subgerencia;
 
         return res.status(200).json({
             message: "Función encontrada",
@@ -92,7 +109,7 @@ const getFuncionHandler = async (req, res) => {
     }
 };
 
-
+// Handler para crear una función :
 const createFuncionHandler = async (req, res) => {
 
     const { nombre, tipo, id_subgerencia } = req.body;
@@ -137,6 +154,7 @@ const createFuncionHandler = async (req, res) => {
     }
 };
 
+// Handler para actualizar una función :
 const updateFuncionHandler = async (req, res) => {
 
     const { id } = req.params;
@@ -195,6 +213,7 @@ const updateFuncionHandler = async (req, res) => {
     }
 };
 
+// Handler para eliminar una función :
 const deleteFuncionHandler = async (req, res) => {
 
     const id = req.params.id;
