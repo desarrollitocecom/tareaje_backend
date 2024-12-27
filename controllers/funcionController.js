@@ -35,7 +35,8 @@ const getFuncion = async (id) => {
 
     try {
         const funcion = await Funcion.findOne({
-            where: { id }
+            where: { id },
+            raw: true
         });
         return funcion || null;
 

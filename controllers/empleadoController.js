@@ -283,6 +283,26 @@ const findEmpleado = async (ids_funcion, id_turno) => {
     }
 };
 
+// Obtener los empleados que sean del turno Rotativo o No Definido :
+const rotativoEmpleado = async () => {
+    
+    try {
+        const response = await Empleado.findAll({
+            attributes: ['id','dni'],
+            where: {
+                state: true,
+                id_turno: { [Op.in]: [4,5] }
+            },
+            raw: true
+        });
+        return response || null;
+
+    } catch (error) {
+        console.error('Error al obtener los empleados con turno Rotativo o No Definido:', error);
+        return false;
+    }
+}
+
 module.exports = {
     getAllUniverseEmpleados,
     getEmpleadoByDni,
@@ -291,6 +311,7 @@ module.exports = {
     getEmpleadoByDni,
     getEmpleadoIdByDni,
     findEmpleado,
+    rotativoEmpleado,
     createEmpleado,
     deleteEmpleado,
     updateEmpleado
