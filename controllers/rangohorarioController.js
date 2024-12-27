@@ -64,7 +64,7 @@ const getRangosHorariosHora = async (hora) => {
             attributes: ['ids_funcion', 'id_turno'],
             raw: true
         });
-        if(response.length === 0) return null;
+        if(!response || response.length === 0) return [];
         const result = {
             ids_funcion: response.flatMap(item => item.ids_funcion),
             id_turno: response[0].id_turno,
@@ -141,12 +141,12 @@ const updateRangoHorario = async (id, nombre, inicio, fin, ids_funcion, id_turno
 };
 
 // Añadir un id de función a un rango de horario determinado :
-const updateFuncionRangoHorario = async (tipo, id_funcion) => {
+const updateFuncionRangoHorario = async (tipo, id_subgerencia, id_funcion) => {
     
     try {
         const result = await RangoHorario.update(
             { ids_funcion: Sequelize.fn('array_append', Sequelize.col('ids_funcion'), id_funcion) },
-            { where: { state: true, nombre: tipo }}
+            { where: { state: true, nombre: tipo, id_subgerencia: id_subgerencia }}
         );
         return result || null;
 
@@ -154,7 +154,7 @@ const updateFuncionRangoHorario = async (tipo, id_funcion) => {
         console.error('Error al añadir función a un rango de horario:', error);
         return false;
     }
-}
+};
 
 // Eliminar un Rango Horario (Cambio del state a false)
 const deleteRangoHorario = async (id) => {
@@ -173,6 +173,22 @@ const deleteRangoHorario = async (id) => {
     }
 };
 
+// Eliminar un id de función a un rango de horario determinado :
+const deleteFuncionRangoHorario = async (id_funcion) => {
+    
+    try {
+        const result = await RangoHorario.update(
+            { ids_funcion: Sequelize.fn('array_remove', Sequelize.col('ids_funcion'), id_funcion) },
+            { where: { state: true }}
+        );
+        return result || null;
+
+    } catch (error) {
+        console.error('Error al eliminar función de un rango de horario:', error);
+        return false;
+    }
+};
+
 module.exports = {
     getRangoHorarioById,
     getAllRangosHorarios,
@@ -182,4 +198,5 @@ module.exports = {
     updateRangoHorario,
     updateFuncionRangoHorario,
     deleteRangoHorario,
+    deleteFuncionRangoHorario
 };

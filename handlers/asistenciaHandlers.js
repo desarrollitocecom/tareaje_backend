@@ -6,7 +6,6 @@ const {
     createAsistenciaUsuario,
     createAsistencia,
     updateAsistencia,
-    filtroAsistenciaDiaria
 } = require('../controllers/asistenciaController');
 
 const { createHistorial } = require('../controllers/historialController');
@@ -47,8 +46,8 @@ const getAsistenciaByIdHandler = async (req,res) => {
 const getAsistenciaDiariaHandler = async (req, res) => {
 
     const { fecha } = req.params;
-    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = req.query;
-    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state };
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state, estado } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state, estado };
     const token = req.user;
     const errores = [];
 
@@ -321,7 +320,7 @@ const createAsistenciaHandler = async (req, res) => {
     try {
         const response = await createAsistencia(fecha, hora, estado, id_empleado, photo_id);
         if (!response) {
-            return res.status(400).json({
+            return res.status(200).json({
                 message: 'No se pudo crear la asistencia...',
                 data: []
             });
@@ -362,7 +361,7 @@ const updateAsistenciaHandler = async (req, res) => {
     try {
         const response = await updateAsistencia(fecha, hora, estado, photo_id, id_empleado);
         if (!response) {
-            return res.status(400).json({
+            return res.status(200).json({
                 message: 'La asistencia no existe, por lo tanto hay que crearla',
                 data: []
             });
@@ -380,79 +379,12 @@ const updateAsistenciaHandler = async (req, res) => {
     }
 };
 
-// Handler para filtrar solo asistencias por fecha :
-const filtroAsistenciaDiariaHandler = async (req, res) => {
-
-    const { fecha } = req.params;
-    const { page = 1, limit = 20 } = req.query;
-    const token = req.user;
-    const errores = [];
-
-    if (isNaN(page)) errores.push('El page debe ser un número entero...');
-    if (page < 0) errores.push('El page debe ser mayor que cero...');
-    if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
-    if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
-    if (!fecha) errores.push('La fecha es obligatoria...')
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El formato para fecha es incorrecto, cumplir con YYYY-MM-HH');
-
-    if (errores.length > 0) return res.status(400).json({ errores });
-
-    const numPage = parseInt(page);
-    const numLimit = parseInt(limit);
-
-    try {
-        const response = await filtroAsistenciaDiaria(numPage, numLimit, fecha);
-        const totalPages = Math.ceil(response.totalCount / numLimit);
-
-        if (numPage > totalPages) {
-            return res.status(200).json({
-                message: "Página fuera de rango...",
-                data: {
-                    asistencias: [],
-                    currentPage: numPage,
-                    pageCount: response.data.length,
-                    totalCount: response.totalCount,
-                    totalPages: totalPages,
-                }
-            });
-        }
-
-        const historial = await createHistorial(
-            'read',
-            'Asistencia',
-            `Read Asistencias of ${fecha}`,
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        return res.status(200).json({
-            message: `Mostrando las asistencias del día ${fecha}`,
-            data: {
-                asistencias: response.data,
-                currentPage: numPage,
-                pageCount: response.data.length,
-                totalCount: response.totalCount,
-                totalPages: totalPages,
-            }
-        });
-        
-    } catch (error) {
-        return res.status(500).json({
-            message: "Error en filtroAsistenciaDiaria...",
-            error: error.message
-        });
-    }
-};
-
 module.exports = {
     getAsistenciaByIdHandler,
     getAsistenciaDiariaHandler,
     getAsistenciaRangoHandler,
     getAllAsistenciasHandler,
     createAsistenciaUsuarioHandler,
-    filtroAsistenciaDiariaHandler,
     createAsistenciaHandler,
     updateAsistenciaHandler
 };

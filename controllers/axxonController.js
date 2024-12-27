@@ -231,7 +231,8 @@ const getProtocols = async (fecha, hora) => {
 
     if (!fecha) return false;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return false;
-    if (!hora) return false;
+    //if (!hora) return false;
+    // if (!hora) return false;
     if (isNaN(hora)) return false;
 
     const nextDia = new Date(fecha);
@@ -271,6 +272,7 @@ const getProtocols = async (fecha, hora) => {
         "onlineRefresh": 1,
         "dateTimeFrom": inicio,
         "dateTimeTo": final,
+        "cameraIds": ["1"],
         "pageSize": 20000,
         "sim_min": 1
     }
@@ -296,11 +298,11 @@ const getProtocols = async (fecha, hora) => {
                 const numH = Number(hh);
                 const newH = (numH >= 5) ? (numH - 5) : (numH + 19);
                 const strH = (newH > 9) ? `${newH}` : `0${newH}`;
-                const horaSend = `${strH}:${mm}:${ss}`;
+                const hora = `${strH}:${mm}:${ss}`;
 
                 const id_funcion = parseInt(funcion) || null;
                 const id_turno = parseInt(turno) || null;
-                const personInfo = { dni, fecha, horaSend, foto, id_funcion, id_turno };
+                const personInfo = { dni, fecha, hora, foto, id_funcion, id_turno };
 
                 // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana :
                 if (!uniqueAsistentes.has(dni)) {

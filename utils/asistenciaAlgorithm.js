@@ -26,25 +26,21 @@ const createAsistencias = async (dia, hora) => {
         // Crear la asistencia siguiente el flujo correspondiente :
         for (const empleado of empleados) {
             
-            let match1 = false;
-            if (protocols.length > 0) {
-                match1 = protocols.find(protocol =>
-                    protocol.dni === empleado.dni &&
-                    protocol.id_funcion === empleado.id_funcion &&
-                    protocol.id_turno === empleado.id_turno
-                );
-            }
-
+            let asistencia;
+            const match1 = (protocols.length > 0) ? protocols.find(protocol => protocol.dni === empleado.dni) : false;
             const match2 = (e_vacaciones.length > 0) ? e_vacaciones.includes(empleado.id) : false;
             const match3 = (e_descansos.length > 0) ? e_descansos.find(e => e.id_empleado === empleado.id) : false;
             const match4 = (e_feriado.length > 0) ? e_feriado.includes(empleado.id) : false;
 
-            if (match1) await createAsistencia(dia, match1.hora, 'A', empleado.id, match1.foto);
-            else if (match2) await createAsistencia(dia, `${horaStr}:00:00`, 'V', empleado.id, 'Sin foto');
-            else if (match3) await createAsistencia(dia, `${horaStr}:00:00`, match3.tipo, empleado.id, 'Sin foto');
-            else if (match4) await createAsistencia(dia, `${horaStr}:00:00`, 'DF', empleado.id, 'Sin foto');
-            else createAsistencia(dia, `${horaStr}:06:00`, 'F', empleado.id, 'Sin foto');
+            if (match1) asistencia = await createAsistencia(dia, match1.hora, 'A', empleado.id, match1.foto);
+            else if (match2) asistencia = await createAsistencia(dia, `${horaStr}:00:00`, 'V', empleado.id, 'Sin foto');
+            else if (match3) asistencia = await createAsistencia(dia, `${horaStr}:00:00`, match3.tipo, empleado.id, 'Sin foto');
+            else if (match4) asistencia = await createAsistencia(dia, `${horaStr}:00:00`, 'DF', empleado.id, 'Sin foto');
+            else asistencia = await createAsistencia(dia, `${horaStr}:06:00`, 'F', empleado.id, 'Sin foto');
+
+            if (!asistencia) console.warn(`Asistencia no creada para el empleado con ID ${empleado.id}`);
         }
+        return true;
 
     } catch (error) {
         console.error(`Error al crear las asistencias a las ${hora}:06:00`, error);

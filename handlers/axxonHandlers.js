@@ -10,7 +10,8 @@ const {
 
 const {
     getEmpleadoByDni,
-    getEmpleado
+    getEmpleado,
+    getEmpleadoIdByDni
 } = require("../controllers/empleadoController");
 
 // Handler CreatePerson (SOLO DE PRUEBA) :
@@ -195,7 +196,7 @@ const searchByFaceHandler = async (req, res) => {
             return res.status(200).json({
                 message: 'Persona reconocida exitosamente',
                 data: {
-                    nombres: personDetail.apellidos+" "+personDetail.nombres,
+                    // nombres: personDetail.apellidos+" "+personDetail.nombres,
                     subgerencia: personDetail.subgerencia.nombre,
                     estado: personDetail.state
                     //foto: personDetail.foto,
@@ -225,10 +226,13 @@ const searchByFaceDNIHandler = async (req, res) => {
 
     try {
         const personInfo = await searchByFace(foto);
+        console.log("personInfo:",personInfo);
+        
         if (personInfo) {
-        const personId = await getEmpleadoByDni(personInfo.dni);
-        //console.log("personID:",personId);
+        const personId = await getEmpleadoIdByDni(personInfo.dni);
+        console.log("personID:",personId);
         const personDetail = await getEmpleado(personId.dataValues.id);
+        console.log("personDetail:",personDetail);
             return res.status(200).json({
                 message: `Bienvenido ${personDetail.nombres.split(" ")[0]} ${personDetail.apellidos.split(" ")[0]}`,
                 data: personDetail
@@ -252,34 +256,32 @@ const searchByFaceDNIHandler = async (req, res) => {
 const getProtocolsHandler = async (req, res) => {
 
     const { fecha, hora } = req.body;
-    if (!fecha) return res.status(400).json({ message: 'El parámetro FECHA  es obligatorio' });
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-        return res.status(400).json({ message: 'La FECHA debe cumplir con el siguiente formato YYYY-MM-DD' });
+    const errores = [];
 
-    }
-    if (!hora) return res.status(400).json({ message: 'El parámetro HORA es obligatorio' });
-    if (isNaN(hora)) {
-        return res.status(400).json({ message: 'La HORA debe ser un numero' });
-
-    }
+    if (!fecha) errores.push('El parámetro FECHA  es obligatorio' );
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('La FECHA debe cumplir con el siguiente formato YYYY-MM-DD' );
+    if (isNaN(hora)) errores.push('La HORA debe ser un numero' );
+    if (errores.length > 0) return res.status(400).json({
+        message: "Se encontraron los siguentes errores:",
+        data: errores
+    });
 
     try {
         const protocols = await getProtocols(fecha, hora);
-        if (protocols || protocols.length > 0) {
+        if (!protocols || protocols.length === 0) {
             return res.status(200).json({
-                message: 'Datos obtenidos exitosamente de Protocols',
-                data: protocols
-            });
-        }
-        else {
-            return res.status(400).json({
-                message: 'No se encontraron protocolos.',
+                message: 'No se encontraron registros de Protocols...',
                 data: []
             });
         }
+        return res.status(200).json({
+            message: 'Registros obtenidos exitosamente de Protocols...',
+            data: protocols
+        });
+
     } catch (error) {
         return res.status(500).json({
-            message: 'Error al obtener los protocolos.',
+            message: 'Error al obtener los registros de Protocols',
             error: error.message
         });
     }

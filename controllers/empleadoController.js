@@ -237,10 +237,25 @@ const getEmpleadoByDni = async (dni) => {
 
     try {
         const empleado = await Empleado.findOne({
+            attributes: ['nombres','apellidos','foto'],
+            where: { dni }
+        });
+        return empleado || null;
+
+    } catch (error) {
+        console.error("Error al buscar el empleado por DNI:", error);
+        return false;
+    }
+};
+const getEmpleadoIdByDni = async (dni) => {
+
+    try {
+        const empleado = await Empleado.findOne({
             attributes: ['id'],
             where: { dni }
         });
         return empleado || null;
+
     } catch (error) {
         console.error("Error al buscar el empleado por DNI:", error);
         return false;
@@ -273,6 +288,8 @@ module.exports = {
     getEmpleadoByDni,
     getAllEmpleados,
     getEmpleado,
+    getEmpleadoByDni,
+    getEmpleadoIdByDni,
     findEmpleado,
     createEmpleado,
     deleteEmpleado,
