@@ -195,7 +195,7 @@ const searchByFaceHandler = async (req, res) => {
             return res.status(200).json({
                 message: 'Persona reconocida exitosamente',
                 data: {
-                    nombres: personDetail.apellidos+" "+personDetail.nombres,
+                    // nombres: personDetail.apellidos+" "+personDetail.nombres,
                     subgerencia: personDetail.subgerencia.nombre,
                     estado: personDetail.state
                     //foto: personDetail.foto,

@@ -34,6 +34,11 @@ module.exports = (sequelize) => {
         });
 
         Rol.hasMany(db.Usuario, { foreignKey: 'id_rol', as: 'usuarios' });
+
+        Rol.hasMany(db.ApiKey, {
+            foreignKey: 'id_rol',
+            as: 'apiKeys'
+        });
     };
 
     return Rol;

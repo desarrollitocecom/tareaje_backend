@@ -21,9 +21,11 @@ const asistenciaRouter=require('./asistenciaRouter');
 const rangoHorarioRouter=require('./rangohorarioRouter');
 const justificacionRouter = require('./justificacionRouter');
 const historialRouter = require('./historialRouter');
+const apiKeyRouter = require('./apiKeyRouter');
 
 
 // Usa prefijos para organizar las rutas
+router.use('/apikeys', apiKeyRouter);
 router.use('/funciones', funcionRutas);
 router.use('/sexos', sexoRutas);
 router.use('/lugarestrabajos', lugarTrabajoRutas);
