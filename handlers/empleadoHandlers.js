@@ -45,6 +45,7 @@ const getAllEmpleadosHandlers = async (req, res) => {
     const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state,edadMin, edadMax, hijosMin, hijosMax };
     //console.log("filtros: ",filters);
     const errores = [];
+    // console.log("page: ", page);
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
@@ -55,6 +56,8 @@ const getAllEmpleadosHandlers = async (req, res) => {
     }
     try {
         const response = await getAllEmpleados(Number(page), Number(limit), filters); // Llamamos a la función getEmpleados
+        // console.log("response: ", response);
+        
         if (response.data.length === 0) {
             return res.status(200).json(
                 {

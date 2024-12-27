@@ -226,13 +226,12 @@ const searchByFaceDNIHandler = async (req, res) => {
 
     try {
         const personInfo = await searchByFace(foto);
-        console.log("personInfo:",personInfo);
-        
+        // console.log("personInfo:",personInfo);
         if (personInfo) {
         const personId = await getEmpleadoIdByDni(personInfo.dni);
-        console.log("personID:",personId);
+        // console.log("personID:",personId);
         const personDetail = await getEmpleado(personId.dataValues.id);
-        console.log("personDetail:",personDetail);
+        // console.log("personDetail:",personDetail);
             return res.status(200).json({
                 message: `Bienvenido ${personDetail.nombres.split(" ")[0]} ${personDetail.apellidos.split(" ")[0]}`,
                 data: personDetail
