@@ -40,8 +40,10 @@ const createPermisoHandler = async (req, res) => {
 const getRolPermisosHandler = async (req, res) => {
 
     const { id } = req.params;
-    const { rol, usuario } = jwt.verify(req.user, process.env.JWT_SECRET);
-    //console.log(rol, id);
+    const { rol, usuario } = jwt.verify(req.user.data, process.env.JWT_SECRET);
+    // console.log("ROLES_PERMISO: ",rol, id);
+    // console.log("USUARIO: ",usuario);
+    // console.log("--------------------------------");
     try {
         const permisos = await getPermisosByRolId(rol);
 
