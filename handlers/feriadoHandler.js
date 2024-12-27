@@ -3,7 +3,7 @@
 const { getAllFeriados, createFeriado, getFeriado, updateFeriado, deleteFeriado } = require("../controllers/feriadoController");
 const { createHistorial } = require('../controllers/historialController');
 
-// Handler para obtener todos los feriados con paginación
+// Handler para obtener todos los feriados con paginación :
 const getAllFeriadosHandler = async (req, res) => {
     
     const { page = 1, limit = 20  } = req.query;
