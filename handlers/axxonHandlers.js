@@ -10,7 +10,8 @@ const {
 
 const {
     getEmpleadoByDni,
-    getEmpleado
+    getEmpleado,
+    getEmpleadoIdByDni
 } = require("../controllers/empleadoController");
 
 // Handler CreatePerson (SOLO DE PRUEBA) :
@@ -225,10 +226,13 @@ const searchByFaceDNIHandler = async (req, res) => {
 
     try {
         const personInfo = await searchByFace(foto);
+        console.log("personInfo:",personInfo);
+        
         if (personInfo) {
-        const personId = await getEmpleadoByDni(personInfo.dni);
-        //console.log("personID:",personId);
+        const personId = await getEmpleadoIdByDni(personInfo.dni);
+        console.log("personID:",personId);
         const personDetail = await getEmpleado(personId.dataValues.id);
+        console.log("personDetail:",personDetail);
             return res.status(200).json({
                 message: `Bienvenido ${personDetail.nombres.split(" ")[0]} ${personDetail.apellidos.split(" ")[0]}`,
                 data: personDetail
