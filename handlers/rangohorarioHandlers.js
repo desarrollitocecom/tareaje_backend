@@ -146,8 +146,6 @@ const createRangoHorarioHandler = async (req, res) => {
 
     if (!/^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(inicio)) errores.push('El formato para la hora de inicio es HH:MM:SS');
     if (!/^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(fin)) errores.push('El formato para la hora de fin es HH:MM:SS');
-    if (ids_funcion.length === 0) errores.push('La lista de ids de las funciones está vacía');
-    if (ids_funcion.some(e => isNaN(e))) errores.push('Los ids de funciones deben ser enteros');
     if (isNaN(id_turno)) errores.push('El id de turno debe ser un entero');
     if (isNaN(id_subgerencia)) errores.push('el id de subgerencia debe ser un entero');
     if (errores.length > 0) return res.status(400).json({ errores });

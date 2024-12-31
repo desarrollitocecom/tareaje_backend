@@ -96,6 +96,21 @@ const getRangosHorariosHora = async (hora) => {
     }
 };
 
+const getRangoHorarioAreaSubgerencia = async (nombre, id_subgerencia) => {
+
+    try {
+        const rango = await RangoHorario.findOne({
+            where: { state:true, nombre: nombre, id_subgerencia: id_subgerencia }
+        });
+        if (!rango) return false;
+        return true;
+
+    } catch (error) {
+        console.error('Error al obtener el horario por área y subgerencia:', error);
+        return false;
+    }
+};
+
 // Obtener todas las areas que estén presentes en los Rangos de Horario :
 const getAreaRangoHorario = async () => {
     
@@ -214,6 +229,7 @@ module.exports = {
     getAllRangosHorarios,
     getRangosHorariosHora,
     getAreaRangoHorario,
+    getRangoHorarioAreaSubgerencia,
     createRangoHorario,
     updateRangoHorario,
     updateFuncionRangoHorario,

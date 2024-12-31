@@ -20,7 +20,8 @@ const getFunciones = async (page = 1, limit = 20, filters = {}) => {
             where: whereCondition,
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['id', 'ASC']],
+            raw: true
         });
         return { totalCount: count, data: rows, currentPage: page } || null;
 
