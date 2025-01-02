@@ -15,7 +15,7 @@ const createHistorial = async (accion, modelo, campo, valor_anterior, valor_nuev
         console.warn('No se registró ningún id de usuario...');
         return false;
     }
-    const id_usuario = await getUserByToken(token);
+    const id_usuario = await getUserByToken(token.data);
 
     try {
         const response = await Historial.create({ accion, modelo, campo, valor_anterior, valor_nuevo, id_usuario });
