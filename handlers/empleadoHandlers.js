@@ -14,7 +14,6 @@ const { deletePhoto } = require('../utils/filesFunctions');
 const { readPerson } = require('../controllers/axxonController');
 const fs = require('fs');
 const path = require('path');
-const e = require('express');
 
 const getAllUniverseEmpleadosHandlers = async (req, res) => {
 

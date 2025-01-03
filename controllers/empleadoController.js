@@ -1,6 +1,9 @@
-const { Empleado, Cargo, RegimenLaboral, Sexo,
-    Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion } = require('../db_connection');
+const axios = require('axios');
 const { Op } = require('sequelize');
+const { INCIDENCIAS_CREATE_URL }= process.env; // URL Registrar Serenos API Incidencias
+const {
+    Empleado, Cargo, RegimenLaboral, Sexo, Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion
+} = require('../db_connection');
 
 const getAllUniverseEmpleados = async () => {
 
@@ -134,6 +137,7 @@ const getEmpleado = async (id) => {
     }
 }
 
+// Crear a un empleado, asimismo registrarlo en DB de Incidencias :
 const createEmpleado = async (
     nombres, apellidos, dni, ruc, hijos, edad,
     f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones,
@@ -166,7 +170,19 @@ const createEmpleado = async (
             id_funcion,
             id_lugar_trabajo
         });
+
+        const consulta = {
+            "nombres": nombres,
+            "apelllidoPaterno": apellidos.split(' ')[0],
+            "apellidoMaterno": apellidos.split(' ')[1],
+            "cargo_sereno_id": id_cargo,
+            "dni": dni
+        };
+
+        
+
         return response || null;
+
     } catch (error) {
         console.error("Error al crear el empleado:", error);
         return false;
@@ -301,7 +317,7 @@ const rotativoEmpleado = async () => {
         console.error('Error al obtener los empleados con turno Rotativo o No Definido:', error);
         return false;
     }
-}
+};
 
 module.exports = {
     getAllUniverseEmpleados,
