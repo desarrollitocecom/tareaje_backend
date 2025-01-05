@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 
-
 module.exports = (sequelize) => {
     const Empleado = sequelize.define('Empleado', {
         id: {
@@ -58,6 +57,10 @@ module.exports = (sequelize) => {
             allowNull: true
         },
         observaciones: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        carrera: {
             type: DataTypes.TEXT,
             allowNull: true
         },
@@ -122,7 +125,14 @@ module.exports = (sequelize) => {
             type: DataTypes.INTEGER,
             references: {
                 model: 'Funciones',
-                key: 'id',
+                key: 'id'
+            }
+        },
+        id_area: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Areas',
+                key: 'id'
             }
         },
         state: {
@@ -144,13 +154,13 @@ module.exports = (sequelize) => {
         Empleado.belongsTo(db.GradoEstudios, { foreignKey: 'id_grado_estudios', as: 'gradoEstudios' });
         Empleado.belongsTo(db.Subgerencia, { foreignKey: 'id_subgerencia', as: 'subgerencia' });
         Empleado.belongsTo(db.Funcion, { foreignKey: 'id_funcion', as: 'funcion' });
-        Empleado.belongsTo(db.LugarTrabajo,{foreignKey:'id_lugar_trabajo',as:'lugarTrabajo'})
-
-        
+        Empleado.belongsTo(db.LugarTrabajo, { foreignKey: 'id_lugar_trabajo', as: 'lugarTrabajo' });
+        Empleado.belongsTo(db.Area, { foreignKey: 'id_area', as: 'area'});
         Empleado.hasMany(db.Asistencia, { foreignKey: 'id_empleado', as: 'asistencias' });
         Empleado.hasMany(db.Descanso, { foreignKey: 'id_empleado', as: 'descansos' });
         Empleado.hasMany(db.Justificacion, { foreignKey: 'id_empleado', as: 'justificaciones' });
         Empleado.hasMany(db.Vacacion, { foreignKey: 'id_empleado', as: 'vacaciones' });
+        Empleado.hasOne(db.Pago, { foreignKey: 'id_empleado', as: 'pago'});
     };
 
     return Empleado;

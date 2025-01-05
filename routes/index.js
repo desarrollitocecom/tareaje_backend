@@ -22,9 +22,9 @@ const rangoHorarioRouter=require('./rangohorarioRouter');
 const justificacionRouter = require('./justificacionRouter');
 const historialRouter = require('./historialRouter');
 const apiKeyRouter = require('./apiKeyRouter');
+const areaRouter = require('./areaRouter');
 
-
-// Usa prefijos para organizar las rutas
+// Usa prefijos para organizar las rutas :
 router.use('/apikeys', apiKeyRouter);
 router.use('/funciones', funcionRutas);
 router.use('/sexos', sexoRutas);
@@ -46,5 +46,6 @@ router.use('/asistencias',asistenciaRouter);
 router.use('/rangohorarios',rangoHorarioRouter);
 router.use('/justificaciones',justificacionRouter);
 router.use('/historial',historialRouter);
+router.use('/areas', areaRouter);
 
 module.exports = router;

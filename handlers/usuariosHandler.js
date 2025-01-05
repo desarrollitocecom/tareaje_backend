@@ -150,6 +150,7 @@ const loginHandler = async (req, res) => {
         const token = jwt.sign({ usuario: usuario, rol: user.id_rol }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRES_IN
         });
+        const data = { data: token }
 
         // Verificar si el usuario ya está conectado y forzar logout en otros dispositivos
         const previousSocket = userSockets.get(usuario);
@@ -168,7 +169,7 @@ const loginHandler = async (req, res) => {
             'Login',
             null,
             null,
-            token
+            data
         );
         if (!historial) console.warn('No se agregó al historial...');
         
