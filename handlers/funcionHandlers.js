@@ -13,6 +13,7 @@ const {
     deleteFuncionRangoHorario
 } = require('../controllers/rangohorarioController');
 
+const { getSubgerencia } = require('../controllers/subgerenciaController');
 const { createHistorial } = require('../controllers/historialController');
 
 // Handler para obtener todos las funciones con paginación y búsqueda :
@@ -37,7 +38,6 @@ const getFuncionesHandler = async (req, res) => {
 
     try {
         const response = await getFunciones(numPage, numLimit, filters);
-        console.log(response);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if(numPage > totalPages){
@@ -57,7 +57,8 @@ const getFuncionesHandler = async (req, res) => {
         for (const r of response.data) {
             const result = await getRangoHorarioByFuncion(r.id);
             r.tipo = result.nombre;
-            r.id_subgerencia = result.id_subgerencia;
+            const subgerencia = await getSubgerencia(result.id_subgerencia);
+            r.subgerencia = subgerencia.nombre;
         }
         
         return res.status(200).json({
@@ -138,7 +139,7 @@ const createFuncionHandler = async (req, res) => {
 
     try {
         const validation = await getRangoHorarioAreaSubgerencia(tipo, id_subgerencia);
-        if (validation) return res.status(400).json({
+        if (!validation) return res.status(400).json({
             message: 'Se debe de crear un horario con la área y subgerencia correspondiente',
             data: []
         });
@@ -194,7 +195,7 @@ const updateFuncionHandler = async (req, res) => {
     try {
         const previo = await getFuncion(id);
         if (!previo) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "Función no encontrada",
                 data: {}
             });

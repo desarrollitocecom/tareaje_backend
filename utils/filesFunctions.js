@@ -4,7 +4,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 // Rutas para guardar las fotos y las justificaciones :
-const { FOTOS_RUTA, PDF_RUTA } = process.env;
+const { FOTOS_RUTA, PDF_RUTA, DNI_RUTA } = process.env;
 
 // Configuración de almacenamiento para fotos :
 const imageStorage = multer.diskStorage({
@@ -63,6 +63,46 @@ const savePdf = multer({
     },
 }).array('documents', 100);
 
+// Middleware para manejar la subida de una imagen y un PDF :
+const uploadImageAndPdf = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            if (file.fieldname === 'photo') {
+                cb(null, FOTOS_RUTA);
+            } else if (file.fieldname === 'document') {
+                cb(null, DNI_RUTA);
+            }
+        },
+        filename: (req, file, cb) => {
+            const uniqueName = `${uuidv4()}${getFileExtension(file.originalname)}`;
+            cb(null, uniqueName);
+        },
+    }),
+    limits: {
+        fileSize: 250 * 1024 * 1024, // 250 MB de espacio
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.fieldname === 'photo') {
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!allowedTypes.includes(file.mimetype)) {
+                const error = new Error('Formato de imagen no permitido. Solo JPEG, JPG o PNG.');
+                error.code = 'INVALID_FORMAT';
+                return cb(error);
+            }
+        } else if (file.fieldname === 'document') {
+            if (file.mimetype !== 'application/pdf') {
+                const error = new Error('Formato de documento no permitido. Solo PDFs.');
+                error.code = 'INVALID_FORMAT';
+                return cb(error);
+            }
+        }
+        cb(null, true);
+    },
+}).fields([
+    { name: 'photo', maxCount: 1 },
+    { name: 'document', maxCount: 1 },
+]);
+
 // Middleware para manejar errores de Multer :
 const multerError = (err, req, res, next) => {
     
@@ -111,6 +151,20 @@ const deleteFile = (file) => {
     });
 };
 
+// Función para eliminar pdfs de DNI :
+const deletePdfDNI = (file) => {
+    const filePath = path.join(DNI_RUTA, file);
+    return new Promise((resolve, reject) => {
+        const absolutePath = path.resolve(filePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlink(absolutePath, (err) => {
+                if (err) return reject(new Error(`Error al eliminar el archivo: ${err.message}`));
+                resolve(`Archivo eliminado correctamente: ${absolutePath}`);
+            });
+        } else resolve(`Archivo no encontrado: ${absolutePath}`);
+    });
+};
+
 // Función para eliminar fotos :
 const deletePhoto = (file) => {
     const filePath = path.join(FOTOS_RUTA, file);
@@ -128,7 +182,9 @@ const deletePhoto = (file) => {
 module.exports = {
     saveImage,
     savePdf,
+    uploadImageAndPdf,
     multerError,
     deleteFile,
+    deletePdfDNI,
     deletePhoto
 };

@@ -1,5 +1,6 @@
 const { RangoHorario, Turno, Subgerencia } = require('../db_connection');
-const { Sequelize, Op } = require('sequelize');
+const { Sequelize, Op, where } = require('sequelize');
+const { getFuncion } = require('../controllers/funcionController');
 
 // Obtener un Rango Horario por ID :
 const getRangoHorarioById = async (id) => {
@@ -20,7 +21,6 @@ const getRangoHorarioByFuncion = async (id_funcion) => {
     try {
         const response = await RangoHorario.findOne({
             where: {
-                state: true,
                 ids_funcion: { [Op.contains]: [id_funcion] }
             },
             raw: true
@@ -29,6 +29,25 @@ const getRangoHorarioByFuncion = async (id_funcion) => {
 
     } catch (error) {
         console.error('Error al obtener el horario por el id de función');
+        return false;
+    }
+}
+
+// Obtener todos los horarios que contegan una función en específico :
+const getAllRangoHorariosByFuncion = async (id_funcion) => {
+    
+    try {
+        const response = await RangoHorario.findAll({
+            where: {
+                state: true,
+                ids_funcion: { [Op.contains]: [id_funcion]}
+            },
+            raw: true
+        })
+        return response || null;
+        
+    } catch (error) {
+        console.error('Error al obtener los horarios por función:', error);
         return false;
     }
 }
@@ -96,6 +115,7 @@ const getRangosHorariosHora = async (hora) => {
     }
 };
 
+// Validar si existe un horario con el área y la subgerencia correspondiente :
 const getRangoHorarioAreaSubgerencia = async (nombre, id_subgerencia) => {
 
     try {
@@ -158,6 +178,53 @@ const updateRangoHorario = async (id, nombre, inicio, fin, ids_funcion, id_turno
         const rango = await RangoHorario.findByPk(id);
         if (!rango) return 1;
 
+        const funciones = rango.ids_funcion;
+        const beforeUpdate = funciones.filter(f => !ids_funcion.includes(f));
+        const afterUpdate = ids_funcion.filter(f => !funciones.includes(f));
+        const funcionesDelete = [];
+        const funcionesUpdate = [];
+
+        const erroresRango = [];
+        for (const funcion of afterUpdate) {
+            const rangoExist = await getAllRangoHorariosByFuncion(funcion);
+            if (!rangoExist || rangoExist.length === 0) continue;
+            const rangoFilter = rangoExist.filter(r => r.nombre !== nombre);
+            const funcionInfo = await getFuncion(funcion);
+            const funcionName = funcionInfo.nombre;
+            if (rangoFilter.length > 0) erroresRango.push(funcionName);
+        }
+        if (erroresRango.length > 0) return erroresRango;
+
+        for (const funcion of beforeUpdate) {
+            const rangoExist = await getAllRangoHorariosByFuncion(funcion);
+            if (!rangoExist || rangoExist.length === 0) funcionesDelete.push(funcion);
+            await rango.update(
+                { ids_funcion: Sequelize.fn('array_remove', Sequelize.col('ids_funcion'), funcion) }
+            );
+        }
+
+        for (const funcion of afterUpdate) {
+            const rangoExist = await getAllRangoHorariosByFuncion(funcion);
+            if (!rangoExist || rangoExist.length === 0) funcionesUpdate.push(funcion);
+        }
+
+        // Rango establecido para reubicar las funciones después de la eliminación de ese rango :
+        const rangoNull = await RangoHorario.findByPk(7);
+        if (funcionesDelete.length > 0) {
+            for (const funcion of funcionesDelete) {
+                await rangoNull.update(
+                    { ids_funcion: Sequelize.fn('array_append', Sequelize.col('ids_funcion'), funcion) }
+                );
+            }
+        }
+        if (funcionesUpdate.length > 0) {
+            for (const funcion of funcionesUpdate) {
+                await rangoNull.update(
+                    { ids_funcion: Sequelize.fn('array_remove', Sequelize.col('ids_funcion'), funcion) }
+                )
+            }
+        }
+
         const response = await rango.update({
             nombre,
             inicio,
@@ -194,16 +261,53 @@ const updateFuncionRangoHorario = async (tipo, id_subgerencia, id_funcion) => {
 const deleteRangoHorario = async (id) => {
 
     try {
-        const rango = await RangoHorario.findByPk(id);
-        if (!rango) return 1;
-        
-        rango.state = false;
-        await rango.save();
-        return rango || null;
+        const rangoDelete = await RangoHorario.findOne({
+            where: { state: true, id: id }
+        });
+        if (!rangoDelete) return 1;
 
+        // Cambiar el state a false :
+        rangoDelete.state = false;
+        await rangoDelete.save();
+        if (!rangoDelete) return null;
+
+        // Rango establecido para reubicar las funciones después de la eliminación de ese rango :
+        const rangoNull = await RangoHorario.findByPk(7);
+    
+        const funciones = rangoDelete.ids_funcion;
+        const funcionesDelete = [];
+
+        for (const funcion of funciones) {
+            const rangoExist = await getAllRangoHorariosByFuncion(funcion);
+            if (!rangoExist || rangoExist.length === 0) funcionesDelete.push(funcion);
+            await rangoDelete.update(
+                { ids_funcion: Sequelize.fn('array_remove', Sequelize.col('ids_funcion'), funcion) },
+            );
+        }
+
+        if (funcionesDelete.length > 0) {
+            for (const funcion of funcionesDelete) {
+                await rangoNull.update(
+                    { ids_funcion: Sequelize.fn('array_append', Sequelize.col('ids_funcion'), funcion) },
+                );
+            }
+        }
+
+        const response = {
+            id: rangoDelete.id,
+            nombre: rangoDelete.nombre,
+            inicio: rangoDelete.inicio,
+            fin: rangoDelete.fin,
+            state: rangoDelete.state,
+            id_turno: rangoDelete.id_turno,
+            id_subgerencia: rangoDelete.id_subgerencia
+        };
+    
+        return response;
+    
     } catch (error) {
-        console.error('Error al eliminar el Rango Horario:', error);
-        return false
+        console.error('Error al procesar los rangos de horario:', error.message, error.stack);
+        return false;
     }
 };
 

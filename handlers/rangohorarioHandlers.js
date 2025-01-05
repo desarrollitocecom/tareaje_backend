@@ -192,7 +192,12 @@ const updateRangoHorarioHandler = async (req, res) => {
 
     try {
         const response = await updateRangoHorario(id, nombre, inicio, fin, ids_funcion, id_turno, id_subgerencia);
-        if (response === 1) return res.status(400).json({ message: 'Rango de horario no encontrado', data: [] });
+        if (response === 1) return res.status(200).json({ message: 'Rango de horario no encontrado', data: [] });
+        if (!response.id || response.id === undefined) return res.status(400).json({
+            message: 'Las siguientes funciones ya tienen un área específica:',
+            data: response,
+        });
+
         if (!response) return res.status(400).json({ message: 'No se pudo actualizar el rango de horario', data: [] });
         return res.status(200).json({
             message: 'Rango de horario actualizado exitosamente',
