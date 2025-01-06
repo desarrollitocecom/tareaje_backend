@@ -254,7 +254,7 @@ const createEmpleadoHandler = async (req, res) => {
         f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, carrera,
         id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
         id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area,
-        cci, certiAdulto, claveSol
+        cci, certiAdulto, claveSol, suspension
     } = req.body;
 
     const token = req.user;
@@ -286,6 +286,8 @@ const createEmpleadoHandler = async (req, res) => {
     if (config_f_inicio && !Date.parse(config_f_inicio)) errores.push("La fecha de inicio debe tener el formato YYYY-MM-DD");
     if (config_observaciones && config_observaciones.length > 200) errores.push("Las observaciones no pueden exceder 200 caracteres"); 
     if (!cci) errores.push('El CCI es un parámetro obligatorio');
+    if (!/^\d{20}$/.test(cci)) errores.push('El CCI como mínimo debe tener 20 caracteres');
+    if (!suspension) errores.push('El número de operación de la suspensión es un parámetro obligatorio');
     if (!id_cargo || isNaN(id_cargo)) errores.push('El ID de cargo es requerido y debe ser un entero');
     if (!id_turno || isNaN(id_turno)) errores.push('El ID de turno es requerido y debe ser un entero');
     if (!id_regimen_laboral || isNaN(id_regimen_laboral)) errores.push('El ID de régimen laboral es requerido y debe ser un entero');
@@ -327,7 +329,7 @@ const createEmpleadoHandler = async (req, res) => {
             config_correo, config_domicilio, config_celular, config_f_inicio, savedPath, config_observaciones, config_carrera,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area,
-            savedPdfDni, cci, config_certiAdulto, config_claveSol
+            savedPdfDni, cci, config_certiAdulto, config_claveSol, suspension
         );
 
         if (!response) {
@@ -524,7 +526,7 @@ const updateEmpleadoPagoHandler = async (req, res) => {
         f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, carrera, foto,
         id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
         id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area,
-        carasDni, cci, certiAdulto, claveSol
+        carasDni, cci, certiAdulto, claveSol, suspension
     } = req.body;
     const token = req.user;
     const errores = [];
@@ -562,7 +564,7 @@ const updateEmpleadoPagoHandler = async (req, res) => {
 
     if (req.files.photo && match) {
         await deletePhoto(req.files.photo[0].filename);
-        await deletePdfDNI(req.files.document[0].filename);
+        if (req.files.document) await deletePdfDNI(req.files.document[0].filename);
         return res.status(400).json({
             message: 'La foto ya está registrada en el sistema, no se puede subir nuevamente',
             data: []
@@ -583,6 +585,8 @@ const updateEmpleadoPagoHandler = async (req, res) => {
     if (config_f_inicio && !Date.parse(config_f_inicio)) errores.push("La fecha de inicio debe tener el formato YYYY-MM-DD");
     if (config_observaciones && config_observaciones.length > 200) errores.push("Las observaciones no pueden exceder 200 caracteres");
     if (!cci) errores.push('El CCI es un parámetro obligatorio');
+    if (!/^\d{20}$/.test(cci)) errores.push('El CCI como mínimo debe tener 20 caracteres');
+    if (!suspension) errores.push('El número de operación de la suspensión es un parámetro obligatorio');
     if (!id_cargo || isNaN(id_cargo)) errores.push('El ID de cargo es requerido y debe ser un entero');
     if (!id_turno || isNaN(id_turno)) errores.push('El ID de turno es requerido y debe ser un entero');
     if (!id_regimen_laboral || isNaN(id_regimen_laboral)) errores.push('El ID de régimen laboral es requerido y debe ser un entero');
@@ -634,7 +638,7 @@ const updateEmpleadoPagoHandler = async (req, res) => {
             config_correo, config_domicilio, config_celular, config_f_inicio, config_observaciones, config_carrera, savedPath,
             id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area,
-            savedPdfDni, cci, config_certiAdulto, config_claveSol
+            savedPdfDni, cci, config_certiAdulto, config_claveSol, suspension
         );
 
         if (response === 1) {
