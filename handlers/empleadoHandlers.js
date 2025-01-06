@@ -52,6 +52,7 @@ const getAllEmpleadosHandlers = async (req, res) => {
     const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, area, dni, state, edadMin, edadMax, hijosMin, hijosMax } = req.query;
     const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, area, dni, state,edadMin, edadMax, hijosMin, hijosMax };
     const errores = [];
+    // console.log("page: ", page);
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
@@ -78,9 +79,8 @@ const getAllEmpleadosHandlers = async (req, res) => {
                     pageCount: response.data.length,
                     totalCount: response.totalCount,
                     totalPages: totalPages,
-                 }
                 }
-            );
+            });
         }
 
         return res.status(200).json({
@@ -131,9 +131,8 @@ const getAllEmpleadosPagosHandler = async (req, res) => {
                     pageCount: response.data.length,
                     totalCount: response.totalCount,
                     totalPages: totalPages,
-                 }
                 }
-            );
+            });
         }
 
         return res.status(200).json({
