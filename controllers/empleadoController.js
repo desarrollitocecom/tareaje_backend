@@ -500,7 +500,7 @@ const getEmpleadoByDni = async (dni) => {
 
     try {
         const empleado = await Empleado.findOne({
-            attributes: ['nombres','apellidos','foto'],
+            attributes: ['id','nombres','apellidos','foto'],
             where: { dni }
         });
         return empleado || null;
