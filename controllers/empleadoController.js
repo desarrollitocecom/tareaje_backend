@@ -203,7 +203,7 @@ const getAllEmpleadosPagos = async (page = 1, limit = 20, filters = {}) => {
             {
                 model: Pago,
                 as: 'pago',
-                attributes: ['carasDni', 'cci', 'certiAdulto', 'claveSol']
+                attributes: ['carasDni', 'cci', 'certiAdulto', 'claveSol', 'suspension']
             }
         ];
 
@@ -286,7 +286,7 @@ const getEmpleadoPago = async (id) => {
                 { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
                 { model: Funcion, as: 'funcion', attributes: ['nombre'] },
                 { model: Area, as: 'area', attributes: ['nombre'] },
-                { model: Pago, as: 'pago', attributes: ['carasDni', 'cci', 'certiAdulto', 'claveSol'] }
+                { model: Pago, as: 'pago', attributes: ['carasDni', 'cci', 'certiAdulto', 'claveSol', 'suspension'] }
             ]
         });
         return response || null;
@@ -306,7 +306,7 @@ const createEmpleado = async (
     f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones, carrera,
     id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
     id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area,
-    carasDni, cci, certiAdulto, claveSol
+    carasDni, cci, certiAdulto, claveSol, suspension
 ) => {
 
     try {
@@ -338,7 +338,7 @@ const createEmpleado = async (
         });
         if (!response) return null;
 
-        const result = await createPago(carasDni, cci, certiAdulto, claveSol, response.id);
+        const result = await createPago(carasDni, cci, certiAdulto, claveSol, suspension, response.id);
         if (!result) console.warn(`No se pudo crear la información de pagos para el empleado con DNI ${dni}`);
 
         /* const consulta = {
@@ -447,7 +447,7 @@ const updateEmpleadoPago = async (
     f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, carrera, foto,
     id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
     id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area,
-    carasDni, cci, certiAdulto, claveSol
+    carasDni, cci, certiAdulto, claveSol, suspension
 ) => {
 
     try {
@@ -482,7 +482,7 @@ const updateEmpleadoPago = async (
         });
         if (!empleado) return null;
 
-        const result = await updatePago(carasDni, cci, certiAdulto, claveSol, id);
+        const result = await updatePago(carasDni, cci, certiAdulto, claveSol, suspension, id);
         if (!result) console.warn(`No se pudo actualizar la información de pagos para el empleado con DNI ${dni}`);
         return empleado;
 

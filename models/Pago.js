@@ -23,6 +23,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        suspension: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         id_empleado: {
             type: DataTypes.INTEGER,
             references: {

@@ -40,10 +40,10 @@ const getAllPagos = async (page = 1, limit = 20) => {
 };
 
 // Crear la información de pago del empleado :
-const createPago = async (carasDni, cci, certiAdulto, claveSol, id_empleado) => {
+const createPago = async (carasDni, cci, certiAdulto, claveSol, suspension, id_empleado) => {
 
     try {
-        const response = await Pago.create({ carasDni, cci, certiAdulto, claveSol, id_empleado });
+        const response = await Pago.create({ carasDni, cci, certiAdulto, claveSol, suspension, id_empleado });
         return response || null;
 
     } catch (error) {
@@ -53,13 +53,13 @@ const createPago = async (carasDni, cci, certiAdulto, claveSol, id_empleado) => 
 };
 
 // Actualizar la información de pago del empleado :
-const updatePago = async (carasDni, cci, certiAdulto, claveSol, id_empleado) => {
+const updatePago = async (carasDni, cci, certiAdulto, claveSol, suspension, id_empleado) => {
     
     try {
         const response = await Pago.findOne({
             where: { id_empleado: id_empleado }
         });
-        if (response) await response.update({ carasDni, cci, certiAdulto, claveSol });
+        if (response) await response.update({ carasDni, cci, certiAdulto, claveSol, suspension });
         return response || null;
 
     } catch (error) {
