@@ -564,7 +564,7 @@ const updateEmpleadoPagoHandler = async (req, res) => {
 
     if (req.files.photo && match) {
         await deletePhoto(req.files.photo[0].filename);
-        await deletePdfDNI(req.files.document[0].filename);
+        if (req.files.document) await deletePdfDNI(req.files.document[0].filename);
         return res.status(400).json({
             message: 'La foto ya está registrada en el sistema, no se puede subir nuevamente',
             data: []
