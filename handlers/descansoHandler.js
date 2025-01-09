@@ -1,6 +1,14 @@
 // handlers/descansosHandler.js
 
-const { getAllDescansos, getDescansos, createDescansos, deleteDescanso, updateDescanso } = require("../controllers/descansoController");
+const {
+    getAllDescansos,
+    getDescansos,
+    getDescansosRango,
+    createDescansos,
+    deleteDescanso,
+    updateDescanso
+} = require("../controllers/descansoController");
+
 const { createHistorial } = require('../controllers/historialController');
 
 // Handler para obtener todos los descansos con paginación
@@ -57,7 +65,6 @@ const getAllDescansosHandler = async (req, res) => {
     }
 };
 
-
 // Handler para obtener un descanso por ID
 const getDescansosHandler = async (req, res) => {
 
@@ -91,6 +98,72 @@ const getDescansosHandler = async (req, res) => {
     }
 };
 
+// Handler para obtener todos los descansos (de todo tipo) por rango de fechas :
+const getDescansosRangoHandler = async (req, res) => {
+
+    const { inicio, fin } = req.body;
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state };
+    const token = req.user;
+    const errores = [];
+
+    if (isNaN(page)) errores.push('El page debe ser un número entero...');
+    if (page < 0) errores.push('El page debe ser mayor que cero...');
+    if (isNaN(limit)) errores.push('El limit debe ser un número entero...');
+    if (limit <= 0) errores.push('El limit debe ser mayor que cero...');
+    if (!inicio) errores.push('La fecha de inicio es obligatoria...');
+    if (!fin) errores.push('La fecha de fin es obligatoria...');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(inicio)) errores.push('El formato para INICIO es incorrecto, debe ser YYYY-MM-HH)');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fin)) errores.push('El formato para FIN es incorrecto, debe ser YYYY-MM-HH');
+    if (errores.length > 0) return res.status(400).json({ errores });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+
+    try {
+        const response = await getDescansosRango(numPage, numLimit, inicio, fin, filters);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: "Página fuera de rango...",
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        const historial = await createHistorial(
+            'read',
+            'Descanso',
+            `Read Descansos ${inicio} to ${fin}`,
+            null,
+            null,
+            token
+        );
+        if (!historial) console.warn('No se agregó GetDescansosRango al historial...');
+
+        return res.status(200).json({
+            message: `Mostrando las descansos del ${inicio} al ${fin}`,
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error en getAsistenciaRango...",
+            error: error.message
+        });
+    }
+};
+
 // Handler para crear un descanso
 const createDescansosHandler = async (req, res) => {
 
@@ -106,7 +179,7 @@ const createDescansosHandler = async (req, res) => {
     }
 
     if (!tipo) errores.push('El parámetro TIPO es obligatorio');
-    if (!['DM','DO','DC'].includes(tipo)) errores.push('El TIPO debe ser [DM, DO, DC]');
+    if (!['DL','DM','DO','DC'].includes(tipo)) errores.push('El TIPO debe ser [DM, DO, DC]');
 
     if (!observacion) {
         errores.push('El campo observación es requerido');
@@ -264,6 +337,7 @@ const deleteDescansoHandler = async (req, res) => {
 module.exports = {
     getAllDescansosHandler,
     getDescansosHandler,
+    getDescansosRangoHandler,
     createDescansosHandler,
     updateDescansoHandler,
     deleteDescansoHandler
