@@ -1,4 +1,5 @@
-const { Descanso, Empleado } = require("../db_connection");
+const { Descanso, Empleado, Cargo, Turno, RegimenLaboral } = require("../db_connection");
+const { Op } = require('sequelize');
 
 const getAllDescansos = async (page = 1, limit = 20) => {
     const offset = page == 0 ? null : (page - 1) * limit;
@@ -17,6 +18,7 @@ const getAllDescansos = async (page = 1, limit = 20) => {
         return false
     }
 };
+
 const getDescansos = async (id) => {
     try {
         const response = await Descanso.findOne({
@@ -32,7 +34,98 @@ const getDescansos = async (id) => {
         console.error({ message: "Error en el controlador al traer el Descanso", data: error });
         return false
     }
-}
+};
+
+// Obtener descansos (todos los tipos) en un rango de fechas con filtros :
+const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}) => {
+
+    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+    const dias = [];
+
+    let fechaDate = new Date(inicio);
+    while (fechaDate <= new Date(fin)) {
+        dias.push(new Date(fechaDate).toISOString().split('T')[0]);
+        fechaDate.setDate(fechaDate.getDate() + 1);
+    }
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            ...(search && {
+                [Op.or]: [
+                    { nombres: { [Op.iLike]: `%${search}%` } },
+                    { apellidos: { [Op.iLike]: `%${search}%` } },
+                ],
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(state !== undefined && { state: parsedState }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(turno && { id_turno: turno }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(sexo && { id_sexo: sexo })
+        };
+
+        const empleados = await Empleado.findAndCountAll({
+            where: whereCondition,
+            include: [
+                { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+                { model: Turno, as: 'turno', attributes: ['nombre'] },
+                { model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'] }
+            ],
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        const descansos = await Descanso.findAll({
+            where: {
+                fecha: { [Op.between]: [inicio, fin] }
+            },
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id'] }]
+        });
+
+        // Mapeo de los descansos por empleado y fecha :
+        const descansoMap = {};
+        descansos.forEach(descanso => {
+            const { id, id_empleado, fecha, tipo } = descanso;
+            if (!descansoMap[id_empleado]) descansoMap[id_empleado] = {};
+            descansoMap[id_empleado][fecha] = { tipo, id };
+        });
+
+        const result = empleados.rows.map(empleado => ({
+            id_empleado: empleado.id,
+            nombres: empleado.nombres,
+            apellidos: empleado.apellidos,
+            dni: empleado.dni,
+            cargo: empleado.cargo ? empleado.cargo.nombre : null,
+            turno: empleado.turno ? empleado.turno.nombre : null,
+            regimen: empleado.regimenLaboral ? empleado.regimenLaboral.nombre : null,
+            descansos: dias.map(fecha => {
+                const descanso = descansoMap[empleado.id]?.[fecha];
+                return {
+                    fecha,
+                    tipo: descanso ? descanso.tipo : null,
+                    id_descanso: descanso ? descanso.id : null
+                };
+            })
+        }));
+
+        return {
+            data: result,
+            currentPage: page,
+            totalCount: empleados.count
+        };
+
+    } catch (error) {
+        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        return false;
+    }
+};
+
 const createDescansos = async ({ fecha, tipo, observacion, id_empleado }) => {
     try {
         const response = await Descanso.create({ fecha, tipo, observacion, id_empleado });
@@ -41,7 +134,8 @@ const createDescansos = async ({ fecha, tipo, observacion, id_empleado }) => {
         console.error({ message: "Error en el controlador al crear el Descanso", data: error });
         return false
     }
-}
+};
+
 const deleteDescanso = async (id) => {
     try {
         // Usa Descanso.findByPk en lugar de findByPk directamente
@@ -97,6 +191,7 @@ module.exports = {
     getAllDescansos,
     getDescansos,
     getDescansosDiario,
+    getDescansosRango,
     updateDescanso,
     createDescansos,
     deleteDescanso

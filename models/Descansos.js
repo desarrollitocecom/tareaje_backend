@@ -12,7 +12,7 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         tipo: {
-            type: DataTypes.ENUM('DM','DO','DC'),
+            type: DataTypes.ENUM('DL','DM','DO','DC'),
             allowNull: false
         },
         observacion: {
