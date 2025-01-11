@@ -1,9 +1,32 @@
 const { Descanso, Empleado, Cargo, Turno, RegimenLaboral } = require("../db_connection");
 const { Op } = require('sequelize');
 
+// Obtener un descanso por ID :
+const getDescanso = async (id) => {
+    try {
+        const response = await Descanso.findOne({
+            where: { id, state: true },
+            include: [
+                { model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos'] }
+            ]
+        })
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener un descanso por ID',
+            data: error.message
+        });
+        return false;
+    }
+};
+
+// Obtener todos los descansos con paginación :
 const getAllDescansos = async (page = 1, limit = 20) => {
+
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
+
     try {
         const response = await Descanso.findAndCountAll({
             where: { state: true },
@@ -12,26 +35,18 @@ const getAllDescansos = async (page = 1, limit = 20) => {
             offset,
             order: [['id', 'ASC']]
         });
-        return { totalCount: response.count, data: response.rows, currentPage: page } || null;
-    } catch (error) {
-        console.error({ message: "Error en el controlador al traer todos los Descansos", data: error });
-        return false
-    }
-};
 
-const getDescansos = async (id) => {
-    try {
-        const response = await Descanso.findOne({
-            where: { id, state: true },
-            include: [{
-                model: Empleado,
-                as: 'empleado',
-                attributes: ['id', 'nombres', 'apellidos']
-            }]
-        })
-        return response || null
+        return {
+            totalCount: response.count,
+            data: response.rows,
+            currentPage: page
+        } || null;
+
     } catch (error) {
-        console.error({ message: "Error en el controlador al traer el Descanso", data: error });
+        console.error({
+            message: 'Error en el controlador al obtener todos los descansos',
+            error: error.message
+        });
         return false
     }
 };
@@ -39,7 +54,7 @@ const getDescansos = async (id) => {
 // Obtener descansos (todos los tipos) en un rango de fechas con filtros :
 const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}) => {
 
-    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = filters;
+    const { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
     const dias = [];
@@ -53,19 +68,21 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
     try {
         // Construcción dinámica de condiciones :
         const whereCondition = {
+            state: true,
             ...(search && {
-                [Op.or]: [
-                    { nombres: { [Op.iLike]: `%${search}%` } },
-                    { apellidos: { [Op.iLike]: `%${search}%` } },
-                ],
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
             }),
-            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
-            ...(state !== undefined && { state: parsedState }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` }}),
             ...(subgerencia && { id_subgerencia: subgerencia }),
             ...(turno && { id_turno: turno }),
             ...(cargo && { id_cargo: cargo }),
             ...(regimen && { id_regimen_laboral: regimen }),
-            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(lugar && { id_lugar_trabajo: lugar }),
             ...(sexo && { id_sexo: sexo })
         };
 
@@ -118,81 +135,94 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
             data: result,
             currentPage: page,
             totalCount: empleados.count
-        };
+        } || null;
 
     } catch (error) {
-        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        console.error({
+            message: 'Error en el controlador al obtener los descansos en un rango de fechas',
+            error: error.message
+        });
         return false;
     }
 };
 
-const createDescansos = async ({ fecha, tipo, observacion, id_empleado }) => {
-    try {
-        const response = await Descanso.create({ fecha, tipo, observacion, id_empleado });
-        return response || null
-    } catch (error) {
-        console.error({ message: "Error en el controlador al crear el Descanso", data: error });
-        return false
-    }
-};
-
-const deleteDescanso = async (id) => {
-    try {
-        // Usa Descanso.findByPk en lugar de findByPk directamente
-        const response = await Descanso.findByPk(id);
-
-        if (!response) {
-            console.error("Descanso no encontrado");
-            return null;
-        }
-
-        // Cambia el estado a false en lugar de eliminar el registro
-        response.state = false;
-        await response.save();
-
-        return response;
-    } catch (error) {
-        console.error("Error al cambiar de estado al eliminar Descanso", error);
-        return false;
-    }
-};
-const updateDescanso = async (id, { fecha, observacion, id_empleado }) => {
-    try {
-        const response = await getDescansos(id);
-        if (response) await response.update({ fecha: fecha, observacion: observacion, id_empleado: id_empleado });
-        return response || null;
-    } catch (error) {
-        console.error("Error al modificar el descanso en el controlador:", error);
-        return false;
-    }
-};
-
+// Obtener todos los descansos de una fecha determinada :
 const getDescansosDiario = async (fecha) => {
     
     try {
         const response = await Descanso.findAll({
-            where: {
-                state: true,
-                fecha: fecha
-            },
+            where: { state: true, fecha },
             attributes: ['tipo', 'id_empleado'],
             raw: true
         });
-
         return response || null;
         
     } catch (error) {
-        console.error('Error al obtener los descansos en un día:', error);
+        console.error({
+            message: 'Error al obtener todos los descansos de una fecha',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Crear un descanso :
+const createDescanso = async (fecha, tipo, observacion, id_empleado) => {
+    try {
+        const response = await Descanso.create({ fecha, tipo, observacion, id_empleado });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al crear un descanso',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Actualizar un descanso :
+const updateDescanso = async (id, fecha, observacion, id_empleado) => {
+    try {
+        const response = await getDescanso(id);
+        if (response) await response.update({ fecha, observacion, id_empleado });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar un descanso',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Eliminar un descanso :
+const deleteDescanso = async (id) => {
+
+    try {
+        const response = await getDescanso(id);
+        if (!response) return null;
+
+        response.state = false;
+        await response.save();
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al eliminar un descanso',
+            error: error.message
+        });
         return false;
     }
 };
 
 module.exports = {
     getAllDescansos,
-    getDescansos,
-    getDescansosDiario,
+    getDescanso,
     getDescansosRango,
+    getDescansosDiario,
     updateDescanso,
-    createDescansos,
+    createDescanso,
     deleteDescanso
-}
+};

@@ -20,7 +20,7 @@ const getArea = async (id) => {
 };
 
 // Obtener todas las áreas :
-const getAllAreas = async (page = 1, limit = 20, filters) => {
+const getAllAreas = async (page = 1, limit = 20, filters = {}) => {
 
     const { search } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;

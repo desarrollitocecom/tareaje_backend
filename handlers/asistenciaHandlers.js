@@ -46,8 +46,8 @@ const getAsistenciaByIdHandler = async (req,res) => {
 const getAsistenciaDiariaHandler = async (req, res) => {
 
     const { fecha } = req.params;
-    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state, estado } = req.query;
-    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state, estado };
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state, estado } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state, estado };
     const token = req.user;
     const errores = [];
 
@@ -113,8 +113,8 @@ const getAsistenciaDiariaHandler = async (req, res) => {
 const getAsistenciaRangoHandler = async (req, res) => {
 
     const { inicio, fin } = req.body;
-    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = req.query;
-    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state };
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state };
     const token = req.user;
     const errores = [];
 

@@ -12,20 +12,17 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         tipo: {
-            type: DataTypes.ENUM('DL','DM','DO','DC'),
+            type: DataTypes.ENUM('DL','DO','DC'),
             allowNull: false
         },
         observacion: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         id_empleado: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            references: {
-                model: 'Empleados',
-                key: 'id',
-            }
+            references: { model: 'Empleados', key: 'id' }
         },
         state: {
             type: DataTypes.BOOLEAN,
@@ -38,12 +35,8 @@ module.exports = (sequelize) => {
     });
 
     Descanso.associate = (models) => {
-        Descanso.belongsTo(models.Empleado, { 
-            foreignKey: 'id_empleado', 
-            as: 'empleado' 
-        });
+        Descanso.belongsTo(models.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
     };
-    
 
     return Descanso;
 };
