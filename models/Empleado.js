@@ -52,6 +52,10 @@ module.exports = (sequelize) => {
             type: DataTypes.DATEONLY,
             allowNull: true
         },
+        f_fin: {
+            type: DataTypes.DATEONLY,
+            allowNull: true
+        },
         foto: {
             type: DataTypes.STRING,
             allowNull: true
@@ -139,8 +143,8 @@ module.exports = (sequelize) => {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        },
-    }, {
+        }
+    },{
         tableName: 'Empleados',
         timestamps: true
     });
