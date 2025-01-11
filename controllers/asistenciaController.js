@@ -1,4 +1,4 @@
-const { Asistencia, Empleado, Cargo, Turno } = require('../db_connection');
+const { Asistencia, Empleado, Cargo, Turno, RegimenLaboral } = require('../db_connection');
 const { Op } = require('sequelize');
 
 // Obtener la asistencias por ID (formato UUID) :
@@ -16,7 +16,7 @@ const getAsistenciaById = async (id) => {
 // Obtener las asistencias (todos los estados) de un día determinado con filtros :
 const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) => {
 
-    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state, estado } = filters; // Extraer filtros
+    const { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state, estado } = filters; // Extraer filtros
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
 
@@ -24,25 +24,27 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) =>
         // Construcción dinámica de condiciones :
         const whereCondition = {
             ...(search && {
-                [Op.or]: [
-                    { nombres: { [Op.iLike]: `%${search}%` } },
-                    { apellidos: { [Op.iLike]: `%${search}%` } },
-                ],
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
             }),
             ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
-            ...(state !== undefined && { state: parsedState }),
+            ...(state !== undefined && { state: state }),
             ...(subgerencia && { id_subgerencia: subgerencia }),
             ...(turno && { id_turno: turno }),
             ...(cargo && { id_cargo: cargo }),
             ...(regimen && { id_regimen_laboral: regimen }),
-            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(lugar && { id_lugar_trabajo: lugar }),
             ...(sexo && { id_sexo: sexo })
         };
 
         const asistencias = await Asistencia.findAndCountAll({
             where: {
                 fecha: fecha,
-                ...(estado && { estado })
+                ...(estado && { estado: estado })
             },
             include: [
                 {
@@ -52,7 +54,8 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) =>
                     where: whereCondition,
                     include: [
                         { model: Cargo, as: 'cargo', attributes: ['nombre'] },
-                        { model: Turno, as: 'turno', attributes: ['nombre'] }
+                        { model: Turno, as: 'turno', attributes: ['nombre'] },
+                        { model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'] }
                     ]
                 }
             ],
@@ -112,7 +115,7 @@ const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
 // Obtener asistencias (todos los estados) en un rango de fechas con filtros :
 const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {}) => {
 
-    const { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, dni, state } = filters; // Extraer filtros
+    const { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state } = filters; // Extraer filtros
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
     const dias = [];
@@ -127,18 +130,20 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {
         // Construcción dinámica de condiciones :
         const whereCondition = {
             ...(search && {
-                [Op.or]: [
-                    { nombres: { [Op.iLike]: `%${search}%` } },
-                    { apellidos: { [Op.iLike]: `%${search}%` } },
-                ],
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
             }),
             ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
-            ...(state !== undefined && { state: parsedState }),
+            ...(state !== undefined && { state: state }),
             ...(subgerencia && { id_subgerencia: subgerencia }),
             ...(turno && { id_turno: turno }),
             ...(cargo && { id_cargo: cargo }),
             ...(regimen && { id_regimen_laboral: regimen }),
-            ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(lugar && { id_lugar_trabajo: lugar }),
             ...(sexo && { id_sexo: sexo })
         };
 
@@ -146,8 +151,8 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {
             where: whereCondition,
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
-                { model: Turno, as: 'turno', attributes: ['nombre'] }
-
+                { model: Turno, as: 'turno', attributes: ['nombre'] },
+                { model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'] }
             ],
             limit,
             offset,
@@ -176,6 +181,7 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {
             dni: empleado.dni,
             cargo: empleado.cargo ? empleado.cargo.nombre : null,
             turno: empleado.turno ? empleado.turno.nombre : null,
+            regimen: empleado.regimenLaboral ? empleado.regimenLaboral.nombre : null,
             estados: dias.map(fecha => {
                 const asistencia = asistenciaMap[empleado.id]?.[fecha];
                 return {
