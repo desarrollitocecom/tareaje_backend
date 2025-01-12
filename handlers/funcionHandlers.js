@@ -54,13 +54,6 @@ const getFuncionesHandler = async (req, res) => {
             );
         }
 
-        for (const r of response.data) {
-            const result = await getRangoHorarioByFuncion(r.id);
-            r.tipo = result.nombre;
-            const subgerencia = await getSubgerencia(result.id_subgerencia);
-            r.subgerencia = subgerencia.nombre;
-        }
-        
         return res.status(200).json({
             message: 'Funciones obtenidas exitosamente...',
             data: {
@@ -99,10 +92,6 @@ const getFuncionHandler = async (req, res) => {
                 data: []
             });
         }
-
-        const horario = await getRangoHorarioByFuncion(response.id);
-        response.tipo = horario.nombre;
-        response.id_subgerencia = horario.id_subgerencia;
 
         return res.status(200).json({
             message: "Función encontrada",

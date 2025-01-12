@@ -68,7 +68,6 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
     try {
         // Construcción dinámica de condiciones :
         const whereCondition = {
-            state: true,
             ...(search && {
                 [Op.and]: search.split(' ').map((term) => ({
                     [Op.or]: [
@@ -100,6 +99,7 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
 
         const descansos = await Descanso.findAll({
             where: {
+                state: true,
                 fecha: { [Op.between]: [inicio, fin] }
             },
             include: [{ model: Empleado, as: 'empleado', attributes: ['id'] }]
