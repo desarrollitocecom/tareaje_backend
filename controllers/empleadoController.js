@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { Op } = require('sequelize');
 const { INCIDENCIAS_CREATE_URL }= process.env; // URL Registrar Serenos API Incidencias
+const { decrypt } = require('../utils/security');
 
 const {
     createPago,
@@ -19,13 +20,14 @@ const getAllUniverseEmpleados = async () => {
             attributes: [
                 'id', 'nombres', 'apellidos', 'dni',
                 'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'observaciones', 'foto', 'carrera', 'state',
+                'celular', 'f_inicio', 'f_fin', 'observaciones', 'foto', 'carrera', 'state',
                 'id_cargo', 'id_turno', 'id_regimen_laboral', 'id_sexo',
                 'id_grado_estudios', 'id_jurisdiccion', 'id_lugar_trabajo',
                 'id_subgerencia', 'id_lugar_trabajo', 'id_funcion', 'id_area'
             ],
             order: [['dni', 'ASC']]
         });
+
         return {
             totalCount: response.count,
             data: response.rows
@@ -40,7 +42,7 @@ const getAllUniverseEmpleados = async () => {
 // Obtener toda la información, sin incluir datos privados, de los empleados (SECTOR TAREAJE) :
 const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
 
-    const { search, dni, state, cargo, subgerencia, regimen, jurisdiccion, sexo, turno, area, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
+    const { search, dni, state, cargo, subgerencia, regimen_laboral, jurisdiccion, grado_estudios, lugar_trabajo, sexo, turno, funcion, area, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
 
@@ -66,8 +68,9 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
             }),
             ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
             ...(state !== undefined && { state }),
-            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(regimen_laboral && { id_regimen_laboral: regimen_laboral }),
             ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(lugar_trabajo && { id_lugar_trabajo: lugar_trabajo }),
             ...(sexo && { id_sexo: sexo }),
             ...(validDateFromEdadMin && validDateFromEdadMax && {
                 f_nacimiento: {
@@ -83,39 +86,56 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
 
         const includeConditions = [
             {
-                model: Cargo,
-                as: 'cargo',
-                attributes: ['nombre'],
+                model: Cargo, as: 'cargo', attributes: ['nombre'],
                 ...(cargo && { where: { id: cargo } })
             },
             {
-                model: Subgerencia,
-                as: 'subgerencia',
-                attributes: ['nombre'],
-                ...(subgerencia && { where: { id: subgerencia } })
-            },
-            {
-                model: Turno,
-                as: 'turno',
-                attributes: ['nombre'],
+                model: Turno, as: 'turno', attributes: ['nombre'],
                 ...(turno && { where: { id: turno } })
             },
             {
-                model: Area,
-                as: 'area',
-                attributes: ['nombre'],
+                model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'],
+                ...(regimen_laboral && { where: { id: regimen_laboral } })
+            },
+            {
+                model: Sexo, as: 'sexo', attributes: ['nombre'],
+                ...(sexo && { where: { id: sexo } })
+            },
+            {
+                model: Jurisdiccion, as: 'jurisdiccion', attributes: ['nombre'],
+                ...(jurisdiccion && { where: { id: jurisdiccion } })
+            },
+            {
+                model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'],
+                ...(grado_estudios && { where: { id: grado_estudios } })
+            },
+            {
+                model: Subgerencia, as: 'subgerencia', attributes: ['nombre'],
+                ...(subgerencia && { where: { id: subgerencia } })
+            },
+            {
+                model: LugarTrabajo, as: 'lugarTrabajo', attributes: ['nombre'],
+                ...(lugar_trabajo && { where: { id: lugar_trabajo } })
+            },
+            {
+                model: Funcion, as: 'funcion', attributes: ['nombre'],
+                ...(funcion && { where: { id: funcion } })
+            },
+            {
+                model: Area, as: 'area', attributes: ['nombre'],
                 ...(area && { where: { id: area } })
             }
         ];
 
         const response = await Empleado.findAndCountAll({
             where: whereCondition,
-            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state', 'foto', 'f_nacimiento', 'carrera'],
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'ruc', 'edad', 'f_nacimiento', 'correo', 'domicilio', 'celular',  'f_inicio', 'foto', 'observaciones', 'carrera', 'f_fin'],
             include: includeConditions,
             limit,
             offset,
             order: [['apellidos', 'ASC']]
         });
+
         return {
             totalCount: response.count,
             data: response.rows,
@@ -134,7 +154,7 @@ const getAllEmpleados = async (page = 1, limit = 20, filters = {}) => {
 // Obtener toda la información, incluido datos privados de los empleados (SECTOR PAGOS) :
 const getAllEmpleadosPagos = async (page = 1, limit = 20, filters = {}) => {
 
-    const { search, dni, state, cargo, subgerencia, regimen, jurisdiccion, sexo, turno, area, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
+    const { search, dni, state, cargo, subgerencia, regimen_laboral, jurisdiccion, grado_estudios, lugar_trabajo, sexo, turno, funcion, area, edadMin, edadMax, hijosMin, hijosMax } = filters; // Extraer filtros
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
 
@@ -160,8 +180,9 @@ const getAllEmpleadosPagos = async (page = 1, limit = 20, filters = {}) => {
             }),
             ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
             ...(state !== undefined && { state }),
-            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(regimen_laboral && { id_regimen_laboral: regimen_laboral }),
             ...(jurisdiccion && { id_jurisdiccion: jurisdiccion }),
+            ...(lugar_trabajo && { id_lugar_trabajo: lugar_trabajo }),
             ...(sexo && { id_sexo: sexo }),
             ...(validDateFromEdadMin && validDateFromEdadMax && {
                 f_nacimiento: {
@@ -177,39 +198,53 @@ const getAllEmpleadosPagos = async (page = 1, limit = 20, filters = {}) => {
 
         const includeConditions = [
             {
-                model: Cargo,
-                as: 'cargo',
-                attributes: ['nombre'],
+                model: Cargo, as: 'cargo', attributes: ['nombre'],
                 ...(cargo && { where: { id: cargo } })
             },
             {
-                model: Subgerencia,
-                as: 'subgerencia',
-                attributes: ['nombre'],
-                ...(subgerencia && { where: { id: subgerencia } })
-            },
-            {
-                model: Turno,
-                as: 'turno',
-                attributes: ['nombre'],
+                model: Turno, as: 'turno', attributes: ['nombre'],
                 ...(turno && { where: { id: turno } })
             },
             {
-                model: Area,
-                as: 'area',
-                attributes: ['nombre'],
+                model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'],
+                ...(regimen_laboral && { where: { id: regimen_laboral } })
+            },
+            {
+                model: Sexo, as: 'sexo', attributes: ['nombre'],
+                ...(sexo && { where: { id: sexo } })
+            },
+            {
+                model: Jurisdiccion, as: 'jurisdiccion', attributes: ['nombre'],
+                ...(jurisdiccion && { where: { id: jurisdiccion } })
+            },
+            {
+                model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'],
+                ...(grado_estudios && { where: { id: grado_estudios } })
+            },
+            {
+                model: Subgerencia, as: 'subgerencia', attributes: ['nombre'],
+                ...(subgerencia && { where: { id: subgerencia } })
+            },
+            {
+                model: LugarTrabajo, as: 'lugarTrabajo', attributes: ['nombre'],
+                ...(lugar_trabajo && { where: { id: lugar_trabajo } })
+            },
+            {
+                model: Funcion, as: 'funcion', attributes: ['nombre'],
+                ...(funcion && { where: { id: funcion } })
+            },
+            {
+                model: Area, as: 'area', attributes: ['nombre'],
                 ...(area && { where: { id: area } })
             },
             {
-                model: Pago,
-                as: 'pago',
-                attributes: ['carasDni', 'cci', 'certiAdulto', 'claveSol', 'suspension']
+                model: Pago, as: 'pago', attributes: ['carasDni', 'cci', 'certiAdulto', 'claveSol', 'suspension']
             }
         ];
 
         const response = await Empleado.findAndCountAll({
             where: whereCondition,
-            attributes: ['id', 'nombres', 'apellidos', 'dni', 'celular', 'state', 'foto', 'f_nacimiento', 'carrera'],
+            attributes: ['id', 'nombres', 'apellidos', 'dni', 'ruc', 'edad', 'f_nacimiento', 'correo', 'domicilio', 'celular',  'f_inicio', 'foto', 'observaciones', 'carrera', 'f_fin'],
             include: includeConditions,
             limit,
             offset,
@@ -238,7 +273,7 @@ const getEmpleado = async (id) => {
         const response = await Empleado.findOne({
             attributes: ['id', 'nombres', 'apellidos', 'dni',
                 'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'observaciones', 'carrera', 'foto',],
+                'celular', 'f_inicio', 'observaciones', 'carrera', 'foto', 'f_fin'],
             where: { id },
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
@@ -272,7 +307,7 @@ const getEmpleadoPago = async (id) => {
         const response = await Empleado.findOne({
             attributes: ['id', 'nombres', 'apellidos', 'dni',
                 'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'observaciones', 'carrera', 'foto'],
+                'celular', 'f_inicio', 'observaciones', 'carrera', 'foto', 'f_fin'],
             where: { id },
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
@@ -289,6 +324,10 @@ const getEmpleadoPago = async (id) => {
                 { model: Pago, as: 'pago', attributes: ['carasDni', 'cci', 'certiAdulto', 'claveSol', 'suspension'] }
             ]
         });
+        /* response.pago.cci = decrypt(response.pago.cci);
+        response.pago.certiAdulto = decrypt(response.pago.certiAdulto);
+        response.pago.claveSol = decrypt(response.pago.claveSol);
+        response.pago.suspension = decrypt(response.pago.suspension); */
         return response || null;
 
     } catch (error) {
@@ -365,27 +404,6 @@ const createEmpleado = async (
     } catch (error) {
         console.error({
             message: 'Error en el controlador al crear al empleado',
-            data: error
-        });
-        return false;
-    }
-};
-
-// Cambio del estado del empleado (ACTIVO - CESADO) :
-const deleteEmpleado = async (id) => {
-
-    try {
-        const response = await Empleado.findByPk(id);
-        if (!response) return 1;
-        
-        const info = response.state;
-        response.state = !info;
-        await response.save();
-        return response || null;
-
-    } catch (error) {
-        console.error({
-            message: 'Error en el controlador al eliminar al empleado',
             data: error
         });
         return false;
@@ -495,6 +513,47 @@ const updateEmpleadoPago = async (
     }
 };
 
+// Cambio del estado del empleado (ACTIVO - CESADO) :
+const deleteEmpleado = async (id) => {
+
+    try {
+        const response = await Empleado.findByPk(id);
+        if (!response) return 1;
+        
+        const info = response.state;
+        response.state = !info;
+        await response.save();
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al eliminar al empleado',
+            data: error
+        });
+        return false;
+    }
+};
+
+// Cambio del estado definitivo a false del empleado (SIN RETORNO) :
+const deleteEmpleadoBlackList = async (id, f_fin) => {
+    
+    try {
+        const response = await Empleado.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        response.f_fin = f_fin;
+        await response.save();
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al eliminar al empleado definitivamente',
+            data: error
+        });
+        return false;
+    }  
+};
+
 // Obtener información básica del empleado :
 const getEmpleadoByDni = async (dni) => {
 
@@ -593,6 +652,7 @@ module.exports = {
     rotativoEmpleado,
     createEmpleado,
     deleteEmpleado,
+    deleteEmpleadoBlackList,
     updateEmpleado,
     updateEmpleadoPago
 };
