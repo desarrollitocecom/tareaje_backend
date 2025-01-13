@@ -1,7 +1,9 @@
-const { Op } = require('sequelize');
 const {
     BlackList, Cargo, RegimenLaboral, Sexo, Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion, Area
 } = require('../db_connection');
+
+const { Op } = require('sequelize');
+const { searchBestSimilarity } = require('../utils/similarity');
 
 // Obtener los datos de la Black List por ID :
 const getBlackListByID = async (id) => {
@@ -134,6 +136,26 @@ const getAllBlackList = async (page = 1, limit = 20, filters = {}) => {
     }
 };
 
+// Validación para detectar si la persona entrante pertenece a la Black List :
+const validateBlackList = async (nombres, apellidos, dni) => {
+    
+    const response = await BlackList.findAll({
+        attributes: ['nombres', 'apellidos', 'dni'],
+        raw: true
+    });
+
+    const filtro1 = response.find(black => black.dni === dni);
+    if (filtro1) return true;
+
+    const completoEmpleado = `${apellidos} ${nombres}`;
+    const completoBlackList = response.map(black => `${black.apellidos} ${black.nombres}`);
+    const filtro2 = searchBestSimilarity(completoEmpleado, completoBlackList);
+    if (filtro2) return true;
+
+    // Si no encuentra similitud en el DNI y en el nombre completo entonces es ACEPTADO :
+    return false;
+};
+
 // Ingresar una persona dentro de la Black List (SIN RETORNO) :
 const createBlackListEmpleado = async (
     nombres, apellidos, dni, motivo, f_fin, id_cargo, id_turno, id_regimen_laboral, id_sexo, 
@@ -160,5 +182,6 @@ module.exports = {
     getBlackListByID,
     getBlackListByDNI,
     getAllBlackList,
-    createBlackListEmpleado
+    validateBlackList,
+    createBlackListEmpleado,
 };

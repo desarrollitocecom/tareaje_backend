@@ -23,6 +23,8 @@ const justificacionRouter = require('./justificacionRouter');
 const historialRouter = require('./historialRouter');
 const apiKeyRouter = require('./apiKeyRouter');
 const areaRouter = require('./areaRouter');
+const blackListRouter = require('./blackListRouter');
+const horarioRouter = require('./horarioRouter');
 
 // Usa prefijos para organizar las rutas :
 router.use('/apikeys', apiKeyRouter);
@@ -47,5 +49,7 @@ router.use('/rangohorarios',rangoHorarioRouter);
 router.use('/justificaciones',justificacionRouter);
 router.use('/historial',historialRouter);
 router.use('/areas', areaRouter);
+router.use('/blacklist', blackListRouter);
+router.use('/horarios', horarioRouter);
 
 module.exports = router;
