@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const rutas = Router();
+
 const {
     getAllUniverseEmpleadosHandlers,
     getAllEmpleadosHandlers,
@@ -8,10 +9,12 @@ const {
     getEmpleadoPagoHandler,
     getEmpleadoByDniHandler,
     createEmpleadoHandler,
+    createEmpleadoPagoHandler,
     updateEmpleadoHandler,
     updateEmpleadoPagoHandler,
     deleteEmpleadoHandler,
-    findEmpleadoHandler
+    findEmpleadoHandler,
+    blackDeleteHandler
 } = require('../handlers/empleadoHandlers');
 
 const { saveImage, uploadImageAndPdf, multerError } = require('../utils/filesFunctions');
@@ -22,11 +25,13 @@ rutas.get('/',permisoAutorizacion(["all_system_access", "read_empleado"]), getAl
 rutas.get('/pagos/', permisoAutorizacion(["all_system_access", "read_empleadoPagos"]), getAllEmpleadosPagosHandler);
 rutas.get('/:id',permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoHandler);
 rutas.get('/pagos/:id',permisoAutorizacion(["all_system_access", "read_empleadoPagos"]), getEmpleadoPagoHandler);
-rutas.post('/', permisoAutorizacion(["all_system_access", "create_empleado"]), uploadImageAndPdf, multerError, createEmpleadoHandler)
 rutas.get('/dni/:dni', permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoByDniHandler);
+rutas.post('/', permisoAutorizacion(["all_system_access", "create_empleado"]), saveImage, multerError, createEmpleadoHandler);
+rutas.post('/pagos/', permisoAutorizacion(["all_system_access", "create_empleadoPagos"]), uploadImageAndPdf, multerError, createEmpleadoPagoHandler)
 rutas.patch('/:id', permisoAutorizacion(["all_system_access", "update_empleado"]), saveImage, multerError, updateEmpleadoHandler);
 rutas.patch('/pagos/:id', permisoAutorizacion(["all_system_access", "update_empleadoPagos"]), uploadImageAndPdf, multerError, updateEmpleadoPagoHandler)
 rutas.delete('/:id',permisoAutorizacion(["all_system_access", "delete_empleado"]), deleteEmpleadoHandler);
 rutas.post('/find/',permisoAutorizacion(["all_system_access", "read_empleado"]), findEmpleadoHandler);
+rutas.delete('/black/:id',permisoAutorizacion(["all_system_access", "delete_empleado"]), blackDeleteHandler);
 
 module.exports = rutas;
