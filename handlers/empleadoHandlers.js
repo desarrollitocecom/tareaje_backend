@@ -9,12 +9,14 @@ const {
     updateEmpleado,
     updateEmpleadoPago,
     deleteEmpleado,
+    deleteEmpleadoBlackList,
     findEmpleado } = require('../controllers/empleadoController');
 
 const { createHistorial } = require('../controllers/historialController');
 const { createPerson } = require('../controllers/axxonController');
 const { deletePhoto, deletePdfDNI } = require('../utils/filesFunctions');
 const { readPerson } = require('../controllers/axxonController');
+const { validateBlackList } = require('../controllers/blackListController');
 const fs = require('fs');
 const path = require('path');
 
@@ -49,8 +51,8 @@ const getAllUniverseEmpleadosHandlers = async (req, res) => {
 // Handler para obtener todos los empleados sin incluir datos privados (SECTOR TAREAJE) :
 const getAllEmpleadosHandlers = async (req, res) => {
 
-    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, area, dni, state, edadMin, edadMax, hijosMin, hijosMax } = req.query;
-    const filters = { search, subgerencia, turno, cargo, regimen, jurisdiccion, sexo, area, dni, state,edadMin, edadMax, hijosMin, hijosMax };
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, lugar, jurisdiccion, grado, sexo, area, dni, state, edadMin, edadMax, hijosMin, hijosMax } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, lugar, jurisdiccion, grado, sexo, area, dni, state,edadMin, edadMax, hijosMin, hijosMax };
     const errores = [];
     // console.log("page: ", page);
 
@@ -246,8 +248,134 @@ const getEmpleadoByDniHandler = async (req, res) => {
     }
 }
 
-// Handler para crear al empleado con toda la información (SECTOR TAREAJE Y PAGOS) :
+// Handler para crear al empleado sin información privada :
 const createEmpleadoHandler = async (req, res) => {
+
+    const {
+        nombres, apellidos, dni, ruc, hijos, edad,
+        f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, carrera,
+        id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+        id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area
+    } = req.body;
+
+    const token = req.user;
+    const errores = [];
+
+    // Validaciones para aceptar campos nulos :
+    const config_correo = (correo) ? correo : null;
+    const config_domicilio = (domicilio) ? domicilio : null;
+    const config_celular = (celular) ? celular : null;
+    const config_f_inicio = (f_inicio) ? f_inicio : null;
+    const config_observaciones = (observaciones) ? observaciones : null;
+    const config_carrera = (carrera) ? carrera : null;
+
+    // Validaciones necesarias :
+    if (!req.file) errores.push('Es obligatorio el envío de la foto');
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]{2,30}$/.test(nombres)) errores.push("Los nombres deben contener solo letras y tener entre 2 y 50 caracteres");
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]{2,30}$/.test(apellidos)) errores.push("Los apellidos deben contener solo letras y tener entre 2 y 50 caracteres");
+    if (!/^\d{8}$/.test(dni)) errores.push("DNI debe tener exactamente 8 dígitos");
+    if (!/^\d{11}$/.test(ruc) && (ruc && ruc !== 'NO TIENE RUC')) errores.push("RUC debe tener exactamente 11 dígitos");
+    if (isNaN(hijos)) errores.push("El número de hijos debe ser un número entero mayor o igual a 0");
+    if (isNaN(edad) || edad < 0 || edad > 120) errores.push("La edad debe ser un entero entre 0 y 120");
+    if (!Date.parse(f_nacimiento)) errores.push("La fecha de nacimiento debe tener el formato YYYY-MM-DD");
+    if (config_correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config_correo)) errores.push("El correo electrónico no es válido");
+    if (config_domicilio && config_domicilio.length < 5) errores.push("El domicilio debe tener al menos 5 caracteres");
+    if (config_celular && !/^\d{9}$/.test(config_celular)) errores.push("El número de celular debe tener entre 9 y 15 dígitos");
+    if (config_f_inicio && !Date.parse(config_f_inicio)) errores.push("La fecha de inicio debe tener el formato YYYY-MM-DD");
+    if (config_observaciones && config_observaciones.length > 200) errores.push("Las observaciones no pueden exceder 200 caracteres"); 
+    if (!id_cargo || isNaN(id_cargo)) errores.push('El ID de cargo es requerido y debe ser un entero');
+    if (!id_turno || isNaN(id_turno)) errores.push('El ID de turno es requerido y debe ser un entero');
+    if (!id_regimen_laboral || isNaN(id_regimen_laboral)) errores.push('El ID de régimen laboral es requerido y debe ser un entero');
+    if (!id_sexo || isNaN(id_sexo)) errores.push('El ID de sexo es requerido y debe ser un entero');
+    if (!id_jurisdiccion || isNaN(id_jurisdiccion)) errores.push('El ID de jurisdicción es requerido y debe ser un entero');
+    if (!id_grado_estudios || isNaN(id_grado_estudios)) errores.push('El ID de grado de estudios es requerido y debe ser un entero');
+    if (!id_subgerencia || isNaN(id_subgerencia)) errores.push('El ID de subgerencia es requerido y debe ser un entero');
+    if (!id_funcion || isNaN(id_funcion)) errores.push('El ID de función es requerido y debe ser un entero');
+    if (!id_lugar_trabajo || isNaN(id_lugar_trabajo)) errores.push('El ID de lugar de trabajo es requerido y debe ser un entero');
+    if (!id_area || isNaN(id_area)) errores.push('El ID de área es requerido y debe ser un entero');
+
+    if (errores.length > 0) {
+        if (req.file) await deletePhoto(req.file.filename);
+        return res.status(400).json({
+            message: 'Se encontraron los siguientes errores...',
+            data: errores,
+        });
+    }
+
+    try {
+        // Validar si la personaa no pertenece a la Black List :
+        const dark = await validateBlackList(nombres, apellidos, dni);
+        if (dark) {
+            await deletePhoto(req.file.filename);
+            return res.status(400).json({
+                message: 'La persona pertenece a la Black List, no puede laborar',
+                data: []
+            });
+        }
+
+        // Guardar en AXXON la imagen en base 64 :
+        const savedPath = path.join('uploads', 'fotos', req.file.filename).replace(/\\/g, '/');
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const fileBase64 = fileBuffer.toString('base64');
+        const consulta = await createPerson(nombres, apellidos, dni, String(id_funcion), String(id_turno), fileBase64);
+        if (!consulta) {
+            await deletePhoto(req.file.filename);
+            return res.status(400).json({
+                message: 'La foto necesariamente debe mostrar el rostro de la persona nítidamente...',
+                data: []
+            });
+        }
+
+        const carasDni = 'Sin Pdf';
+        const cci = 'No Definido';
+        const certiAdulto = null;
+        const claveSol = null;
+        const suspension = 'No Definido';
+
+        const response = await createEmpleado(
+            nombres, apellidos, dni, ruc, hijos, edad, f_nacimiento,
+            config_correo, config_domicilio, config_celular, config_f_inicio, savedPath, config_observaciones, config_carrera,
+            id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+            id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area,
+            carasDni, cci, certiAdulto, claveSol, suspension
+        );
+
+        if (!response) {
+            await deletePhoto(req.file.filename);
+            return res.status(200).json({
+                message: 'No se pudo crear al empleado',
+                data: []
+            });
+        }
+
+        // Registro en el historial :
+        const historial = await createHistorial(
+            'create',
+            'Empleado',
+            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
+            null,
+            `${nombres}, ${apellidos}, ${id_cargo}, ${id_turno}, ${id_regimen_laboral}, ${id_sexo}, ${id_jurisdiccion}, ${id_grado_estudios}, ${id_subgerencia}, ${id_funcion}, ${id_lugar_trabajo}`,
+            token
+        );
+        if (!historial) console.warn('No se agregó al historial...');
+
+        // Creación exitosa del empleado :
+        return res.status(200).json({
+            message: 'Empleado creado exitosamente...',
+            data: response
+        });
+
+    } catch (error) {
+        if (req.file) await deletePhoto(req.file.filename);
+        res.status(500).json({
+            message: 'Error interno al crear al empleado',
+            error: error.message
+        });
+    }
+};
+
+// Handler para crear al empleado con toda la información (SECTOR TAREAJE Y PAGOS) :
+const createEmpleadoPagoHandler = async (req, res) => {
 
     const {
         nombres, apellidos, dni, ruc, hijos, edad,
@@ -309,6 +437,17 @@ const createEmpleadoHandler = async (req, res) => {
     }
 
     try {
+        // Validar si la personaa no pertenece a la Black List :
+        const dark = await validateBlackList(nombres, apellidos, dni);
+        if (dark) {
+            await deletePhoto(req.files.photo[0].filename);
+            await deletePdfDNI(req.files.document[0].filename);
+            return res.status(400).json({
+                message: 'La persona pertenece a la Black List, no puede laborar',
+                data: []
+            });
+        }
+
         // Guardar en AXXON la imagen en base 64 :
         const savedPath = path.join('uploads', 'fotos', req.files.photo[0].filename).replace(/\\/g, '/');
         const fileBuffer = fs.readFileSync(req.files.photo[0].path);
@@ -755,6 +894,28 @@ const findEmpleadoHandler = async (req, res) => {
     }
 };
 
+// PROVISIONAL :
+const blackDeleteHandler = async (req, res) => {
+    
+    const { id } = req.params;
+    
+    try {
+        const response = await deleteEmpleadoBlackList(id);
+        if (!response) return res.status(400).json({
+            message: "No se pudo black",
+            data: []
+        });
+        
+        return res.status(201).json({
+            message: "Black exitoso",
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Error interno del servidor al crear la función.", error });
+    }
+};
+
 module.exports = {
     getAllUniverseEmpleadosHandlers,
     getAllEmpleadosHandlers,
@@ -763,8 +924,10 @@ module.exports = {
     getEmpleadoPagoHandler,
     getEmpleadoByDniHandler,
     createEmpleadoHandler,
+    createEmpleadoPagoHandler,
     updateEmpleadoHandler,
     updateEmpleadoPagoHandler,
     deleteEmpleadoHandler,
-    findEmpleadoHandler
+    findEmpleadoHandler, 
+    blackDeleteHandler
 };

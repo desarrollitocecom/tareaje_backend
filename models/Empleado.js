@@ -143,6 +143,11 @@ module.exports = (sequelize) => {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
+        },
+        blacklist: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
         }
     },{
         tableName: 'Empleados',
