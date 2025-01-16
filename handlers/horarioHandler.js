@@ -11,6 +11,14 @@ const {
 const getHorarioByIdHandler = async (req, res) => {
 
     const { id } = req.params;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es requerido');
+    if (isNaN(id)) errores.push('El parámetro ID debe ser un número entero válido');
+    if (errores.length > 0) return res.status(400).json({
+        message: "Se encontraron los siguentes errores:",
+        data: errores
+    });
 
     try {
         const response = await getHorarioById(id);
@@ -43,7 +51,7 @@ const getAllHorariosHandler = async (req, res) => {
     if (page < 0) errores.push('El page debe ser mayor a cero');
     if (isNaN(limit)) errores.push('El limit debe ser un entero');
     if (limit <= 0) errores.push('El limit debe ser mayor a cero');
-
+    
     if (errores.length > 0) return res.status(400).json({
         message: "Se encontraron los siguentes errores:",
         data: errores
@@ -171,6 +179,8 @@ const updateHorarioHandler = async (req, res) => {
     const { inicio, fin, id_subgerencia, id_turno, id_area } = req.body;
     const errores = [];
 
+    if (!id) errores.push('El parámetro ID es requerido');
+    if (isNaN(id)) errores.push('El parámetro ID debe ser un número entero válido');
     if (!inicio) errores.push('La hora de inicio es un parámetro obligatorio');
     if (!fin) errores.push('La hora de fin es un parámetro obligatorio');
     if (!id_subgerencia) errores.push('El ID de subgerencia es un parámetro obligatorio');
@@ -217,6 +227,7 @@ const updateHorarioHandler = async (req, res) => {
 const deleteHorarioHandler = async (req, res) => {
 
     const { id } = req.params;
+    const errores = [];
 
     if (!id) errores.push('El parámetro ID es requerido');
     if (isNaN(id)) errores.push('El parámetro ID debe ser un número entero válido');

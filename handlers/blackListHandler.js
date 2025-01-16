@@ -133,24 +133,39 @@ const getAllBlackListHandler = async (req, res) => {
 // Handler para ingresar una persona dentro de la Black List (SIN RETORNO) :
 const createBlackListEmpleadoHandler = async (req, res) => {
 
-    const { nombres, apellidos, dni, motivo, id_cargo, id_turno, id_regimen_laboral, id_sexo, 
+    const { id, nombres, apellidos, dni, motivo, id_cargo, id_turno, id_regimen_laboral, id_sexo, 
         id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area
     } = req.body;
     const token = req.user;
     const errores = [];
 
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
     if (!nombres) errores.push('Los nombres son un parámetro obligatorio');
     if (!apellidos) errores.push('Los apellidos son un parámetro obligatorio');
     if (!dni) errores.push('El parámetro DNI es obligatorio');
     if (!/^\d{8}$/.test(dni)) errores.push('El DNI debe tener 8 dígitos');
     if (!motivo) errores.push('El motivo es un parámetro obligatorio');
+    if (!id_cargo) errores.push('El ID de cargo es un parámetro obligatorio');
+    if (!id_turno) errores.push('El ID de turno es un parámetro obligatorio');
+    if (!id_regimen_laboral) errores.push('El ID de régimen laboral es un parámetro obligatorio');
+    if (!id_sexo) errores.push('El ID de sexo es un parámetro obligatorio');
+    if (!id_jurisdiccion) errores.push('El ID de jurisdicción es un parámetro obligatorio');
+    if (!id_grado_estudios) errores.push('El ID de grado de estudios es un parámetro obligatorio');
+    if (!id_subgerencia) errores.push('El ID de subgerencia es un parámetro obligatorio');
+    if (!id_lugar_trabajo) errores.push('El ID de lugar de trabajo es un parámetro obligatorio');
+    if (!id_area) errores.push('El ID de área es un parámetro obligatorio');
+    if (!id_funcion) errores.push('El ID de función es un parámetro obligatorio');
     if (errores.length > 0) return res.status(400).json({
         message: 'Se encontraron los siguientes errores...',
         data: errores,
     });
 
     try {
-        const dia = new Date();
+        const ahora = new Date();
+        const peruOffset = -5 * 60; // offset de Perú en minutos
+        const localOffset = ahora.getTimezoneOffset(); 
+        const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
         const f_fin = dia.toISOString().split('T')[0];
         const empleado = await deleteEmpleadoBlackList(id, f_fin);
         if (!empleado) return res.status(200).json({
