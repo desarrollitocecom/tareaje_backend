@@ -39,7 +39,7 @@ const getAllHorarios = async (page = 1, limit = 20, filters = {}) => {
             { model: Area, as: 'area', attributes: ['nombre'] }
         ];
 
-        const { count, rows } = await RangoHorario.findAndCountAll({
+        const { count, rows } = await Horario.findAndCountAll({
             where: whereCondition,
             include: includeCondition,
             order: [
@@ -81,9 +81,9 @@ const getHorariosHora = async (hora) => {
 
         if(!response || response.length === 0) return [];
         const result = {
-            ids_subgerencia: response.map(item => item.id_subgerencia),
+            ids_subgerencia: [...new Set(response.map(item => item.id_subgerencia))],
             id_turno: response[0].id_turno,
-            ids_area: response.map(item => item.id_area)
+            ids_area: [... new Set(response.map(item => item.id_area))]
         };
         return result;
 

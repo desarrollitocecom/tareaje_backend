@@ -18,15 +18,7 @@ const getAllUniverseEmpleados = async () => {
     try {
         const response = await Empleado.findAndCountAll({
             where: { blacklist: false },
-            attributes: [
-                'id', 'nombres', 'apellidos', 'dni',
-                'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'f_fin', 'observaciones', 'foto', 'carrera', 'state',
-                'id_cargo', 'id_turno', 'id_regimen_laboral', 'id_sexo',
-                'id_grado_estudios', 'id_jurisdiccion', 'id_lugar_trabajo',
-                'id_subgerencia', 'id_lugar_trabajo', 'id_funcion', 'id_area'
-            ],
-            order: [['dni', 'ASC']]
+            order: [['dni', 'ASC']],
         });
 
         return {
@@ -524,9 +516,16 @@ const deleteEmpleado = async (id) => {
     try {
         const response = await Empleado.findByPk(id);
         if (!response) return 1;
-        
-        const info = response.state;
-        response.state = !info;
+
+        const ahora = new Date();
+        const peruOffset = -5 * 60; // offset de Perú en minutos
+        const localOffset = ahora.getTimezoneOffset(); 
+        const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+        const fin = dia.toISOString().split('T')[0];
+        const estado = response.state;
+        const fecha = (estado) ? fin : null;
+        response.state = !estado;
+        response.f_fin = fecha;
         await response.save();
         return response || null;
 
@@ -540,15 +539,14 @@ const deleteEmpleado = async (id) => {
 };
 
 // Cambio del estado definitivo a false del empleado (SIN RETORNO) :
-const deleteEmpleadoBlackList = async (id, f_fin = 4) => {
+const deleteEmpleadoBlackList = async (id, f_fin) => {
     
     try {
         const response = await Empleado.findByPk(id);
-        console.log(response);
         if (!response) return null;
         response.state = false;
         response.blacklist = true;
-        //response.f_fin = f_fin;
+        response.f_fin = f_fin;
         await response.save();
         return response;
 
