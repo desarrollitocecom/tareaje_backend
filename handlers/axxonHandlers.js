@@ -198,6 +198,7 @@ const searchByFaceHandler = async (req, res) => {
                 data: {
                     // nombres: personDetail.apellidos+" "+personDetail.nombres,
                     subgerencia: personDetail.subgerencia.nombre,
+                    turno: personDetail.turno.nombre,
                     estado: personDetail.state
                     //foto: personDetail.foto,
                 }
