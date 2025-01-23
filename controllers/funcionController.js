@@ -20,10 +20,13 @@ const getFunciones = async (page = 1, limit = 20, filters = {}) => {
             where: whereCondition,
             limit,
             offset,
-            order: [['id', 'ASC']],
+            order: [['nombre', 'ASC']],
             raw: true
         });
-        return { totalCount: count, data: rows, currentPage: page } || null;
+        return {
+            totalCount: count,
+            data: rows
+        } || null;
 
     } catch (error) {
         console.error('Error al obtener todas las funciones:', error);
@@ -51,11 +54,11 @@ const createFuncion = async (nombre) => {
 
     try {
         const funcion = await Funcion.create({ nombre });
-        return funcion
+        return funcion || null;
 
     } catch (error) {
-        console.error('Error al crear una nueva Funcion', error)
-        return false
+        console.error('Error al crear una nueva Funcion', error);
+        return false;
     }
 };
 

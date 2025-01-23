@@ -61,7 +61,7 @@ const getAllHorariosHandler = async (req, res) => {
     const numLimit = parseInt(limit);
 
     try {
-        const response = await getAllHorarios(page, limit, filters);
+        const response = await getAllHorarios(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) {

@@ -16,22 +16,19 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         estado: {
-            type: DataTypes.ENUM("A", "F", "DM", "DO", "V", "DF", "LSG", "LCG", "LF", "PE", "LP"),
-            allowNull: false,
+            type: DataTypes.ENUM('A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'),
+            allowNull: false
         },
         id_empleado: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            references: {
-                model: 'Empleados', // Nombre de la tabla referenciada
-                key: 'id', // Clave referenciada
-            }
+            references: { model: 'Empleados', key: 'id' }
         },
         photo_id:{
             type: DataTypes.STRING,
             allowNull: false
         }
-    }, {
+    },{
         tableName: 'Asistencias',
         timestamps: true,
         indexes: [
