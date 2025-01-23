@@ -268,9 +268,6 @@ const getEmpleado = async (id) => {
 
     try {
         const response = await Empleado.findOne({
-            attributes: ['id', 'nombres', 'apellidos', 'dni',
-                'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'observaciones', 'carrera', 'foto', 'f_fin'],
             where: { id, blacklist: false },
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
@@ -302,9 +299,6 @@ const getEmpleadoPago = async (id) => {
 
     try {
         const response = await Empleado.findOne({
-            attributes: ['id', 'nombres', 'apellidos', 'dni',
-                'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'observaciones', 'carrera', 'foto', 'f_fin'],
             where: { id, blacklist: false },
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
@@ -564,8 +558,9 @@ const getEmpleadoByDni = async (dni) => {
 
     try {
         const empleado = await Empleado.findOne({
+            where: { dni },
             attributes: ['id','nombres','apellidos','foto'],
-            where: { dni }
+            include: [{ model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] }]
         });
         return empleado || null;
 
@@ -645,6 +640,24 @@ const rotativoEmpleado = async () => {
     }
 };
 
+// Cambio del estado del empleado (ACTIVO - CESADO) :
+const fechaEmpleado = async (id, fecha) => {
+
+    try {
+        const response = await Empleado.findByPk(id);
+        response.f_nacimiento = fecha;
+        await response.save();
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar fecha',
+            data: error
+        });
+        return false;
+    }
+};
+
 module.exports = {
     getAllUniverseEmpleados,
     getEmpleadoByDni,
@@ -660,5 +673,6 @@ module.exports = {
     deleteEmpleado,
     deleteEmpleadoBlackList,
     updateEmpleado,
-    updateEmpleadoPago
+    updateEmpleadoPago,
+    fechaEmpleado
 };
