@@ -14,7 +14,8 @@ const {
     updateEmpleadoPagoHandler,
     deleteEmpleadoHandler,
     findEmpleadoHandler,
-    blackDeleteHandler
+    blackDeleteHandler,
+    fechaEmpleadoHandler
 } = require('../handlers/empleadoHandlers');
 
 const { saveImage, uploadImageAndPdf, multerError } = require('../utils/filesFunctions');
@@ -33,5 +34,6 @@ rutas.patch('/pagos/:id', permisoAutorizacion(["all_system_access", "update_empl
 rutas.delete('/:id',permisoAutorizacion(["all_system_access", "delete_empleado"]), deleteEmpleadoHandler);
 rutas.post('/find/',permisoAutorizacion(["all_system_access", "read_empleado"]), findEmpleadoHandler);
 rutas.delete('/black/:id',permisoAutorizacion(["all_system_access", "delete_empleado"]), blackDeleteHandler);
+rutas.post('/cambios/', permisoAutorizacion(["all_system_access"]), fechaEmpleadoHandler);
 
 module.exports = rutas;

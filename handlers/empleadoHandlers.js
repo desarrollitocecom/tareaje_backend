@@ -10,6 +10,7 @@ const {
     updateEmpleadoPago,
     deleteEmpleado,
     deleteEmpleadoBlackList,
+    fechaEmpleado,
     findEmpleado } = require('../controllers/empleadoController');
 
 const { createHistorial } = require('../controllers/historialController');
@@ -869,12 +870,13 @@ const deleteEmpleadoHandler = async (req, res) => {
 // Handler para buscar el empleado mediante la función y el turno :
 const findEmpleadoHandler = async (req, res) => {
 
-    const { ids_funcion, id_turno } = req.body;
-    if (!ids_funcion) return res.status(400).json({ message: "El cargo es obligatorio" });
+    const { ids_subgerencia, id_turno, ids_area } = req.body;
+    if (!ids_subgerencia) return res.status(400).json({ message: "La lista de subgerencias es obligatoria" });
     if (!id_turno) return res.status(400).json({ message: "El turno es obligatorio" });
+    if (!ids_area) return res.status(400).json({ message: 'La lista de áreas es obligatoria'});
 
     try {
-        const response = await findEmpleado(ids_funcion, id_turno);
+        const response = await findEmpleado(ids_subgerencia, id_turno, ids_area);
         if (!response || response.length === 0) {
             return res.status(400).json({
                 message: "No hay nada",
@@ -916,6 +918,26 @@ const blackDeleteHandler = async (req, res) => {
     }
 };
 
+const fechaEmpleadoHandler = async (req, res) => {
+    
+    const { id, fecha } = req.body;
+
+    try {
+        const response = await fechaEmpleado(id, fecha);
+        if (!response) return res.status(400).json({
+            message: "No se pudo nacimiento",
+            data: []
+        });
+        
+        return res.status(201).json({
+            message: "Nacimiento completo exitoso",
+            data: response
+        });
+    } catch (error) {
+        return res.status(500).json({ message: "Error interno del servidor al crear la función.", error });
+    }
+}
+
 module.exports = {
     getAllUniverseEmpleadosHandlers,
     getAllEmpleadosHandlers,
@@ -929,5 +951,6 @@ module.exports = {
     updateEmpleadoPagoHandler,
     deleteEmpleadoHandler,
     findEmpleadoHandler, 
-    blackDeleteHandler
+    blackDeleteHandler,
+    fechaEmpleadoHandler
 };
