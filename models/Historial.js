@@ -15,39 +15,23 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        campo: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
-        valor_anterior: {
-            type: DataTypes.STRING,
+        valor_previo: {
+            type: DataTypes.JSON,
             allowNull: true
         },
         valor_nuevo: {
-            type: DataTypes.STRING,
+            type: DataTypes.JSON,
             allowNull: true
         },
         state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        },
-    }, {
+        }
+    },{
         tableName: 'Historiales',
         timestamps: true
     });
-
-    /*Historial.associate = (db) => {
-        // Relación con la tabla Cargo
-        Historial.belongsTo(db.Usuario, {
-            foreignKey: 'id_usuario',
-            as: 'usuario'
-        });
-        db.Historial.hasOne(Historial, {
-            foreignKey: 'id_usuario',
-            as: 'historia'
-        })
-    }*/
 
     Historial.associate = (db) => {
         Historial.belongsTo(db.Usuario, { foreignKey: 'id_usuario', as: 'usuario' });

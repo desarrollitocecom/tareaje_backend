@@ -268,9 +268,6 @@ const getEmpleado = async (id) => {
 
     try {
         const response = await Empleado.findOne({
-            attributes: ['id', 'nombres', 'apellidos', 'dni',
-                'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'observaciones', 'carrera', 'foto', 'f_fin'],
             where: { id, blacklist: false },
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
@@ -302,9 +299,6 @@ const getEmpleadoPago = async (id) => {
 
     try {
         const response = await Empleado.findOne({
-            attributes: ['id', 'nombres', 'apellidos', 'dni',
-                'ruc', 'hijos', 'edad', 'f_nacimiento', 'correo', 'domicilio',
-                'celular', 'f_inicio', 'observaciones', 'carrera', 'foto', 'f_fin'],
             where: { id, blacklist: false },
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
