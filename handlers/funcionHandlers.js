@@ -6,14 +6,6 @@ const {
     deleteFuncion
 } = require('../controllers/funcionController');
 
-const { 
-    getRangoHorarioAreaSubgerencia,
-    getRangoHorarioByFuncion,
-    updateFuncionRangoHorario,
-    deleteFuncionRangoHorario
-} = require('../controllers/rangohorarioController');
-
-const { getSubgerencia } = require('../controllers/subgerenciaController');
 const { createHistorial } = require('../controllers/historialController');
 
 // Handler para obtener todos las funciones con paginación y búsqueda :
@@ -110,54 +102,33 @@ const getFuncionHandler = async (req, res) => {
 // Handler para crear una función :
 const createFuncionHandler = async (req, res) => {
 
-    const { nombre, tipo, id_subgerencia } = req.body;
+    const { nombre } = req.body;
     const token = req.user;
     const errores = [];
 
     if (!nombre) errores.push('El campo nombre es requerido');
     if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) errores.push('El campo nombre contiene caracteres inválidos');
-    if (!tipo) errores.push('El campo tipo es obligatorio');
-    if (!id_subgerencia) errores.push('El id de subgerencia es obligatorio');
-    if (isNaN(id_subgerencia)) errores.push('El id de subgerencia debe ser un entero');
-    if (errores.length > 0) return res.status(400).json({
-        message: 'Se encontraron los siguientes errores...',
-        data: errores,
-    });
 
     try {
-        const validation = await getRangoHorarioAreaSubgerencia(tipo, id_subgerencia);
-        if (!validation) return res.status(400).json({
-            message: 'Se debe de crear un horario con la área y subgerencia correspondiente',
-            data: []
-        });
-
-        const response = await createFuncion(nombre, tipo, id_subgerencia);
+        const response = await createFuncion(nombre);
         if (!response) return res.status(400).json({
             message: "No se pudo crear la función",
             data: []
         });
 
-        const historial = await createHistorial(
-            'create',
-            'Funcion',
-            'nombre',
-            null,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('create', 'Funcion', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación de la función ${nombre} al historial...`);
 
-        await updateFuncionRangoHorario(tipo, id_subgerencia, response.id)
-        return res.status(201).json({
-            message: "Función creada exitosamente",
+        return res.status(200).json({
+            message: 'Función creada exitosamente...',
             data: response
         });
 
     } catch (error) {
-        console.error("Error al crear función:", error);
-        return res.status(500).json({ message: "Error interno del servidor al crear la función.", error });
+        return res.status(500).json({
+            message: "Error interno al crear la función.",
+            error: error.message
+        });
     }
 };
 
@@ -165,7 +136,7 @@ const createFuncionHandler = async (req, res) => {
 const updateFuncionHandler = async (req, res) => {
 
     const { id } = req.params;
-    const { nombre, tipo, id_subgerencia } = req.body;
+    const { nombre } = req.body;
     const token = req.user;
     const errores = [];
 
@@ -173,9 +144,6 @@ const updateFuncionHandler = async (req, res) => {
     if (isNaN(id)) errores.push('El campo ID debe ser un número válido');
     if (!nombre) errores.push('El campo nombre es requerido');
     if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
-    if (!tipo) errores.push('El campo tipo es obligatorio');
-    if (!id_subgerencia) errores.push('El id de subgerencia es obligatorio');
-    if (isNaN(id_subgerencia)) errores.push('El id de subgerencia debe ser un entero');
     if (errores.length > 0) return res.status(400).json({
         message: 'Se encontraron los siguientes errores...',
         data: errores,
@@ -183,40 +151,30 @@ const updateFuncionHandler = async (req, res) => {
 
     try {
         const previo = await getFuncion(id);
-        if (!previo) {
-            return res.status(200).json({
-                message: "Función no encontrada",
-                data: {}
-            });
-        }
+        if (!previo) return res.status(200).json({
+            message: "Función no encontrada",
+            data: {}
+        });
 
-        const response = await updateFuncion(id, nombre, tipo, id_subgerencia);
-        if (!response) {
-            return res.status(404).json({
-                message: "No se pudo actualizar la función",
-                data: {}
-            });
-        }
+        const response = await updateFuncion(id, nombre);
+        if (!response) return res.status(404).json({
+            message: "No se pudo actualizar la función",
+            data: {}
+        });
 
-        const historial = await createHistorial(
-            'update',
-            'Funcion',
-            'nombre',
-            previo.nombre,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('update', 'Funcion', previo, response, token);
+        if (!historial) console.warn('No se agregó la actulización de la función al historial...');
 
-        await deleteFuncionRangoHorario(previo.id);
-        await updateFuncionRangoHorario(tipo, id_subgerencia, response.id);
         return res.status(200).json({
             message: "Función actualizada con éxito",
             data: response
         });
 
     } catch (error) {
-        res.status(500).json({ message: "Error al actualizar la función", error });
+        return res.status(500).json({
+            message: "Error al actualizar la función",
+            error: error.message
+        });
     }
 };
 
@@ -238,24 +196,19 @@ const deleteFuncionHandler = async (req, res) => {
             data: []
         });
 
-        const historial = await createHistorial(
-            'delete',
-            'Funcion',
-            'nombre',
-            response.nombre,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('delete', 'Funcion', response, null, token);
+        if (!historial) console.warn(`No se agregó la eliminación de la funciuón ${response.nombre} al historial`);
 
-        await deleteFuncionRangoHorario(response.id);
         return res.status(200).json({
-            message: 'Función eliminada correctamente (estado cambiado a inactivo)',
+            message: "Función eliminada con éxito",
             data: response
         });
 
     } catch (error) {
-        return res.status(404).json({ message: error.message });
+        return res.status(404).json({
+            message: 'Error interno al eliminar la función',
+            error: error.message
+        });
     }
 };
 

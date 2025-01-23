@@ -1,7 +1,8 @@
 const { Historial } = require('../db_connection');
 const { getUserByToken } = require('../controllers/usuarioController');
 
-const createHistorial = async (accion, modelo, campo, valor_anterior, valor_nuevo, token) => {
+// Crear historial de acciones :
+const createHistorial = async (accion, modelo, valor_previo, valor_nuevo, token) => {
 
     if (!accion) {
         console.warn('No se registró ninguna acción...');
@@ -18,10 +19,14 @@ const createHistorial = async (accion, modelo, campo, valor_anterior, valor_nuev
     const id_usuario = await getUserByToken(token.data);
 
     try {
-        const response = await Historial.create({ accion, modelo, campo, valor_anterior, valor_nuevo, id_usuario });
+        const response = await Historial.create({ accion, modelo, valor_previo, valor_nuevo, id_usuario });
         return response || null;
+
     } catch (error) {
-        console.error('Error al crear historial: ', error);
+        console.error({
+            message: 'Error al crear historial: ',
+            error: error.message
+        });
         return false;
     }
 };
