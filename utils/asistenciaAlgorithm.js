@@ -1,4 +1,4 @@
-const { getRangosHorariosHora } = require('../controllers/rangohorarioController');
+const { getHorariosHora } = require('../controllers/horarioController');
 const { findEmpleado } = require('../controllers/empleadoController');
 const { getProtocols } = require('../controllers/axxonController');
 const { createAsistencia } = require('../controllers/asistenciaController');
@@ -36,10 +36,10 @@ const createAsistencias = async (dia, hora) => {
 
         // Obtener horario, empleados correspondientes :
         const horaStr = (hora < 10) ? `0${hora}` : `${hora}`;
-        const horario = await getRangosHorariosHora(hora);
+        const horario = await getHorariosHora(hora);
         if (!horario || horario.length === 0) return null;
-        const { ids_funcion, id_turno } = horario;
-        const empleados = await findEmpleado(ids_funcion, id_turno);
+        const { ids_subgerencia, id_turno, ids_area } = horario;
+        const empleados = await findEmpleado(ids_subgerencia, id_turno, ids_area);
 
         // Obtener los ids de los empleados que presenten vacaciones, descansos o feriado :
         const e_vacaciones = await getVacacionDiaria(dia);

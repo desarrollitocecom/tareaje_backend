@@ -25,6 +25,7 @@ const apiKeyRouter = require('./apiKeyRouter');
 const areaRouter = require('./areaRouter');
 const blackListRouter = require('./blackListRouter');
 const horarioRouter = require('./horarioRouter');
+const seguimientoRouter = require('./seguimientoRouter');
 
 // Usa prefijos para organizar las rutas :
 router.use('/apikeys', apiKeyRouter);
@@ -51,5 +52,6 @@ router.use('/historial',historialRouter);
 router.use('/areas', areaRouter);
 router.use('/blacklist', blackListRouter);
 router.use('/horarios', horarioRouter);
+router.use('/seguimiento', seguimientoRouter);
 
 module.exports = router;

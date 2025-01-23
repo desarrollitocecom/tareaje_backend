@@ -290,6 +290,7 @@ const getProtocols = async (fecha, hora) => {
                 const funcion = protocol.Hits[0].department;
                 const turno = protocol.Hits[0].comment;
                 const horaProtocol = protocol.timestamp.split('T')[1].split('.')[0];
+                const lugar = protocol.camera_name;
 
                 const [hh, mm, ss] = horaProtocol.split(':');
                 const numH = Number(hh);
@@ -299,7 +300,7 @@ const getProtocols = async (fecha, hora) => {
 
                 const id_funcion = parseInt(funcion) || null;
                 const id_turno = parseInt(turno) || null;
-                const personInfo = { dni, fecha, hora, foto, id_funcion, id_turno };
+                const personInfo = { dni, fecha, hora, foto, id_funcion, id_turno, lugar };
 
                 // Si el DNI ya existe en el Map, se compara la hora y se queda con la más temprana :
                 if (!uniqueAsistentes.has(dni)) {

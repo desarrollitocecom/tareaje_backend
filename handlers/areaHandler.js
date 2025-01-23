@@ -23,12 +23,10 @@ const getAreaHandler = async (req, res) => {
 
     try {
         const response = await getArea(id);
-        if (!response) {
-            return res.status(200).json({
-                message: 'Área no encontrada',
-                data: []
-            });
-        }
+        if (!response) return res.status(200).json({
+            message: 'Área no encontrada',
+            data: []
+        });
 
         return res.status(200).json({
             message: 'Área encontrada exitosamente...',
@@ -36,7 +34,6 @@ const getAreaHandler = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
         return res.status(500).json({
             message: 'Error interno al buscar el área por ID',
             error: error.message
@@ -68,19 +65,16 @@ const getAllAreasHandler = async (req, res) => {
         const response = await getAllAreas(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
-        if(numPage > totalPages){
-            return res.status(200).json({
-                message:'Página fuera de rango...',
-                data:{
-                    data: [],
-                    currentPage: numPage,
-                    pageCount: response.data.length,
-                    totalCount: response.totalCount,
-                    totalPages: totalPages,
-                 }
-                }
-            );
-        }
+        if(numPage > totalPages)return res.status(200).json({
+            message:'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
         
         return res.status(200).json({
             message: 'Áreas obtenidas exitosamente...',
@@ -117,20 +111,13 @@ const createAreaHandler = async (req, res) => {
 
     try {
         const response = await createArea(nombre);
-        if (!response) return res.status(400).json({
+        if (!response) return res.status(200).json({
             message: 'No se pudo crear el área',
             data: []
         });
 
-        const historial = await createHistorial(
-            'create',
-            'Area',
-            'nombre',
-            null,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('create', 'Area', null, response, token);
+        if (!historial) console.warn('No se agregó la creación del área al historial...');
 
         return res.status(200).json({
             message: 'Área creada exitosamente',
@@ -164,30 +151,19 @@ const updateAreaHandler = async (req, res) => {
 
     try {
         const previo = await getArea(id);
-        if (!previo) {
-            return res.status(200).json({
-                message: 'Área no encontrada',
-                data: []
-            });
-        }
+        if (!previo) return res.status(200).json({
+            message: 'Área no encontrada',
+            data: []
+        });
 
         const response = await updateArea(id, nombre);
-        if (!response) {
-            return res.status(400).json({
-                message: 'No se pudo actualizar la función',
-                data: []
-            });
-        }
+        if (!response) return res.status(200).json({
+            message: 'No se pudo actualizar la función',
+            data: []
+        });
 
-        const historial = await createHistorial(
-            'update',
-            'Area',
-            'nombre',
-            previo.nombre,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('update', 'Area', previo, response, token);
+        if (!historial) console.warn('No se agregó la actualización del área al historial...');
 
         return res.status(200).json({
             message: 'Área actualizada con éxito...',
@@ -195,7 +171,7 @@ const updateAreaHandler = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             message: 'Error interno al actualizar el área',
             error: error.message
         });
@@ -224,15 +200,8 @@ const deleteAreaHandler = async (req, res) => {
             data: []
         });
 
-        const historial = await createHistorial(
-            'delete',
-            'Area',
-            'nombre',
-            response.nombre,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('delete', 'Area', response, null, token);
+        if (!historial) console.warn('No se agregó la eliminación del área al historial...');
 
         return res.status(200).json({
             message: 'Área eliminada exitosamente...',
