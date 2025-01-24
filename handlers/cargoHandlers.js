@@ -1,25 +1,47 @@
-const { response } = require('express');
-const { getCargoById, getAllCargos, createCargo, deleteCargo, updateCargo } = require('../controllers/cargoController');
+const {
+    getCargoById,
+    getAllCargos,
+    createCargo,
+    deleteCargo,
+    updateCargo
+} = require('../controllers/cargoController');
 
 const { createHistorial } = require('../controllers/historialController');
 
+// Handler para obtener un cargo por ID :
 const getCargoByIdHandler = async (req, res) => {
-    const { id } = req.params
-    if (!id || isNaN(id)) {
-        return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
-    }
+
+    const { id } = req.params;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
     try {
-        const cargo = await getCargoById(id);
-        if (!cargo) {
-            return res.status(404).json({ message: 'Cargo no encontrado' });
-        }
-        return res.status(200).json({ data: cargo });
+        const response = await getCargoById(id);
+        if (!response) return res.status(200).json({
+            message: 'Cargo no encontrado',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Cargo obtenido exitosamente...',
+            data: response
+        });
+
     } catch (error) {
-        return res.status(500).json({ error: 'Error al obtener el cargo', data: error.message });
+        return res.status(500).json({
+            message: 'Error interno al obtener el cargo por ID',
+            error: error.message
+        });
     }
 };
 
-// Handler para obtener todos los Cargos
+// Handler para obtener todos los cargos con paginación y búsqueda :
 const getAllCargosHandler = async (req, res) => {
 
     const { page = 1, limit = 20, search } = req.query;
@@ -69,145 +91,146 @@ const getAllCargosHandler = async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error al obtener todas los cargos en el handler', error);
-        return res.status(500).json({ message: "Error al obtener todas los cargos en el handler" });
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los cargos',
+            error: error.message
+        });
     }
 };
 
-// Handler para crear un nuevo Cargo
+// Handler para crear un cargo :
 const createCargoHandler = async (req, res) => {
 
     const { nombre, sueldo, id_subgerencia } = req.body;
     const token = req.user;
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
     const errores = [];
 
-    if (!nombre) errores.push('El campo nombre es requerido');
-    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto')
-    if (!validaNombre) errores.push('el nombre debe estar sin números ni caracteres especiales')
-    if (!nombre && !sueldo && !id_subgerencia) errores.push('todos los campos son requeridos')
-    if (typeof sueldo !== 'number') errores.push('el sueldo debe ser un numero')
-    if (isNaN(sueldo)) {
-        errores.push('El sueldo debe ser un numero')
-    } else if (sueldo <= 0) {
-        errores.push('El sueldo no debe tener cantidades negativas')
-    }
-    if (isNaN(id_subgerencia)) {
-        errores.push('El id_subgerencia debe ser un numero')
-    } else if (id_subgerencia <= 0) {
-        errores.push('El id_subgerencia no debe tener cantidades negativas')
-    }
-    if (errores.length > 0)
-        return res.status(400).json({ message:'Se encontraron los siguientes errores',errores });
+    if (!nombre) errores.push('El nombre es obligatorio');
+    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto');
+
+    if (!sueldo) errores.push('El sueldo es obligatorio');
+    if (isNaN(sueldo)) errores.push('El sueldo debe ser un numero');
+    else if (sueldo <= 0) errores.push('El sueldo no debe tener cantidades negativas');
+
+    if (!id_subgerencia) errores.push('La subgerencia es obligatoria');
+    if (isNaN(id_subgerencia)) errores.push('El id_subgerencia debe ser un numero');
+    else if (id_subgerencia <= 0) errores.push('El id_subgerencia no debe tener cantidades negativas');
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores',
+        data: errores
+    });
 
     try {
-        const newCargo = await createCargo({ nombre, sueldo, id_subgerencia });
-        if (!newCargo) return res.status(400).json({ message: 'Cargo no creado', data: [] });
+        const response = await createCargo(nombre, sueldo, id_subgerencia);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo crear el cargo',
+            data: []
+        });
 
-        const historial = await createHistorial(
-            'create',
-            'Cargo',
-            'nombre, sueldo, id_subgerencia',
-            null,
-            `${nombre}, ${sueldo}, ${id_subgerencia}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('create', 'Cargo', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación del cargo ${nombre} al historial`);
 
-        return res.status(201).json({ message: 'Cargo creado exitosamente', data: newCargo });
+        return res.status(201).json({
+            message: 'Cargo creado exitosamente...',
+            data: response
+        });
+
     } catch (error) {
-        return res.status(500).json({ error: 'Error al crear el cargo', data: error.message });
+        return res.status(500).json({
+            message: 'Error interno al crear el cargo',
+            data: error.message
+        });
     }
 };
 
-// Handler para eliminar un Cargo (cambia state a false)
-const deleteCargoHandler = async (req, res) => {
-
-    const { id } = req.params;
-    const token = req.user;
-    try {
-        const cargo = await deleteCargo(id);
-        if (!cargo) {
-            return res.status(404).json({ message: 'Cargo no encontrado' });
-        }
-
-        const historial = await createHistorial(
-            'delete',
-            'Cargo',
-            'nombre, sueldo, id_subgerencia',
-            `${cargo.nombre}, ${cargo.sueldo}, ${cargo.id_subgerencia}`,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        res.status(200).json({ message: 'Cargo desactivado', data: cargo });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar el cargo', details: error.message });
-    }
-};
-
-// Handler para actualizar un Cargo
+// Handler para actualizar un cargo :
 const updateCargoHandler = async (req, res) => {
 
     const { id } = req.params;
     const { nombre, sueldo, id_subgerencia } = req.body;
     const token = req.user;
     const errores = [];
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);   
-    if (!nombre) errores.push('El campo nombre es requerido');
-    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto')
-    if (!validaNombre) errores.push('el nombre debe estar sin números ni caracteres especiales')
-    if (!nombre && !sueldo && !id_subgerencia) errores.push('todos los campos son requeridos')
-    if (typeof sueldo !== 'number') errores.push('el sueldo debe ser un numero')
-    if (isNaN(sueldo)) {
-        errores.push('El sueldo debe ser un numero')
-    } else if (sueldo <= 0) {
-        errores.push('El sueldo no debe tener cantidades negativas')
-    }
-    if (isNaN(id_subgerencia)) {
-        errores.push('El id_subgerencia debe ser un numero')
-    } else if (id_subgerencia <= 0) {
-        errores.push('El id_subgerencia no debe tener cantidades negativas')
-    }
-    if (isNaN(id)) {
-        errores.push('El id debe ser un numero')
-    } else if (id <= 0) {
-        errores.push('El id no debe tener cantidades negativas')
-    }
-    if (errores.length > 0) {
-        return res.status(400).json({message:"Estos son los siguientes errores encontrados", data:errores });
-    }
+ 
+    if (!nombre) errores.push('El nombre es obligatorio');
+    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto');
+
+    if (!sueldo) errores.push('El sueldo es obligatorio');
+    if (isNaN(sueldo)) errores.push('El sueldo debe ser un numero');
+    else if (sueldo <= 0) errores.push('El sueldo no debe tener cantidades negativas');
+
+    if (!id_subgerencia) errores.push('La subgerencia es obligatoria');
+    if (isNaN(id_subgerencia)) errores.push('El id_subgerencia debe ser un numero');
+    else if (id_subgerencia <= 0) errores.push('El id_subgerencia no debe tener cantidades negativas');
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores',
+        data: errores
+    });
 
     try {
         const previo = await getCargoById(id);
-        const updatedCargo = await updateCargo(id, { nombre, sueldo, id_subgerencia });
-        if (!updatedCargo) {
-            return res.status(404).json({ message: 'Cargo no encontrado' });
-        }
+        if (!previo) return res.status(200).json({
+            message: 'Cargo no encontrado',
+            data: []
+        });
 
-        const anterior = [previo.nombre, previo.sueldo, previo.id_subgerencia];
-        const nuevo = [nombre, sueldo, id_subgerencia];
-        const campos = ['nombre', 'sueldo', 'id_subgerencia'];
-        let historial;
+        const response = await updateCargo(id, nombre, sueldo, id_subgerencia);
+        if (!response) res.status(200).json({
+            message: 'No se pudo actualizar el cargo',
+            data: []
+        });
 
-        for (let i = 0; i < anterior.length; i++) {
-            if (anterior[i] !== nuevo[i]) {
-                historial = await createHistorial(
-                    'update',
-                    'Cargo',
-                    campos[i],
-                    anterior[i],
-                    nuevo[i],
-                    token
-                );
-                if (!historial) console.warn('No se agregó al historial...');
-            }
-        }
+        const historial = await createHistorial('update', 'Cargo', previo, response, token);
+        if (!historial) console.warn(`No se agregó la actualización del cargo ${response.nombre} al historial`);
 
-        res.status(200).json({ message: 'Cargo actualizado', data: updatedCargo });
+        return res.status(200).json({
+            message: 'Cargo actualizado exitosamente...',
+            data: response
+        });
+
     } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el cargo', details: error.message });
+        return res.status(500).json({
+            message: 'Error interno al actualizar el cargo',
+            error: error.message
+        });
+    }
+};
+
+// Handler para eliminar un cargo :
+const deleteCargoHandler = async (req, res) => {
+
+    const { id } = req.params;
+    const token = req.user;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    try {
+        const response = await deleteCargo(id);
+        if (!response) return res.status(200).json({
+            message: 'Cargo no encontrado',
+            data: []
+        });
+
+        const historial = await createHistorial('delete', 'Cargo', response, null, token);
+        if (!historial) console.warn(`No se agregó la eliminación del cargo ${response.nombre} al historial`);
+
+        return res.status(200).json({
+            message: 'Cargo elimminado exitosamente...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al eliminar el cargo',
+            error: error.message
+        });
     }
 };
 
@@ -215,6 +238,6 @@ module.exports = {
     getCargoByIdHandler,
     getAllCargosHandler,
     createCargoHandler,
-    deleteCargoHandler,
-    updateCargoHandler
+    updateCargoHandler,
+    deleteCargoHandler
 };

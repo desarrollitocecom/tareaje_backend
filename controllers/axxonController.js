@@ -206,6 +206,7 @@ const searchByFace = async (foto) => {
 
     try {
         const response = await axios.post(urlFindFaces, consulta);
+        if (!response) return false;
         const findface = response.data.FaceList[0].PersonList[0];
         const nombres = findface.Name;
         const apellidos = findface.Surname;
@@ -215,13 +216,16 @@ const searchByFace = async (foto) => {
         const personInfo = { nombres, apellidos, dni, cargo, turno };
         const similitud = findface.Sim;
         if (parseFloat(similitud) < 0.99) {
-            console.error('La persona no ha sido reconocida...');
+            console.error('La persona no ha sido reconocida... Simulitud:', similitud);
             return false;
         }
         return personInfo;
 
     } catch (error) {
-        console.error('Error al consulta la API: ', error);
+        console.error({
+            message: 'Error al consulta la API de Axxon FindFaces: ',
+            error: error
+        });
         return false;
     }
 };

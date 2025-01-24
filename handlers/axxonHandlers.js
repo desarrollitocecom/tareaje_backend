@@ -11,8 +11,12 @@ const {
 const {
     getEmpleadoByDni,
     getEmpleado,
-    getEmpleadoIdByDni
-} = require("../controllers/empleadoController");
+    getEmpleadoIdByDni,
+    getEmpleadoById,
+    getEmpleadoByIdAttributes
+} = require('../controllers/empleadoController');
+
+const { getHorarioFace } = require('../controllers/horarioController');
 
 // Handler CreatePerson (SOLO DE PRUEBA) :
 const createPersonHandler = async (req, res) => {
@@ -183,33 +187,30 @@ const getPhotoHandler = async (req, res) => {
 const searchByFaceHandler = async (req, res) => {
 
     const { foto } = req.body;
-    if (!foto) {
-        return res.status(400).json({ message: 'El parámetro FOTO es requerido' });
-    }
+    if (!foto) return res.status(400).json({ message: 'El parámetro FOTO es requerido' });
 
     try {
-        const personInfo = await searchByFace(foto);
-        if (personInfo) {
-        const personId = await getEmpleadoByDni(personInfo.dni);
-        //console.log("personID:",personId);
-        const personDetail = await getEmpleado(personId.dataValues.id);
-            return res.status(200).json({
-                message: 'Persona reconocida exitosamente',
-                data: {
-                    // nombres: personDetail.apellidos+" "+personDetail.nombres,
-                    subgerencia: personDetail.subgerencia.nombre,
-                    turno: personDetail.turno.nombre,
-                    estado: personDetail.state
-                    //foto: personDetail.foto,
-                }
-            });
-        }
-        else {
-            return res.status(400).json({
-                message: 'Persona no reconocida',
-                success: false
-            });
-        }
+        const response = await searchByFace(foto);
+        if (!response) return res.status(400).json({
+            message: 'Persona no reconocida...',
+            success: false
+        });
+
+        const id = await getEmpleadoIdByDni(response.dni);
+        const empleado = await getEmpleadoByIdAttributes(id);
+        const hora = await getHorarioFace(empleado.id_subgerencia, empleado.id_turno, empleado.id_area);
+
+        return res.status(200).json({
+            message: 'Persona reconocida exitosamente...',
+            data: {
+                subgerencia: empleado['subgerencia.nombre'],
+                turno: empleado['turno.nombre'],
+                estado: empleado.state,
+                inicio: parseInt(hora.inicio.split(':')[0]),
+                fin: parseInt(hora.fin.split(':')[0]),
+            }
+        });
+
     } catch (error) {
         return res.status(500).json({
             message: 'Error en la consulta para obtener el usuario por foto',
