@@ -227,12 +227,21 @@ const searchByFaceDNIHandler = async (req, res) => {
 
     try {
         const personInfo = await searchByFace(foto);
-        // console.log("personInfo:",personInfo);
         if (personInfo) {
         const personId = await getEmpleadoIdByDni(personInfo.dni);
-        // console.log("personID:",personId);
-        const personDetail = await getEmpleado(personId.dataValues.id);
-        // console.log("personDetail:",personDetail);
+        if(!personId){
+            const error = new Error('No se pudo econtrar a la persona');
+            error.statusCode = 406;
+            throw error;
+        }
+        
+        const personDetail = await getEmpleado(personId?.dataValues?.id);
+        if(!personDetail || !personDetail.nombres) {
+            const error = new Error('No se pudo econtrar a la persona');
+            error.statusCode = 406;
+            throw error;
+        }
+        
             return res.status(200).json({
                 message: `Bienvenido ${personDetail.nombres.split(" ")[0]} ${personDetail.apellidos.split(" ")[0]}`,
                 data: personDetail
@@ -241,13 +250,16 @@ const searchByFaceDNIHandler = async (req, res) => {
         else {
             return res.status(400).json({
                 message: 'Persona no reconocida',
+                statusCode: 404,
                 success: false
             });
         }
     } catch (error) {
+        console.log(error, 'error');
         return res.status(500).json({
-            message: 'Error en la consulta para obtener el usuario por foto',
-            error: error.message
+            message: error?.message,
+            statusCode: error?.statusCode,
+            error: "Error al detectar persona"
         });
     }
 };

@@ -206,6 +206,19 @@ const searchByFace = async (foto) => {
 
     try {
         const response = await axios.post(urlFindFaces, consulta);
+        if(response.data.Status && response.data.Status === 'SERVER_NOT_READY') {
+            const error = new Error('Lo sentimos, parece que estamos teniendo algunos problemas técnicos en este momento');
+            error.statusCode = 500; 
+            throw error;
+
+        }
+
+        else if(response.data.FaceList.length === 0) {
+            const error = new Error('No se ha detectado ninguna persona. Por favor, enfoque a la persona.');
+            error.statusCode = 400;
+            throw error;
+        }
+
         const findface = response.data.FaceList[0].PersonList[0];
         const nombres = findface.Name;
         const apellidos = findface.Surname;
@@ -216,13 +229,16 @@ const searchByFace = async (foto) => {
         const similitud = findface.Sim;
         if (parseFloat(similitud) < 0.99) {
             console.error('La persona no ha sido reconocida...');
-            return false;
+            const error = new Error('No se ha reconocido a la persona...');
+            error.statusCode = 401;
+            throw error;
         }
         return personInfo;
 
     } catch (error) {
-        console.error('Error al consulta la API: ', error);
-        return false;
+        const statusCode = error.statusCode || 500;
+        console.error(`Error al consultar la API: ${error.message}`);
+        throw { message: error.message, statusCode };
     }
 };
 
