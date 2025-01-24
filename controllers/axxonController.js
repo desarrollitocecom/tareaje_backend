@@ -210,7 +210,6 @@ const searchByFace = async (foto) => {
             const error = new Error('Lo sentimos, parece que estamos teniendo algunos problemas técnicos en este momento');
             error.statusCode = 500; 
             throw error;
-
         }
 
         else if(response.data.FaceList.length === 0) {
@@ -228,17 +227,20 @@ const searchByFace = async (foto) => {
         const personInfo = { nombres, apellidos, dni, cargo, turno };
         const similitud = findface.Sim;
         if (parseFloat(similitud) < 0.99) {
-            console.error('La persona no ha sido reconocida...');
-            const error = new Error('No se ha reconocido a la persona...');
-            error.statusCode = 401;
-            throw error;
+            console.warn({
+                message: 'La persona no ha sido reconocida...',
+                similitud: similitud
+            });
+            return false;
         }
         return personInfo;
 
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        console.error(`Error al consultar la API: ${error.message}`);
-        throw { message: error.message, statusCode };
+        console.error({
+            message: 'Error al consulta la API de Axxon FindFaces: ',
+            error: error
+        });
+        return false;
     }
 };
 

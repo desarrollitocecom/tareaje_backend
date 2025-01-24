@@ -11,8 +11,12 @@ const {
 const {
     getEmpleadoByDni,
     getEmpleado,
-    getEmpleadoIdByDni
-} = require("../controllers/empleadoController");
+    getEmpleadoIdByDni,
+    getEmpleadoById,
+    getEmpleadoByIdAttributes
+} = require('../controllers/empleadoController');
+
+const { getHorarioFace } = require('../controllers/horarioController');
 
 // Handler CreatePerson (SOLO DE PRUEBA) :
 const createPersonHandler = async (req, res) => {
@@ -183,33 +187,30 @@ const getPhotoHandler = async (req, res) => {
 const searchByFaceHandler = async (req, res) => {
 
     const { foto } = req.body;
-    if (!foto) {
-        return res.status(400).json({ message: 'El parámetro FOTO es requerido' });
-    }
+    if (!foto) return res.status(400).json({ message: 'La foto es obligatoria' });
 
     try {
-        const personInfo = await searchByFace(foto);
-        if (personInfo) {
-        const personId = await getEmpleadoByDni(personInfo.dni);
-        //console.log("personID:",personId);
-        const personDetail = await getEmpleado(personId.dataValues.id);
-            return res.status(200).json({
-                message: 'Persona reconocida exitosamente',
-                data: {
-                    // nombres: personDetail.apellidos+" "+personDetail.nombres,
-                    subgerencia: personDetail.subgerencia.nombre,
-                    turno: personDetail.turno.nombre,
-                    estado: personDetail.state
-                    //foto: personDetail.foto,
-                }
-            });
-        }
-        else {
-            return res.status(400).json({
-                message: 'Persona no reconocida',
-                success: false
-            });
-        }
+        const response = await searchByFace(foto);
+        if (!response) return res.status(400).json({
+            message: 'Persona no reconocida...',
+            success: false
+        });
+
+        const id = await getEmpleadoIdByDni(response.dni);
+        const empleado = await getEmpleadoByIdAttributes(id);
+        const hora = await getHorarioFace(empleado.id_subgerencia, empleado.id_turno, empleado.id_area);
+
+        return res.status(200).json({
+            message: 'Persona reconocida exitosamente...',
+            data: {
+                subgerencia: empleado['subgerencia.nombre'],
+                turno: empleado['turno.nombre'],
+                estado: empleado.state,
+                inicio: parseInt(hora.inicio.split(':')[0]),
+                fin: parseInt(hora.fin.split(':')[0]),
+            }
+        });
+
     } catch (error) {
         return res.status(500).json({
             message: 'Error en la consulta para obtener el usuario por foto',
@@ -221,45 +222,50 @@ const searchByFaceHandler = async (req, res) => {
 const searchByFaceDNIHandler = async (req, res) => {
 
     const { foto } = req.body;
-    if (!foto) {
-        return res.status(400).json({ message: 'El parámetro FOTO es requerido' });
-    }
+    if (!foto) return res.status(400).json({ message: 'La foto es obligatoria' });
 
     try {
-        const personInfo = await searchByFace(foto);
-        if (personInfo) {
-        const personId = await getEmpleadoIdByDni(personInfo.dni);
-        if(!personId){
-            const error = new Error('No se pudo econtrar a la persona');
+        const response = await searchByFace(foto);
+        if (!response) return res.status(400).json({
+            message: 'Persona no reconocida',
+            statusCode: 404,
+            success: false
+        });
+
+        const id = await getEmpleadoIdByDni(response.dni);
+        if (!id){
+            const error = new Error('No se pudo encontrar a la persona');
             error.statusCode = 406;
             throw error;
         }
         
-        const personDetail = await getEmpleado(personId?.dataValues?.id);
-        if(!personDetail || !personDetail.nombres) {
-            const error = new Error('No se pudo econtrar a la persona');
+        const empleado = await getEmpleadoByIdAttributes(id);
+        if(!empleado) {
+            const error = new Error('No se pudo encontrar a la persona');
             error.statusCode = 406;
             throw error;
         }
+
+        const hora = await getHorarioFace(empleado.id_subgerencia, empleado.id_turno, empleado.id_area);
         
-            return res.status(200).json({
-                message: `Bienvenido ${personDetail.nombres.split(" ")[0]} ${personDetail.apellidos.split(" ")[0]}`,
-                data: personDetail
-            });
-        }
-        else {
-            return res.status(400).json({
-                message: 'Persona no reconocida',
-                statusCode: 404,
-                success: false
-            });
-        }
+        return res.status(200).json({
+            message: `Bienvenido ${empleado.nombres.split(" ")[0]} ${empleado.apellidos.split(" ")[0]}`,
+            data: {
+                nombres: empleado.nombres,
+                apellidos: empleado.apellidos,
+                dni: empleado.dni,
+                turno: empleado['turno.nombre'],
+                celular: empleado.celular,
+                inicio: parseInt(hora.inicio.split(':')[0]),
+                fin: parseInt(hora.fin.split(':')[0]),
+            }
+        });
+
     } catch (error) {
-        console.log(error, 'error');
         return res.status(500).json({
             message: error?.message,
             statusCode: error?.statusCode,
-            error: "Error al detectar persona"
+            error: 'Error al detectar persona'
         });
     }
 };
@@ -280,12 +286,11 @@ const getProtocolsHandler = async (req, res) => {
 
     try {
         const protocols = await getProtocols(fecha, hora);
-        if (!protocols || protocols.length === 0) {
-            return res.status(200).json({
-                message: 'No se encontraron registros de Protocols...',
-                data: []
-            });
-        }
+        if (!protocols || protocols.length === 0) return res.status(200).json({
+            message: 'No se encontraron registros de Protocols...',
+            data: []
+        });
+
         return res.status(200).json({
             message: 'Registros obtenidos exitosamente de Protocols...',
             data: protocols

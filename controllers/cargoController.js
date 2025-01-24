@@ -1,25 +1,25 @@
 const { Cargo, Subgerencia } = require('../db_connection');
 const { Op } = require('sequelize');
 
-// Obtener un Cargo por ID con su Subgerencia
+// Obtener un cargo por ID con su subgerencia :
 const getCargoById = async (id) => {
+
     try {
         const cargo = await Cargo.findOne({
-            where: {
-                id,
-            },
+            where: { id },
             include: [{ model: Subgerencia, as: 'Subgerencia' }]
         });
-
-        return cargo;
+        return cargo || null;
 
     } catch (error) {
-        console.error('Error al obtener el cargo por ID:', error);
-        throw error;
+        console.error({
+            message: 'Error en el controlador al obtener el cargo por ID:',
+            error: error.message
+        });
     }
 };
 
-// Obtener todos los Cargos con sus Subgerencias
+// Obtener todos los cargos con paginación y búsqueda :
 const getAllCargos = async (page = 1, limit = 20, filters = {}) => {
 
     const { search } = filters;
@@ -34,68 +34,81 @@ const getAllCargos = async (page = 1, limit = 20, filters = {}) => {
             })
         };
 
-        const cargos = await Cargo.findAndCountAll({
+        const response = await Cargo.findAndCountAll({
             where: whereCondition,
             include: [{ model: Subgerencia, as: 'Subgerencia' }],
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['nombre', 'ASC']]
         });
 
         return {
-            totalCount: cargos.count,
-            data: cargos.rows,
-            currentPage: page
+            totalCount: response.count,
+            data: response.rows
         } || null;
 
     } catch (error) {
-        console.error('Error al obtener todos los cargos:', error);
-        throw error;
+        console.error({
+            message: 'Error en el comtrolador al obtener todos los cargos:',
+            error: error.message
+        });
     }
 };
 
-// Crear un nuevo Cargo
-const createCargo = async (cargoData) => {
+// Crear un nuevo cargo :
+const createCargo = async (nombre, sueldo, id_subgerencia) => {
+
     try {
-        const newCargo = await Cargo.create(cargoData);
-        return newCargo;
+        const response = await Cargo.create({ nombre, sueldo, id_subgerencia });
+        return response || null;
+
     } catch (error) {
-        console.error('Error al crear un nuevo cargo:', error);
-        throw error;
+        console.error({
+            message: 'Error en el controlador al crear un nuevo cargo:',
+            error: error.message
+        });
     }
 };
 
-// Eliminar un Cargo (cambiar state a false)
+// Actualizar un cargo
+const updateCargo = async (id, nombre, sueldo, id_subgerencia) => {
+
+    try {
+        const response = await Cargo.findByPk(id);
+        if (!response) return null;
+        await response.update({ nombre, sueldo, id_subgerencia });
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar un cargo:',
+            error: error.message
+        }); 
+    }
+};
+
+// Eliminar un cargo (cambiar state a false) :
 const deleteCargo = async (id) => {
+
     try {
-        const cargo = await Cargo.findByPk(id);
-        if (!cargo) {
-            return null; // Si el cargo no existe, retorna null
-        }
-        // Cambia el estado a false en lugar de eliminar
-        cargo.state = false;
-        await cargo.save();
-        return cargo;
+        const response = await Cargo.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        await response.save();
+        return response;
+
     } catch (error) {
-        console.error('Error al eliminar el cargo:', error);
-        throw error;
+        console.error({
+            message: 'Error en el controlador al eliminar un cargo:',
+            error: error.message
+        });
     }
 };
 
-// Modificar un Cargo
-const updateCargo = async (id, cargoData) => {
-    try {
-        const cargo = await Cargo.findByPk(id);
-        if (!cargo) {
-            return null; // Si el cargo no existe, retorna null
-        }
-
-        await cargo.update(cargoData);
-        return cargo;
-    } catch (error) {
-        console.error('Error al actualizar el cargo:', error);
-        throw error;
-    }
+module.exports = {
+    getCargoById,
+    getAllCargos,
+    createCargo,
+    updateCargo,
+    deleteCargo
 };
-
-module.exports = { getCargoById, getAllCargos, createCargo, deleteCargo, updateCargo };

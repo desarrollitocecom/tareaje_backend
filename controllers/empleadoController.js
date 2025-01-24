@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { Op } = require('sequelize');
-const { INCIDENCIAS_CREATE_URL }= process.env; // URL Registrar Serenos API Incidencias
+const { INCIDENCIAS_CREATE_URL, INCIDENCIAS_READ_URL }= process.env; // URLs API Incidencias
 // const { decrypt } = require('../utils/security');
 
 const {
@@ -11,6 +11,7 @@ const {
 const {
     Empleado, Cargo, RegimenLaboral, Sexo, Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion, Area, Pago
 } = require('../db_connection');
+const { response } = require('express');
 
 // Obtener toda la información de los empleados (SECTOR TAREAJE - PROVISIONAL SCRIPTS) :
 const getAllUniverseEmpleados = async () => {
@@ -371,24 +372,32 @@ const createEmpleado = async (
         const result = await createPago(carasDni, cci, certiAdulto, claveSol, suspension, response.id);
         if (!result) console.warn(`No se pudo crear la información de pagos para el empleado con DNI ${dni}`);
 
-        /* const consulta = {
+        if (Number(id_subgerencia) !== 1) return response;
+
+        // Los IDs de cargo de ambas tablas no coinciden por lo que se hace lo siguiente :
+        const ids_cargos = { 1: 32, 2: 1, 3: 33, 4: 34, 6: 36, 11: 2, 13: 41, 17: 45, 19: 11, 72: 54 };
+        const id_cargo_incidencias = ids_cargos[Number(id_cargo)];
+        if (!id_cargo_incidencias) return response;
+
+        const consulta = {
             "nombres": nombres,
-            "apelllidoPaterno": apellidos.split(' ')[0],
+            "apellidoPaterno": apellidos.split(' ')[0],
             "apellidoMaterno": apellidos.split(' ')[1],
-            "cargo_sereno_id": id_cargo,
+            "cargo_sereno_id": id_cargo_incidencias,
             "dni": dni
         };
 
         try {
             const sereno = await axios.post(INCIDENCIAS_CREATE_URL, consulta);
             if (!sereno) console.warn(`No se pudo registrar en la DB de Incidencias para el empleado con DNI ${dni}`);
+            else console.log(`Sereno con DNI ${dni} registrado exitosamente en la DB de Incidencias`);
             
         } catch (error) {
             console.error({
                 message: `Error al registrar en la DB de Incidencias al empleado con DNI ${dni}`,
                 data: error
             });
-        } */
+        }
 
         return response;
 
@@ -410,10 +419,8 @@ const updateEmpleado = async (
 ) => {
 
     try {
-        const empleado = await Empleado.findByPk(id);
-        if (!empleado) return 1;
-
-        await empleado.update({
+        const response = await Empleado.findByPk(id);
+        await response.update({
             nombres,
             apellidos,
             dni,
@@ -439,7 +446,46 @@ const updateEmpleado = async (
             id_lugar_trabajo,
             id_area
         });
-        return empleado || null;
+        
+        if (!response) return null;
+
+        if (Number(id_subgerencia) !== 1) return response;
+
+        // Los IDs de cargo de ambas tablas no coinciden por lo que se hace lo siguiente :
+        const ids_cargos = { 1: 32, 2: 1, 3: 33, 4: 34, 6: 36, 11: 2, 13: 41, 17: 45, 19: 11, 72: 54 };
+        const id_cargo_incidencias = ids_cargos[Number(id_cargo)];
+        if (!id_cargo_incidencias) return response;
+
+        const serenos = await getAllSerenos();
+        if (!serenos) {
+            console.warn('No se obtuvieron los serenos de la DB de Incidencias...');
+            return response;
+        }
+
+        const dato = serenos.find(sereno => sereno.dni === dni);
+        if (dato) return response;
+
+        const consulta = {
+            "nombres": nombres,
+            "apellidoPaterno": apellidos.split(' ')[0],
+            "apellidoMaterno": apellidos.split(' ')[1],
+            "cargo_sereno_id": id_cargo_incidencias,
+            "dni": dni
+        };
+
+        try {
+            const sereno = await axios.post(INCIDENCIAS_CREATE_URL, consulta);
+            if (!sereno) console.warn(`No se pudo registrar en la DB de Incidencias para el empleado con DNI ${dni}`);
+            else console.log(`Sereno con DNI ${dni} registrado exitosamente en la DB de Incidencias`);
+            
+        } catch (error) {
+            console.error({
+                message: `Error al registrar en la DB de Incidencias al empleado con DNI ${dni}`,
+                data: error
+            });
+        }
+
+        return response;
 
     } catch (error) {
         console.error({
@@ -460,10 +506,8 @@ const updateEmpleadoPago = async (
 ) => {
 
     try {
-        const empleado = await Empleado.findByPk(id);
-        if (!empleado) return 1;
-
-        await empleado.update({
+        const response = await Empleado.findByPk(id);
+        await response.update({
             nombres,
             apellidos,
             dni,
@@ -489,11 +533,51 @@ const updateEmpleadoPago = async (
             id_lugar_trabajo,
             id_area
         });
-        if (!empleado) return null;
+
+        if (!response) return null;
 
         const result = await updatePago(carasDni, cci, certiAdulto, claveSol, suspension, id);
         if (!result) console.warn(`No se pudo actualizar la información de pagos para el empleado con DNI ${dni}`);
-        return empleado;
+
+        if (!response) return null;
+
+        if (Number(id_subgerencia) !== 1) return response;
+
+        // Los IDs de cargo de ambas tablas no coinciden por lo que se hace lo siguiente :
+        const ids_cargos = { 1: 32, 2: 1, 3: 33, 4: 34, 6: 36, 11: 2, 13: 41, 17: 45, 19: 11, 72: 54 };
+        const id_cargo_incidencias = ids_cargos[Number(id_cargo)];
+        if (!id_cargo_incidencias) return response;
+
+        const serenos = await getAllSerenos();
+        if (!serenos) {
+            console.warn('No se obtuvieron los serenos de la DB de Incidencias...');
+            return response;
+        }
+
+        const dato = serenos.find(sereno => sereno.dni === dni);
+        if (dato) return response;
+
+        const consulta = {
+            "nombres": nombres,
+            "apellidoPaterno": apellidos.split(' ')[0],
+            "apellidoMaterno": apellidos.split(' ')[1],
+            "cargo_sereno_id": id_cargo_incidencias,
+            "dni": dni
+        };
+
+        try {
+            const sereno = await axios.post(INCIDENCIAS_CREATE_URL, consulta);
+            if (!sereno) console.warn(`No se pudo registrar en la DB de Incidencias para el empleado con DNI ${dni}`);
+            else console.log(`Sereno con DNI ${dni} registrado exitosamente en la DB de Incidencias`);
+            
+        } catch (error) {
+            console.error({
+                message: `Error al registrar en la DB de Incidencias al empleado con DNI ${dni}`,
+                data: error
+            });
+        }
+
+        return response;
 
     } catch (error) {
         console.error({
@@ -557,12 +641,12 @@ const deleteEmpleadoBlackList = async (id, f_fin) => {
 const getEmpleadoByDni = async (dni) => {
 
     try {
-        const empleado = await Empleado.findOne({
+        const response = await Empleado.findOne({
             where: { dni },
             attributes: ['id','nombres','apellidos','foto'],
-            include: [{ model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] }]
+            include: [{ model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] }],
         });
-        return empleado || null;
+        return response || null;
 
     } catch (error) {
         console.error({
@@ -577,11 +661,12 @@ const getEmpleadoByDni = async (dni) => {
 const getEmpleadoIdByDni = async (dni) => {
 
     try {
-        const empleado = await Empleado.findOne({
+        const response = await Empleado.findOne({
+            where: { dni },
             attributes: ['id'],
-            where: { dni }
+            raw: true
         });
-        return empleado || null;
+        return response.id || null;
 
     } catch (error) {
         console.error({
@@ -658,6 +743,62 @@ const fechaEmpleado = async (id, fecha) => {
     }
 };
 
+// Obtener a todos los serenos registrados en la DB de Incidencias (NO TIENE HANDLER) :
+const getAllSerenos = async () => {
+    
+    try {
+        const response = await axios.get(INCIDENCIAS_READ_URL);
+        if (!response) return null;
+        return response.data.data;
+
+    } catch (error) {
+        console.error({
+            message: 'Error al obtener a los serenos de la DB de Incidencias',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+const getEmpleadoById = async (id) => {
+    
+    try {
+        const response = await Empleado.findByPk(id);
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error al obtener un empleado por ID',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Obtener atributos específicos de un empleado por ID (Identidad SJL) :
+const getEmpleadoByIdAttributes = async (id) => {
+    
+    try {
+        const response = await Empleado.findOne({
+            where: { id, blacklist: false },
+            include: [
+                { model: Turno, as: 'turno', attributes: ['nombre'] },
+                { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+                { model: Area, as: 'area', attributes: ['nombre'] },
+            ],
+            raw: true
+        });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener un empleado por ID con atributos específicos',
+            error: error.message
+        });
+        return false;
+    }
+};
+
 module.exports = {
     getAllUniverseEmpleados,
     getEmpleadoByDni,
@@ -674,5 +815,7 @@ module.exports = {
     deleteEmpleadoBlackList,
     updateEmpleado,
     updateEmpleadoPago,
-    fechaEmpleado
+    fechaEmpleado,
+    getEmpleadoById,
+    getEmpleadoByIdAttributes
 };
