@@ -13,7 +13,7 @@ const {
 const permisoAutorizacion = require("../checkers/roleAuth");
 
 router.get("/", permisoAutorizacion(["all_system_access", "read_usuario"]), getAllUsersHandler);
-router.get("/myuser", permisoAutorizacion(["all_system_access", "read_usuario"]), getUserByIdHandler);
+router.get("/myuser", getUserByIdHandler);
 router.post('/signup', permisoAutorizacion(["all_system_access", "create_usuario"]), createUserHandler);
 router.patch('/password', permisoAutorizacion(["all_system_access", "update_usuario"]), changePasswordHandler);
 router.patch('/modifyuser', permisoAutorizacion(["all_system_access", "update_usuario"]), changeUserDataHandler);

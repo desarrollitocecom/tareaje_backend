@@ -11,7 +11,9 @@ const {
     deleteEmpleado,
     deleteEmpleadoBlackList,
     fechaEmpleado,
-    findEmpleado } = require('../controllers/empleadoController');
+    findEmpleado,
+    getEmpleadoById
+} = require('../controllers/empleadoController');
 
 const { createHistorial } = require('../controllers/historialController');
 const { createPerson } = require('../controllers/axxonController');
@@ -247,7 +249,7 @@ const getEmpleadoByDniHandler = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
 // Handler para crear al empleado sin información privada :
 const createEmpleadoHandler = async (req, res) => {
@@ -350,15 +352,8 @@ const createEmpleadoHandler = async (req, res) => {
         }
 
         // Registro en el historial :
-        const historial = await createHistorial(
-            'create',
-            'Empleado',
-            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
-            null,
-            `${nombres}, ${apellidos}, ${id_cargo}, ${id_turno}, ${id_regimen_laboral}, ${id_sexo}, ${id_jurisdiccion}, ${id_grado_estudios}, ${id_subgerencia}, ${id_funcion}, ${id_lugar_trabajo}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('create', 'Empleado', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación del empleado con DNI ${dni} al historial`);
 
         // Creación exitosa del empleado :
         return res.status(200).json({
@@ -482,15 +477,8 @@ const createEmpleadoPagoHandler = async (req, res) => {
         }
 
         // Registro en el historial :
-        const historial = await createHistorial(
-            'create',
-            'Empleado',
-            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
-            null,
-            `${nombres}, ${apellidos}, ${id_cargo}, ${id_turno}, ${id_regimen_laboral}, ${id_sexo}, ${id_jurisdiccion}, ${id_grado_estudios}, ${id_subgerencia}, ${id_funcion}, ${id_lugar_trabajo}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('create', 'Empleado', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación del empleado con DNI ${dni} al historial`);
 
         // Creación exitosa del empleado :
         return res.status(200).json({
@@ -605,20 +593,21 @@ const updateEmpleadoHandler = async (req, res) => {
         }
         else savedPath = foto;
 
-        const response = await updateEmpleado(id,
-            nombres, apellidos, dni, ruc, hijos, edad, f_nacimiento,
-            config_correo, config_domicilio, config_celular, config_f_inicio, config_observaciones, config_carrera, savedPath,
-            id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
-            id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area
-        );
-
-        if (response === 1) {
+        const previo = await getEmpleadoById(id);
+        if (!previo) {
             if (req.file) await deletePhoto(req.file.filename);
             return res.status(200).json({
                 message: 'Empleado no encontrado',
                 data: []
             });
         }
+
+        const response = await updateEmpleado(id,
+            nombres, apellidos, dni, ruc, hijos, edad, f_nacimiento,
+            config_correo, config_domicilio, config_celular, config_f_inicio, config_observaciones, config_carrera, savedPath,
+            id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+            id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area
+        );
 
         if (!response) {
             if (req.file) await deletePhoto(req.file.filename);
@@ -631,16 +620,8 @@ const updateEmpleadoHandler = async (req, res) => {
         // Si la persona no está registrada, elimina la foto anterior de la DB de Tareaje :
         if (req.file && foto !== 'Sin foto') await deletePhoto(path.basename(foto));
 
-        // Agregar la actualización al historial :
-        const historial = await createHistorial(
-            'update',
-            'Empleado',
-            'nombres, apellidos, dni',
-            `${nombres}, ${apellidos}, ${dni}`,
-            `${nombres}, ${apellidos}, ${dni}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('update', 'Empleado', previo, response, token);
+        if (!historial) console.warn(`No se agregó la creación del empleado con DNI ${dni} al historial`);
         
         // Actualización exitosa del empleado :
         return res.status(200).json({
@@ -773,6 +754,15 @@ const updateEmpleadoPagoHandler = async (req, res) => {
         if (req.files.document) savedPdfDni = path.join('uploads','pdfdni',req.files.document[0].filename).replace(/\\/g, '/');
         else savedPdfDni = carasDni;
 
+        const previo = await getEmpleadoById(id);
+        if (!previo) {
+            if (req.file) await deletePhoto(req.file.filename);
+            return res.status(200).json({
+                message: 'Empleado no encontrado',
+                data: []
+            });
+        }
+
         const response = await updateEmpleadoPago(id,
             nombres, apellidos, dni, ruc, hijos, edad, f_nacimiento,
             config_correo, config_domicilio, config_celular, config_f_inicio, config_observaciones, config_carrera, savedPath,
@@ -780,15 +770,6 @@ const updateEmpleadoPagoHandler = async (req, res) => {
             id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area,
             savedPdfDni, cci, config_certiAdulto, config_claveSol, suspension
         );
-
-        if (response === 1) {
-            if (req.files.photo) await deletePhoto(req.files.photo[0].filename);
-            if (req.files.document) await deletePdfDNI(req.files.document[0].filename);
-            return res.status(200).json({
-                message: 'Empleado no encontrado',
-                data: []
-            });
-        }
 
         if (!response) {
             if (req.files.photo) await deletePhoto(req.files.photo[0].filename);
@@ -806,15 +787,8 @@ const updateEmpleadoPagoHandler = async (req, res) => {
         if (req.files.document && carasDni !== 'Sin Pdf') await deletePdfDNI(path.basename(carasDni));
 
         // Agregar la actualización al historial :
-        const historial = await createHistorial(
-            'update',
-            'Empleado',
-            'nombres, apellidos, dni',
-            `${nombres}, ${apellidos}, ${dni}`,
-            `${nombres}, ${apellidos}, ${dni}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('update', 'Empleado', previo, response, token);
+        if (!historial) console.warn(`No se agregó la creación del empleado con DNI ${dni} al historial`);
         
         // Actualización exitosa del empleado :
         return res.status(200).json({
@@ -845,15 +819,9 @@ const deleteEmpleadoHandler = async (req, res) => {
         if (response === 1) return res.status(200).json({ message: 'Empleado no encontrado', data: {} });
         if (!response) return res.status(200).json({ message: 'No se pudo eliminar al empleado', data: {} });
 
-        const historial = await createHistorial(
-            'create',
-            'Empleado',
-            'nombres, apellidos, dni, id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo',
-            `${response.nombres}, ${response.apellidos}, ${response.id_cargo}, ${response.id_turno}, ${response.id_regimen_laboral}, ${response.id_sexo}, ${response.id_jurisdiccion}, ${response.id_grado_estudios}, ${response.id_subgerencia}, ${response.id_funcion}, ${response.id_lugar_trabajo}`,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        // Agregar el cambio de estado del empleado al historial :
+        const historial = await createHistorial('delete', 'Empleado', response, null, token);
+        if (!historial) console.warn(`No se agregó el cambio de estado del empleado con DNI ${response.dni} al historial`);
 
         return res.status(200).json({
             message: 'Empleado eliminado exitosamente...',

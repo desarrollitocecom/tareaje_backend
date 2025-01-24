@@ -246,18 +246,29 @@ const changeUserDataHandler = async (req, res) => {
     }
 };
 
+// Handler para obtener el token (PROVISIONAL)
 const getTokenHandler = async (req, res) => {
 
     const { usuario } = req.params;
 
     try {
         const response = await getToken(usuario);
-        return res.status(200).json(response);
-    } catch (error) {
-        console.error("Error en getTokenHandler: ", error.message);
-        return res.status(500).json({ message: "error en getTokenHandler", error: error.message });
-    }
+        if (!response) return res.status(200).json({
+            message: 'No se pudo obtener el token',
+            data: []
+        });
 
+        return res.status(200).json({
+            message: 'Token obtenido exitosamente',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener un token',
+            error: error.message
+        });
+    }
 };
 
 // Handler para obtener todos los usuarios con paginación y búsqueda :

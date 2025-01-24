@@ -93,6 +93,26 @@ const getHorariosHora = async (hora) => {
     }
 };
 
+// Obtener un horario por subgerencia, turno y área :
+const getHorarioFace = async (id_subgerencia, id_turno, id_area) => {
+    
+    try {
+        const response = await Horario.findOne({
+            where: { id_subgerencia, id_turno, id_area },
+            attributes: ['inicio', 'fin'],
+            raw: true
+        });
+        return response || null;
+        
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener un horario por subgerencia, turno y área',
+            error: error.message
+        });
+        return false;
+    }
+};
+
 // Crear un horario :
 const createHorario = async (inicio, fin, id_subgerencia, id_turno, id_area) => {
 
@@ -152,6 +172,7 @@ module.exports = {
     getHorarioById,
     getAllHorarios,
     getHorariosHora,
+    getHorarioFace,
     createHorario,
     updateHorario,
     deleteHorario
