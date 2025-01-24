@@ -20,7 +20,6 @@ router.get('/:dni', permisoAutorizacion(["all_system_access", "read_empleado"]),
 router.get('/photo/:id', permisoAutorizacion(["all_system_access", "read_empleado"]), getPhotoHandler);
 router.post('/facescan/', permisoAutorizacion(["all_system_access", "photo_axxon"]), searchByFaceHandler);
 router.post('/face/', permisoAutorizacion(["all_system_access", "photo_axxon"]), searchByFaceDNIHandler);
-router.post('/face/', searchByFaceDNIHandler);
 router.post('/protocol/', permisoAutorizacion(["all_system_access", "read_asistencia"]),getProtocolsHandler);
 
 module.exports = router;
