@@ -38,6 +38,7 @@ const getAllAreas = async (page = 1, limit = 20, filters = {}) => {
             where: whereCondition,
             limit,
             offset,
+            order: [['nombre', 'ASC']]
         });
 
         return {

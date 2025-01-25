@@ -1,4 +1,5 @@
-const { getRegimenLaborales,
+const {
+    getRegimenLaborales,
     createRegimenLaboral,
     getRegimenLaboral,
     updateRegimenLaboral,
@@ -31,19 +32,17 @@ const getRegimenLaboralesHandler = async (req, res) => {
         const response = await getRegimenLaborales(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
-        if(numPage > totalPages){
-            return res.status(200).json({
-                message:'Página fuera de rango...',
-                data:{
-                    data:[],
-                    currentPage: numPage,
-                    pageCount: response.data.length,
-                    totalCount: response.totalCount,
-                    totalPages: totalPages,
-                 }
+        if (numPage > totalPages) return res.status(200).json({
+            message:'Página fuera de rango...',
+            data:{
+                data:[],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
                 }
-            );
-        }
+            }
+        );
         
         return res.status(200).json({
             message: 'Regimenes laborales obtenidos exitosamente...',
@@ -57,86 +56,85 @@ const getRegimenLaboralesHandler = async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error al obtener todos los regimenes laborales en el handler', error);
-        return res.status(500).json({ message: "Error al obtener todos los regimenes laborales en el handler" });
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los régimenes laborales',
+            error: error.message
+        })
     }
 };
 
-//Handlers para obtener una RegimenLaboral 
+// Handler para obtener todos los régimenes laborales :
 const getRegimenLaboralHandler = async (req, res) => {
-    const id = req.params.id;
-    if (!id || isNaN(id)) {
-        return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
-    }
+
+    const { id } = req.params;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
     try {
         const response = await getRegimenLaboral(id);
-
-        if (!response || response.length === 0) {
-            return res.status(404).json({
-                message: "Regimen Laboral no encontrada",
-                data: []
-            });
-        }
+        if (!response) return res.status(200).json({
+            message: 'Régimen laboral no encontrado',
+            data: []
+        });
 
         return res.status(200).json({
-            message: "Regimen Laboral encontrada",
+            message: 'Régimen laboral encontrado exitosamente...',
             data: response
         });
+
     } catch (error) {
-        console.error(error);
         return res.status(500).json({
-            message: "Error al buscar la Regimen Laboral",
+            message: 'Error interno al obtener el régimen laboral',
             error: error.message
         });
     }
 };
 
-// Handler para crear una nueva RegimenLaboral
+// Handler para crear un régimen laboral :
 const createRegimenLaboralHandler = async (req, res) => {
 
     const { nombre } = req.body;
     const token = req.user;
     const errores = [];
+    
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    if (errores.length > 0) {
-        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
-    }
+    if (errores.length > 0)  return res.status(400).json({
+        message: 'Se encontraron los siguientes errores',
+        data: errores
+    });
 
     try {
-        const nuevaRegimenLaboral = await createRegimenLaboral({ nombre });
-        if(!nuevaRegimenLaboral){
-            return res.status(400).json({
-                message: 'Régimen Laboral no creado',
-                data: []
-            });
-        }
-        
-        const historial = await createHistorial(
-            'create',
-            'RegimenLaboral',
-            'nombre',
-            null,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        return res.status(201).json({
-            message: 'Régimen Laboral creado exitosamente',
-            data: nuevaRegimenLaboral
+        const response = await createRegimenLaboral(nombre);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo crear el régimen laboral...',
+            data: []
         });
+
+        const historial = await createHistorial('create', 'RegimenLaboral', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación del régimen laboral ${nombre} al historial`);
+
+        return res.status(200).json({
+            message: 'Régimen laboral creado exitosamente...',
+            data: response
+        });
+
     } catch (error) {
-        console.error('Error al crear el Régimen Laboral:', error);
-        return res.status(500).json({ message: 'Error al crear el Régimen Laboral', error });
+        return res.status(500).json({
+            message: 'Error interno al crear el régimen laboral',
+            error: error.message
+        });
     }
 };
 
+// Handler para actualizar un régimen laboral :
 const updateRegimenLaboralHandler = async (req, res) => {
 
     const { id } = req.params;
@@ -144,95 +142,80 @@ const updateRegimenLaboralHandler = async (req, res) => {
     const token = req.user;
     const errores = [];
 
-    if (!id) {
-        errores.push('El campo ID es requerido');
-    }
-    if (isNaN(id)) {
-        errores.push('El campo ID debe ser un número válido');
-    }
+    if (!id) errores.push('El campo ID es requerido');
+    if (isNaN(id)) errores.push('El campo ID debe ser un número válido');
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
-
-    if (errores.length > 0) {
-        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
-    }
+    if (errores.length > 0)  return res.status(400).json({
+        message: 'Se encontraron los siguientes errores',
+        data: errores
+    });
 
     try {
         const previo = await getRegimenLaboral(id);
-        const response = await updateRegimenLaboral(id, { nombre });
-        if (!response) {
-            return res.status(404).json({
-                message: "El Régimen Laboral no se encuentra",
-                data: {}
-            });
-        }
+        if (!previo) return res.status(200).json({
+            message: 'Régimen laboral no encontrado',
+            data: []
+        });
 
-        const historial = await createHistorial(
-            'update',
-            'RegimenLaboral',
-            'nombre',
-            previo.nombre,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const response = await updateRegimenLaboral(id, nombre);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo actualizar el régimen laboral...',
+            data: []
+        });
+
+        const historial = await createHistorial('update', 'RegimenLaboral', previo, response, token);
+        if (!historial) console.warn(`No se agregó la actualización del régimen laboral ${previo.nombre} al historial`);
 
         return res.status(200).json({
-            message: "Registro modificado",
+            message: 'Régimen laboral actualizado exitosamente...',
             data: response
         });
+
     } catch (error) {
-        console.error('Error al modificar el Régimen Laboral:', error);
-        return res.status(500).json({ message: "Error al modificar el Régimen Laboral", error });
+        return res.status(500).json({
+            message: 'Error interno al actualizar el régimen laboral',
+            error: error.message
+        });
     }
 };
 
+// Handler para eliminar un régimen laboral :
 const deleteRegimenLaboralHandler = async (req, res) => {
 
-    const id = req.params.id;
+    const { id } = req.params;
     const token = req.user;
+    const errores = [];
 
-    // Validación del ID
-    if (isNaN(id)) {
-        return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
-    }
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     try {
-        // Llamada a la Regimen Laboral para eliminar (estado a inactivo)
         const response = await deleteRegimenLaboral(id);
-
-        if (!response) {
-            return res.status(200).json({
-                message: `No se encontró el Regimen Laboral con ID : ${id}`,
-                data: {}
-            })
-        }
-
-        const historial = await createHistorial(
-            'delete',
-            'RegimenLaboral',
-            'nombre',
-            response.nombre,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        return res.status(200).json({
-            message: 'Regimen Laboral eliminada correctamente'
+        if (!response) return res.status(200).json({
+            message: 'Régimen laboral no encontrado',
+            data: []
         });
 
+        const historial = await createHistorial('delete', 'RegimenLaboral', response, null, token);
+        if (!historial) console.warn(`No se agregó la eliminación del régimen laboral ${response.nombre} al historial`);
+
+        return res.status(200).json({
+            message: 'Régimen laboral eliminado exitosamente...',
+            data: response
+        });
+
+
     } catch (error) {
-        return res.status(404).json({ message: error.message });
+        return res.status(500).json({
+            message: 'Error interno al eliminar el régimen laboral',
+            error: error.message
+        });
     }
 };
 
@@ -242,5 +225,4 @@ module.exports = {
     createRegimenLaboralHandler,
     updateRegimenLaboralHandler,
     deleteRegimenLaboralHandler
-}
-
+};

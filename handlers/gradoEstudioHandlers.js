@@ -32,19 +32,17 @@ const getGradoEstudiosHandler = async (req, res) => {
         const response = await getGradoEstudios(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
-        if(numPage > totalPages){
-            return res.status(200).json({
-                message:'Página fuera de rango...',
-                data:{
-                    data:[],
-                    currentPage: numPage,
-                    pageCount: response.data.length,
-                    totalCount: response.totalCount,
-                    totalPages: totalPages,
-                 }
+        if (numPage > totalPages) return res.status(200).json({
+            message:'Página fuera de rango...',
+            data:{
+                data:[],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
                 }
-            );
-        }
+            }
+        );
         
         return res.status(200).json({
             message: 'Grados de estudio obtenidos exitosamente...',
@@ -58,91 +56,85 @@ const getGradoEstudiosHandler = async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error al obtener todos los grados de estudio en el handler', error);
-        return res.status(500).json({ message: "Error al obtener todos los grados de estudio en el handler" });
-    }
-};
-// Handler para obtener una GradoEstudio por ID
-const getGradoEstudioHandler = async (req, res) => {
-    const { id } = req.params;
-    if (!id || isNaN(id)) {
-        return res.status(400).json({ message: 'El ID es requerido y debe ser un número válido' });
-    }
-
-    try {
-        const response = await getGradoEstudio(id);
-
-        if (!response) {
-            return res.status(404).json({
-                message: "Grado de Estudios no encontrada",
-                data: []
-            });
-        }
-
-        return res.status(200).json({
-            message: "Grado de Estudios encontrada",
-            data: response
-        });
-    } catch (error) {
-        console.error('Error al buscar la Grado de Estudios:', error);
         return res.status(500).json({
-            message: "Error al buscar la Grado de Estudios",
+            message: 'Error interno al obtener todos los grados de estudio',
             error: error.message
         });
     }
 };
 
-// Handler para crear una nueva GradoEstudio
+// Handler para obtener un grado de estudio por ID
+const getGradoEstudioHandler = async (req, res) => {
+
+    const { id } = req.params;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    try {
+        const response = await getGradoEstudio(id);
+        if (!response) return res.status(200).json({
+            message: 'Grado de estudio no encontrado...',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Grado de estudio encontrado exitosamente...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener el grado de estudio por ID',
+            error: error.message
+        });
+    }
+};
+
+// Handler para crear un nuevo grado de estudio :
 const createGradoEstudioHandler = async (req, res) => {
 
     const { nombre } = req.body;
     const token = req.user;
     const errores = [];
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
 
-    if (errores.length > 0) {
-        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
-    }
+    if (errores.length > 0)  return res.status(400).json({
+        message: 'Se encontraron los siguientes errores',
+        data: errores
+    });
 
     try {
-        const nuevaGradoEstudio = await createGradoEstudio({ nombre });
-        if (!nuevaGradoEstudio) {
-            return res.status(400).json({
-                message: 'Grado de Estudio no creado',
-                data: []
-            });
-        }
-
-        const historial = await createHistorial(
-            'create',
-            'GradoEstudios',
-            'nombre',
-            null,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        return res.status(201).json({
-            message: 'Grado de Estudio creado exitosamente',
-            data: nuevaGradoEstudio
+        const response = await createGradoEstudio(nombre);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo crear el grado de estudio...',
+            data: []
         });
+
+        const historial = await createHistorial('create', 'GradoEstudios', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación del grado de estudio ${nombre} al historial`);
+
+        return res.status(200).json({
+            message: 'Grado de estudio creado exitosamente...',
+            data: response
+        });
+        
     } catch (error) {
-        console.error('Error al crear el Grado de Estudio:', error);
-        return res.status(500).json({ message: 'Error al crear el Grado de Estudio', error });
+        return res.status(500).json({
+            message: 'Error interno al crear el grado de estudio',
+            error: error.message
+        });
     }
 };
 
+// Handler para actualizar un grado de estudio :
 const updateGradoEstudioHandler = async (req, res) => {
 
     const { id } = req.params;
@@ -150,91 +142,80 @@ const updateGradoEstudioHandler = async (req, res) => {
     const token = req.user;
     const errores = [];
 
-    if (!id) {
-        errores.push('El campo ID es requerido');
-    }
-    if (isNaN(id)) {
-        errores.push('El campo ID debe ser un número válido');
-    }
+    if (!id) errores.push('El campo ID es requerido');
+    if (isNaN(id)) errores.push('El campo ID debe ser un número válido');
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
-
-    if (errores.length > 0) {
-        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
-    }
+    if (errores.length > 0)  return res.status(400).json({
+        message: 'Se encontraron los siguientes errores',
+        data: errores
+    });
 
     try {
         const previo = await getGradoEstudio(id);
-        const response = await updateGradoEstudio(id, { nombre });
-        if (!response) {
-            return res.status(404).json({
-                message: "El Grado de Estudio no se encuentra",
-                data: {}
-            });
-        }
+        if (!previo) return res.status(200).json({
+            message: 'Grado de estudio no encontrado',
+            data: []
+        });
 
-        const historial = await createHistorial(
-            'update',
-            'GradoEstudios',
-            'nombre',
-            previo.nombre,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const response = await updateGradoEstudio(id, nombre);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo actualizar el grado de estudio...',
+            data: []
+        });
+
+        const historial = await createHistorial('update', 'GradoEstudios', previo, response, token);
+        if (!historial) console.warn(`No se agregó la actualización del grado de estudio ${previo.nombre} al historial`);
 
         return res.status(200).json({
-            message: "Registro modificado",
+            message: "Grado de estudio actualizado exitosamente...",
             data: response
         });
+
     } catch (error) {
-        console.error('Error al modificar el Grado de Estudio:', error);
-        return res.status(500).json({ message: "Error al modificar el Grado de Estudio", error });
+        return res.status(500).json({
+            message: 'Error interno al actualizar el grado de estudio',
+            error: error.message
+        });
     }
 };
 
 
-// Handler para eliminar una GradoEstudio (cambiar estado a inactivo)
+// Handler para eliminar un grado de estudio :
 const deleteGradoEstudioHandler = async (req, res) => {
 
     const { id } = req.params;
     const token = req.user;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     try {
         const response = await deleteGradoEstudio(id);
+        if (!response) return res.status(200).json({
+            message: 'Grado de estudio no encontrado',
+            data: []
+        });
 
-        if (!response) {
-            return res.status(404).json({
-                message: `No se encontró el Grado de Estudio con ID:${id}`
-            });
-        }
-
-        const historial = await createHistorial(
-            'delete',
-            'GradoEstudios',
-            'nombre',
-            response.nombre,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('delete', 'GradoEstudios', response, null, token);
+        if (!historial) console.warn(`No se agregó la eliminación del grado de estudio ${response.nombre} al historial`);
 
         return res.status(200).json({
-            message: 'Grado de Estudio eliminada correctamente ',
-            data:{}
+            message: 'Grado de estudio eliminado exitosamente...',
+            data: response
         });
+
     } catch (error) {
-        console.error('Error al eliminar la Grado de Estudio:', error);
-        return res.status(500).json({ message: "Error al eliminar la Grado de Estudio" });
+        return res.status(500).json({
+            message: 'Error interno al eliminar el grado de estudio',
+            error: error.message
+        });
     }
 };
 

@@ -20,7 +20,7 @@ const getTurnos = async (page = 1, limit = 20, filters = {}) => {
             where: whereCondition,
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['nombre', 'ASC']]
 
         });
         return { data: rows, total: count } || null;

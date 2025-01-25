@@ -120,7 +120,7 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
                     id_modelo: null
                 }
 
-                if (asistencia) return {
+                if (asistencia && !descanso) return {
                     fecha,
                     model: 'Asistencia',
                     tipo: asistencia.estado,

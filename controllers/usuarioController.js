@@ -144,7 +144,7 @@ const getAllUsers = async (page = 1, limit = 20, filters = {}) => {
             ],
             limit,
             offset,
-            order: [['id', 'ASC']],
+            order: [['nombre', 'ASC']],
         });
 
         return {

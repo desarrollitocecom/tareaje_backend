@@ -22,70 +22,89 @@ const getRegimenLaborales = async (page = 1, limit = 20, filters = {}) => {
             offset,
             order: [['id', 'ASC']]
         });
-        return { totalCount: count, data: rows, currentPage: page } || null;
+        return {
+            totalCount: count,
+            data: rows
+        } || null;
 
     } catch (error) {
-        console.error('Error al Obtener todas los regímenes laborales:', error);
-        return false
-    }
-}
-
-//trae una RegimenLaboral especifica por id
-const getRegimenLaboral = async (id) => {
-    try {
-        const newRegimenLaboral = await RegimenLaboral.findOne({
-            where: {
-                id,
-                state: true
-            }
+        console.error({
+            message: 'Error en el controlador al obtener todos los régimenes laborales',
+            error: error.message
         });
-        return newRegimenLaboral || null;
-    } catch (error) {
-        console.error(`Error al obtener la RegimenLaboral: ${error.message}`);
-        return false
+        return false;
     }
 };
-//Crea una nueva RegimenLaboral
-const createRegimenLaboral = async ({ nombre }) => {
+
+// Obtener un régimen laboral por ID :
+const getRegimenLaboral = async (id) => {
+
     try {
-        const newRegimenLaboral = await RegimenLaboral.create({ nombre });
-        return newRegimenLaboral
+        const response = await RegimenLaboral.findOne({
+            where: { id, state: true }
+        });
+        return response || null;
+
     } catch (error) {
-        console.error('Error al crear una nueva RegimenLaboral', error)
-        return false
+        console.error({
+            message: 'Error en el controlador al obtener un regimen laboral por ID',
+            error: error.message
+        });
+        return false;
     }
 };
-//elimina la RegimenLaboral o canbia el estado
+
+// Crear un régimen laboral :
+const createRegimenLaboral = async (nombre) => {
+
+    try {
+        const response = await RegimenLaboral.create({ nombre });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al crear un régimen laboral',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Actualizar un régimen laboral :
+const updateRegimenLaboral = async (id, nombre) => {
+
+    try {
+        const response = await RegimenLaboral.findByPk(id);
+        if (response) await response.update({ nombre });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar un régimen laboral',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Eliminar un régimen laboral (state false) :
 const deleteRegimenLaboral = async (id) => {
+
     try {
-        const newRegimenLaboral = await RegimenLaboral.findByPk(id);
-        newRegimenLaboral.state = false;
-        await newRegimenLaboral.save();
-        return newRegimenLaboral || null
+        const response = await RegimenLaboral.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        await response.save();
+        return response;
+
     } catch (error) {
-        console.error('Error al canbiar de estado al eliminar RegimenLaboral');
+        console.error({
+            message: 'Error en el controlador al eliminar un régimen laboral',
+            error: error.message
+        });
         return false;
     }
 };
-
-
-const updateRegimenLaboral = async (id, nuevoRegimenLaboral) => {
-    if (id && nuevoRegimenLaboral)
-        try {
-            const RegimenLaboral = await getRegimenLaboral(id);
-            if (RegimenLaboral)
-                await RegimenLaboral.update(nuevoRegimenLaboral);
-            return RegimenLaboral || null;
-
-        } catch (error) {
-            console.error('Error al actualizar la RegimenLaboral:', error.message);
-            return false;
-        }
-    else
-        return false;
-};
-
-
 
 module.exports = {
     getRegimenLaborales,

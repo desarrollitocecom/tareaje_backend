@@ -20,7 +20,7 @@ const getSexos = async (page = 1, limit = 20, filters = {}) => {
             where: whereCondition,
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['nombre', 'ASC']]
         });
         return { totalCount: count, data: rows, currentPage: page } || null;
 
