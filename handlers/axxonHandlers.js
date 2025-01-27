@@ -247,6 +247,12 @@ const searchByFaceDNIHandler = async (req, res) => {
         }
 
         const hora = await getHorarioFace(empleado.id_subgerencia, empleado.id_turno, empleado.id_area);
+        const ahora = new Date();
+        const horaBetween = ahora.getHours();
+
+        const inicio = parseInt(hora.inicio.split(':')[0]);
+        const fin = parseInt(hora.fin.split(':')[0]);
+        const estado = (horaBetween > inicio && horaBetween < fin) ? true : false;
         
         return res.status(200).json({
             message: `Bienvenido ${empleado.nombres.split(" ")[0]} ${empleado.apellidos.split(" ")[0]}`,
@@ -256,8 +262,9 @@ const searchByFaceDNIHandler = async (req, res) => {
                 dni: empleado.dni,
                 turno: empleado['turno.nombre'],
                 celular: empleado.celular,
-                inicio: parseInt(hora.inicio.split(':')[0]),
-                fin: parseInt(hora.fin.split(':')[0]),
+                inicio: inicio,
+                fin: fin,
+                estado: estado
             }
         });
 
