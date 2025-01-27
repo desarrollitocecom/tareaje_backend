@@ -107,7 +107,7 @@ const createRegimenLaboralHandler = async (req, res) => {
     if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
 
     if (errores.length > 0)  return res.status(400).json({
-        message: 'Se encontraron los siguientes errores',
+        message: 'Se encontraron los siguientes errores...',
         data: errores
     });
 
@@ -209,7 +209,6 @@ const deleteRegimenLaboralHandler = async (req, res) => {
             message: 'Régimen laboral eliminado exitosamente...',
             data: response
         });
-
 
     } catch (error) {
         return res.status(500).json({

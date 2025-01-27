@@ -22,71 +22,90 @@ const getSubgerencias = async (page = 1, limit = 20, filters = {}) => {
             offset,
             order: [['nombre', 'ASC']]
         });
-        return { totalCount: count, data: rows, currentPage: page } || null;
+        
+        return {
+            totalCount: count,
+            data: rows
+        } || null;
 
     } catch (error) {
-        console.error('Error al obtener las subgerencias:', error);
-        return false
-    }
-};
-
-//trae una Subgerencia especifica por id
-const getSubgerencia = async (id) => {
-    try {
-        const newSubgerencia = await Subgerencia.findOne({
-            where: {
-                id,
-                state: true
-            }
+        console.error({
+            message: 'Error en el controlador al obtener todas las subgerencias:',
+            error: error.message
         });
-        return newSubgerencia || null;
-    } catch (error) {
-        console.error(`Error al obtener la Subgerencia: ${error.message}`);
-        return false
+        return false;
     }
 };
-//Crea una nueva Subgerencia
-const createSubgerencia = async ({ nombre }) => {
+
+// Obtener una subgerencia por ID :
+const getSubgerencia = async (id) => {
+
     try {
-        const newSubgerencia = await Subgerencia.create({ nombre });
-        return newSubgerencia
+        const response = await Subgerencia.findOne({
+            where: { id, state: true }
+        });
+        return response || null;
 
     } catch (error) {
-        console.error('Error al crear una nueva Subgerencia', error)
-        return false
+        console.error({
+            message: 'Error en el controlador al obtener la subgerencia por ID:',
+            error: error.message
+        });
+        return false;
     }
 };
-//elimina la Subgerencia o canbia el estado
+
+// Crear una subgerencia :
+const createSubgerencia = async (nombre) => {
+
+    try {
+        const response = await Subgerencia.create({ nombre });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al crear la subgerencia:',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Actualizar una subgerencia :
+const updateSubgerencia = async (id, nombre) => {
+
+    try {
+        const response = await Subgerencia.findByPk(id);
+        if (response) await response.update({ nombre });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar la subgerencia:',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Eliminar una subgerencia :
 const deleteSubgerencia = async (id) => {
+
     try {
-        const newSubgerencia = await Subgerencia.findByPk(id);
-        newSubgerencia.state = false;
-        await newSubgerencia.save();
-        return newSubgerencia || null
+        const response = await Subgerencia.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        await response.save();
+        return response;
+
     } catch (error) {
-        console.error('Error al canbiar de estado al eliminar Subgerencia');
+        console.error({
+            message: 'Error en el controlador al eliminar la subgerencia:',
+            error: error.message
+        });
         return false;
     }
 };
-
-
-const updateSubgerencia = async (id, nuevaSubgerencia) => {
-    if (id && nuevaSubgerencia)
-        try {
-            const newSubgerencia = await Subgerencia.findOne({ where: { id } });
-            if (newSubgerencia)
-                await newSubgerencia.update(nuevaSubgerencia);
-            return newSubgerencia || null;
-
-        } catch (error) {
-            console.error('Error al actualizar la Subgerencia:', error.message);
-            return false;
-        }
-    else
-        return false;
-};
-
-
 
 module.exports = {
     getSubgerencias,

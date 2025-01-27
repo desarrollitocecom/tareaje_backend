@@ -1,5 +1,6 @@
 const { Router } = require('express');
-const rutas = Router();
+const router = Router();
+
 const {
     getSubgerenciasHandler,
     getSubgerenciaHandler,
@@ -7,13 +8,13 @@ const {
     updateSubgerenciaHandler,
     deleteSubgerenciaHandler
 } = require('../handlers/subgerenciaHandlers');
+
 const permisoAutorizacion = require("../checkers/roleAuth");
 
-rutas.get('/',permisoAutorizacion(["all_system_access", "read_cargo"]),getSubgerenciasHandler)
-rutas.post('/',permisoAutorizacion(["all_system_access", "create_cargo"]), createSubgerenciaHandler);
-rutas.get('/:id',permisoAutorizacion(["all_system_access", "read_cargo"]),  getSubgerenciaHandler);  
-rutas.patch('/:id',permisoAutorizacion(["all_system_access", "update_cargo"]), updateSubgerenciaHandler);
-rutas.delete('/:id',permisoAutorizacion(["all_system_access", "delete_cargo"]), deleteSubgerenciaHandler);
+router.get('/',permisoAutorizacion(["all_system_access", "read_subgerencia"]), getSubgerenciasHandler);
+router.get('/:id',permisoAutorizacion(["all_system_access", "read_subgerencia"]), getSubgerenciaHandler);
+router.post('/',permisoAutorizacion(["all_system_access", "create_subgerencia"]), createSubgerenciaHandler);
+router.patch('/:id',permisoAutorizacion(["all_system_access", "update_subgerencia"]), updateSubgerenciaHandler);
+router.delete('/:id',permisoAutorizacion(["all_system_access", "delete_subgerencia"]), deleteSubgerenciaHandler);
 
-
-module.exports = rutas;
+module.exports = router;
