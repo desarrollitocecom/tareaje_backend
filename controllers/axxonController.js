@@ -227,20 +227,17 @@ const searchByFace = async (foto) => {
         const personInfo = { nombres, apellidos, dni, cargo, turno };
         const similitud = findface.Sim;
         if (parseFloat(similitud) < 0.99) {
-            console.warn({
-                message: 'La persona no ha sido reconocida...',
-                similitud: similitud
-            });
-            return false;
+            console.error('La persona no ha sido reconocida...');
+            const error = new Error('No se ha reconocido a la persona...');
+            error.statusCode = 401;
+            throw error;
         }
         return personInfo;
 
     } catch (error) {
-        console.error({
-            message: 'Error al consulta la API de Axxon FindFaces: ',
-            error: error
-        });
-        return false;
+        const statusCode = error.statusCode || 500;
+        console.error(`Error al consultar la API: ${error.message}`);
+        throw { message: error.message, statusCode };
     }
 };
 

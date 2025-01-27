@@ -19,71 +19,91 @@ const getGradoEstudios = async (page = 1, limit = 20, filters = {}) => {
             where: whereCondition,
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['nombre', 'ASC']]
         });
-        return { totalCount: count, data: rows, currentPage: page } || null;
+
+        return {
+            totalCount: count,
+            data: rows
+        } || null;
 
     } catch (error) {
-        console.error('Error al Obtener todas los Grado Estudios', error);
-        return false
+        console.error({
+            message: 'Error en el controlador al obtener todos los grados de estudio',
+            error: error.message
+        });
+        return false;
     }
 }
 
-//trae una GradoEstudio especifica por id
+// Obtener un grado de estudio por ID :
 const getGradoEstudio = async (id) => {
+
     try {
-        const GradoEstudio = await GradoEstudios.findOne({
-            where: {
-                id,
-            }
+        const response = await GradoEstudios.findOne({
+            where: { id, state:true }
         });
-        return GradoEstudio || null;
+        return response || null;
+
     } catch (error) {
-        console.error(`Error al obtener la Grado de Estudio: ${error.message}`);
-        return false
+        console.error({
+            message: 'Error en el controlador al obtener un grado de estudio',
+            error: error.message
+        });
+        return false;
     }
 };
-//Crea una nueva GradoEstudio
-const createGradoEstudio = async ({ nombre }) => {
+// Crear un grado de estudio :
+const createGradoEstudio = async (nombre) => {
+
     try {
-        const GradoEstudio = await GradoEstudios.create({ nombre });
-        return GradoEstudio
+        const response = await GradoEstudios.create({ nombre });
+        return response || null;
+
     } catch (error) {
-        console.error('Error al crear una nueva Grado de Estudio', error)
-        return false
+        console.error({
+            message: 'Error en el controlador al crear un grado de estudio',
+            error: error.message
+        });
+        return false;
     }
 };
-//elimina la GradoEstudio o canbia el estado
+
+// Actualizar un grado de estudio :
+const updateGradoEstudio = async (id, nombre) => {
+
+    try {
+        const response = await getGradoEstudio(id);
+        if (response) await response.update({ nombre });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar un grado de estudio',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Eliminar un grado de estudio (state false) :
 const deleteGradoEstudio = async (id) => {
+
     try {
-        const GradoEstudio = await GradoEstudios.findByPk(id);
-        GradoEstudio.state = false;
-        await GradoEstudio.save();
-        return GradoEstudio || null
+        const response = await GradoEstudios.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        await response.save();
+        return response;
+
     } catch (error) {
-        console.error('Error al cambiar de estado al eliminar Grado de Estudio');
+        console.error({
+            message: 'Error en el controlador al eliminar un grado de estudio',
+            error: error.message
+        });
         return false;
     }
 };
-
-
-const updateGradoEstudio = async (id, nuevaGradoEstudio) => {
-    if (id && nuevaGradoEstudio)
-        try {
-            const GradoEstudio = await getGradoEstudio(id);
-            if (GradoEstudio)
-                await GradoEstudio.update(nuevaGradoEstudio);
-            return GradoEstudio || null;
-
-        } catch (error) {
-            console.error('Error al actualizar la GradoEstudio:', error.message);
-            return false;
-        }
-    else
-        return false;
-};
-
-
 
 module.exports = {
     getGradoEstudios,
