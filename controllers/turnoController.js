@@ -20,71 +20,92 @@ const getTurnos = async (page = 1, limit = 20, filters = {}) => {
             where: whereCondition,
             limit,
             offset,
-            order: [['id', 'ASC']]
-
+            order: [['nombre', 'ASC']]
         });
-        return { data: rows, total: count } || null;
+
+        return {
+            totalCount: count,
+            data: rows
+        } || null;
 
     } catch (error) {
-        console.error('Error al obtener los turnos:', error);
+        console.error({
+            message: 'Error en el controlador al obtener todas los turnos:',
+            error: error.message
+        });
         return false
     }
 };
 
-//trae una Turno especifica por id
+// Obtener un turno por ID :
 const getTurno = async (id) => {
+
     try {
-        const turno = await Turno.findOne({
-            where: {
-                id,
-            }
+        const response = await Turno.findOne({
+            where: { id, state: true }
         });
-        return turno || null;
+        return response || null;
+
     } catch (error) {
-        console.error(`Error al obtener la Turno: ${error.message}`);
+        console.error({
+            message: 'Error en el controlador al obtener el turno por ID:',
+            error: error.message
+        });
         return false
     }
 };
-//Crea una nueva Turno
-const createTurno = async ({ nombre }) => {
+
+// Crear un turno :
+const createTurno = async (nombre) => {
+
     try {
-        const newTurno = await Turno.create({ nombre });
-        return newTurno
+        const response = await Turno.create({ nombre });
+        return response || null;
+
     } catch (error) {
-        console.error('Error al crear una nueva Turno', error)
-        return false
+        console.error({
+            message: 'Error en el controlador al crear el turno:',
+            error: error.message
+        });
+        return false;
     }
 };
-//elimina la Turno o canbia el estado
+
+// Acualizar un turno :
+const updateTurno = async (id, nombre) => {
+
+    try {
+        const response = await Turno.findByPk(id);
+        if (response) await response.update({ nombre });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar el turno:',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Eliminar un turno :
 const deleteTurno = async (id) => {
+
     try {
-        const newTurno = await Turno.findByPk(id);
-        newTurno.state = false;
-        await newTurno.save();
-        return newTurno || null
+        const response = await Turno.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        await response.save();
+        return response;
+
     } catch (error) {
+        console.error({
+            message: 'Error en el controlador al eliminar el turno:',
+            error: error.message
+        });
         return false;
     }
 };
-
-
-const updateTurno = async (id, nuevaTurno) => {
-    if (id && nuevaTurno)
-        try {
-            const newTurno = await getTurno(id);
-            if (newTurno)
-                await newTurno.update(nuevaTurno);
-            return newTurno || null;
-
-        } catch (error) {
-            console.error('Error al actualizar la Turno:', error.message);
-            return false;
-        }
-    else
-        return false;
-};
-
-
 
 module.exports = {
     getTurnos,

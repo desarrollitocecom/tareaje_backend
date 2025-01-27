@@ -20,17 +20,24 @@ const getLugarTrabajos = async (page = 1, limit = 20, filters = {}) => {
             where: whereCondition,
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['nombre', 'ASC']]
         });
-        return { totalCount: count, data: rows, currentPage: page } || null;
+
+        return {
+            totalCount: count,
+            data: rows
+        } || null;
 
     } catch (error) {
-        console.error('Error al obtener los lugares de trabajo:', error);
-        return false
+        console.error({
+            message: 'Error en el controlador al obtener todos los lugares de trabajo',
+            error: error.message
+        });
+        return false;
     }
 }
 
-// Obtener un Lugar de Trabajo específico por id :
+// Obtener un lugar de trabajo por ID :
 const getLugarTrabajo = async (id) => {
 
     try {
@@ -40,55 +47,65 @@ const getLugarTrabajo = async (id) => {
         return response || null;
 
     } catch (error) {
-        console.error(`Error al obtener la Función: ${error.message}`);
-        return false
+        console.error({
+            message: 'Error en el controlador al obtener un lugar de trabajo por ID',
+            error: error.message
+        });
+        return false;
     }
 };
 
-// Crear un nuevo Lugar de Trabajo
-const createLugarTrabajo = async ({ nombre }) => {
+// Crear un lugar de trabajo :
+const createLugarTrabajo = async (nombre) => {
+
     try {
-        const lugarTrabajo = await LugarTrabajo.create({ nombre });
-        return lugarTrabajo
+        const response = await LugarTrabajo.create({ nombre });
+        return response || null;
 
     } catch (error) {
-        console.error('Error al crear una nueva LugarTrabajo', error)
-        return false
+        console.error({
+            message: 'Error en el controlador al crear un lugar de trabajo',
+            error: error.message
+        });
+        return false;
     }
 };
 
-// Eliminar la LugarTrabajo o canbia el estado
+// Actualizar un lugar de trabajo :
+const updateLugarTrabajo = async (id, nombre) => {
+
+    try {
+        const response = await LugarTrabajo.findByPk(id)
+        if (response) await response.update({ nombre });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar un lugar de trabajo',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Eliminar un lugar de trabajo (state false) :
 const deleteLugarTrabajo = async (id) => {
+
     try {
-        const lugarTrabajo = await LugarTrabajo.findByPk(id);
-        lugarTrabajo.state = false;
-        await lugarTrabajo.save();
-        return lugarTrabajo || null
+        const response = await LugarTrabajo.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        await response.save();
+        return response;
+
     } catch (error) {
-        console.error('Error al canbiar de estado al eliminar LugarTrabajo');
+        console.error({
+            message: 'Error en el controlador al eliminar un lugar de trabajo',
+            error: error.message
+        });
         return false;
     }
 };
-
-
-const updateLugarTrabajo = async (id, nuevaLugarTrabajo) => {
-    if (id && nuevaLugarTrabajo)
-        try {
-            const lugarTrabajo = await LugarTrabajo.findOne({ where: { id } });
-            if (lugarTrabajo)
-                await lugarTrabajo.update(nuevaLugarTrabajo);
-            return lugarTrabajo || null;
-
-
-        } catch (error) {
-            console.error('Error al actualizar la LugarTrabajo:', error.message);
-            return false;
-        }
-    else
-        return false;
-};
-
-
 
 module.exports = {
     getLugarTrabajos,

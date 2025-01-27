@@ -1,12 +1,20 @@
-// handlers/feriadoHandler.js
+const {
+    getAllFeriados,
+    getFeriado,
+    getFeriadoTipos,
+    createFeriado,
+    updateFeriado,
+    deleteFeriado
+}= require("../controllers/feriadoController");
 
-const { getAllFeriados, createFeriado, getFeriado, updateFeriado, deleteFeriado } = require("../controllers/feriadoController");
 const { createHistorial } = require('../controllers/historialController');
 
-// Handler para obtener todos los feriados con paginación :
+// Handler para obtener todos los feriados con paginación, búsqueda y filtro :
 const getAllFeriadosHandler = async (req, res) => {
     
-    const { page = 1, limit = 20  } = req.query;
+    
+    const { page = 1, limit = 20, search, tipo, inicio, fin } = req.query;
+    const filters = { search, tipo, tipo, inicio, fin }
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
@@ -23,22 +31,20 @@ const getAllFeriadosHandler = async (req, res) => {
     const numLimit = parseInt(limit);
 
     try {
-        const response = await getAllFeriados(numPage, numLimit);
+        const response = await getAllFeriados(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
-        if(numPage > totalPages){
-            return res.status(200).json({
-                message:'Página fuera de rango...',
-                data:{
-                    data:[],
-                    currentPage: numPage,
-                    pageCount: response.data.length,
-                    totalCount: response.totalCount,
-                    totalPages: totalPages,
-                 }
-                }
-            );
-        }
+        if(numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data:{
+                data:[],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+             }
+            }
+        );
         
         return res.status(200).json({
             message: 'Feriados obtenidos exitosamente...',
@@ -52,202 +58,205 @@ const getAllFeriadosHandler = async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error al obtener todos los feriados en el handler', error);
-        return res.status(500).json({ message: "Error al obtener todos los feriados en el handler" });
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los feriados',
+            error: error.message
+        })
     }
 };
 
-// Handler para obtener un feriado por ID
+// Handler para obtener un feriado por ID :
 const getFeriadoHandler = async (req, res) => {
-    const id = parseInt(req.params.id);
 
-    if (isNaN(id) || id <= 0) {
-        return res.status(400).json({ message: "ID inválido" });
-    }
+    const { id } = req.params;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     try {
-        const feriado = await getFeriado(id);
-        if (!feriado) {
-            return res.status(404).json({ message: "Feriado no encontrado" });
-        }
+        const response = await getFeriado(id);
+        if (!response) return res.status(200).json({
+            message: 'No se obtuvieron los tipos de feriado...',
+            data: []
+        });
 
-        res.status(200).json(feriado);
+        return res.status(200).json({
+            message: 'Tipos de feriado encontrado exitosamente...',
+            data: response
+        });
+
     } catch (error) {
-        console.error("Error al obtener feriado:", error);
-        res.status(500).json({ error: "Error interno del servidor al obtener el feriado." });
+        return res.status(500).json({
+            message: 'Error interno al obtener el feriado',
+            error: error.message
+        });
     }
 };
 
-// Handler para crear un nuevo feriado
+// Handler para obtener un feriado por ID :
+const getFeriadoTiposHandler = async (req, res) => {
+
+    try {
+        const response = await getFeriadoTipos();
+        if (!response) return res.status(200).json({
+            message: 'Feriado no encontrado',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Feriado encontrado exitosamente...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener los tipos de feriado',
+            error: error.message
+        });
+    }
+};
+
+// Handler para crear un feriado :
 const createFeriadoHandler = async (req, res) => {
 
-    const { nombre, fecha } = req.body;
+    const { nombre, fecha, id_feriado_tipo } = req.body;
     const token = req.user;
     const errores = [];
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    if (nombre.length > 255) {
-        errores.push('El campo nombre no debe exceder los 255 caracteres');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
+    if (!nombre) errores.push('El nombre es obligatorio');
+    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto');
+    if (nombre.length > 255) errores.push('El nombre no debe exceder los 255 caracteres');
+    if (!fecha) errores.push('La fecha es obligatoria');
+    if (isNaN(Date.parse(fecha))) errores.push('La fecha debe cumplir con el formato válido (YYYY-MM-DD)');
+    if (!id_feriado_tipo) errores.push('El tipo de feriado es obligatorio');
+    if (isNaN(id_feriado_tipo)) errores.push('El tipo de feriado debe ser un entero');
 
-    if (!fecha) {
-        errores.push('El campo fecha es requerido');
-    }
-    if (isNaN(Date.parse(fecha))) {
-        errores.push('El campo fecha debe estar en un formato válido (YYYY-MM-DD)');
-    }
-
-    if (errores.length > 0) {
-        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
-    }
+    if (errores.length > 0)  return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores
+    });
 
     try {
-        const feriado = await createFeriado({ nombre, fecha });
-        if (!feriado) {
-            return res.status(500).json({ message: "Error al crear el feriado" });
-        }
-
-        const historial = await createHistorial(
-            'create',
-            'Feriado',
-            'nombre, fecha',
-            null,
-            `${nombre}, ${fecha}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        res.status(201).json({
-            message: "Feriado creado exitosamente",
-            data: feriado
+        const response = await createFeriado(nombre, fecha, id_feriado_tipo);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo crear el feriado...',
+            data: []
         });
+
+        const historial = await createHistorial('create', 'Feriado', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación del feriado ${nombre} al historial`);
+
+        return res.status(200).json({
+            message: 'Feriado creado exitosamente...',
+            data: response
+        });
+
     } catch (error) {
-        console.error("Error al crear feriado:", error);
-        res.status(500).json({ error: "Error interno del servidor al crear el feriado.", details: error.message });
+        return res.status(500).json({
+            message: 'Error interno al crear el feriado',
+            error: error.message
+        });
     }
 };
 
-// Handler para actualizar un feriado
+// Handler para actualizar un feriado :
 const updateFeriadoHandler = async (req, res) => {
 
-    const id = parseInt(req.params.id);
-    const { nombre, fecha } = req.body;
+    const { id } = req.params;
+    const { nombre, fecha, id_feriado_tipo } = req.body;
     const token = req.user;
     const errores = [];
 
-    if (isNaN(id) || id <= 0) {
-        errores.push('El campo ID es inválido o debe ser un número positivo');
-    }
+    if (!id) errores.push('El campo ID es requerido');
+    if (isNaN(id)) errores.push('El campo ID debe ser un número válido');
+    if (!nombre) errores.push('El nombre es obligatorio');
+    if (typeof nombre !== 'string') errores.push('El nombre debe ser una cadena de texto');
+    if (nombre.length > 255) errores.push('El nombre no debe exceder los 255 caracteres');
+    if (!fecha) errores.push('La fecha es obligatoria');
+    if (isNaN(Date.parse(fecha))) errores.push('La fecha debe cumplir con el formato válido (YYYY-MM-DD)');
+    if (!id_feriado_tipo) errores.push('El tipo de feriado es obligatorio');
+    if (isNaN(id_feriado_tipo)) errores.push('El tipo de feriado debe ser un entero');
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    if (nombre.length > 255) {
-        errores.push('El campo nombre no debe exceder los 255 caracteres');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
-
-    if (!fecha) {
-        errores.push('El campo fecha es requerido');
-    }
-    if (isNaN(Date.parse(fecha))) {
-        errores.push('El campo fecha debe estar en un formato válido (YYYY-MM-DD)');
-    }
-
-    if (errores.length > 0) {
-        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
-    }
+    if (errores.length > 0)  return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores
+    });
 
     try {
         const previo = await getFeriado(id);
-        const feriado = await updateFeriado(id, { nombre, fecha });
-        if (!feriado) {
-            return res.status(404).json({ message: "Feriado no encontrado para actualizar" });
-        }
-
-        const anterior = [previo.nombre, previo.fecha];
-        const nuevo = [nombre, fecha];
-        const campos = ['nombre', 'fecha'];
-        let historial;
-
-        for (let i = 0; i < anterior.length; i++) {
-            if (anterior[i] !== nuevo[i]) {
-                historial = await createHistorial(
-                    'update',
-                    'Feriado',
-                    campos[i],
-                    anterior[i],
-                    nuevo[i],
-                    token
-                );
-                if (!historial) console.warn('No se agregó al historial...');
-            }
-        }
-
-        res.status(200).json({
-            message: "Feriado actualizado correctamente",
-            data: feriado
+        if (!previo) return res.status(200).json({
+            message: 'Feriado no encontrado',
+            data: []
         });
+
+        const response = await updateFeriado(id, nombre, fecha, id_feriado_tipo);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo actualizar el feriado...',
+            data: []
+        });
+
+        const historial = await createHistorial('update', 'Feriado', previo, response, token);
+        if (!historial) console.warn(`No se agregó la actualización del feriado ${previo.nombre} al historial`);
+
+        return res.status(200).json({
+            message: 'Feriado actualizado exitosamente...',
+            data: response
+        });
+
     } catch (error) {
-        console.error("Error al actualizar feriado:", error);
-        res.status(500).json({ error: "Error interno del servidor al actualizar el feriado.", details: error.message });
+        return res.status(500).json({
+            message: 'Error interno al actualizar el feriado',
+            error: error.message
+        });
     }
 };
 
-// Handler para eliminar (cambiar el estado) de un feriado
+// Handler para eliminar un feriado
 const deleteFeriadoHandler = async (req, res) => {
 
-    const id = parseInt(req.params.id);
+    const { id } = req.params;
     const token = req.user;
+    const errores = [];
 
-    if (isNaN(id) || id <= 0) {
-        return res.status(400).json({ message: "ID inválido" });
-    }
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     try {
-        const feriado = await deleteFeriado(id);
-        if (!feriado) {
-            return res.status(404).json({ message: "Feriado no encontrado para eliminar" });
-        }
-
-        const historial = await createHistorial(
-            'delete',
-            'Feriado',
-            'nombre, fecha',
-            `${feriado.nombre}, ${feriado.fecha}`,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        res.status(200).json({
-            message: "Feriado eliminado exitosamente",
-            data: feriado
+        const response = await deleteFeriado(id);
+        if (!response) return res.status(200).json({
+            message: 'Feriado no encontrado',
+            data: []
         });
+
+        const historial = await createHistorial('delete', 'Feriado', response, null, token);
+        if (!historial) console.warn(`No se agregó la eliminación del feriado ${response.nombre} al historial`);
+
+        return res.status(200).json({
+            message: 'Feriado eliminado exitosamente...',
+            data: response
+        });
+
     } catch (error) {
-        console.error("Error al eliminar feriado:", error);
-        res.status(500).json({ error: "Error interno del servidor al eliminar el feriado." });
+        return res.status(500).json({
+            message: 'Error interno al eliminar el feriado',
+            error: error.message
+        });
     }
 };
 
 module.exports = {
     getAllFeriadosHandler,
     getFeriadoHandler,
+    getFeriadoTiposHandler,
     createFeriadoHandler,
     updateFeriadoHandler,
     deleteFeriadoHandler

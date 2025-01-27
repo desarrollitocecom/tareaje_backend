@@ -1,88 +1,108 @@
-const { Feriado, Empleado } = require('../db_connection');
+const { Feriado, FeriadoTipo, Empleado } = require('../db_connection');
 const { Op } = require('sequelize');
 
-//Trae todas las Feriadoes y las pagina 
-const getAllFeriados = async (page = 1, limit = 20) => {
+// Obtener todos los feriados con paginación, búsqueda y filtro :
+const getAllFeriados = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search, tipo, inicio, fin } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
-    limit = page == 0 ? null : limit; // Cálculo del offset
+    limit = page == 0 ? null : limit;
+
     try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            state: true,
+            ...(search && {
+                [Op.or]: [{ nombre: { [Op.iLike]: `%${search}%` }}]
+            }),
+            ...(tipo && { id_feriado_tipo: tipo }),
+            ...(inicio && fin && {
+                fecha: { [Op.between]: [inicio, fin] }
+            })
+        };
+
         const { count, rows } = await Feriado.findAndCountAll({
-            where: { state: true },
+            where: whereCondition,
+            include: [{ model: FeriadoTipo, as: 'feriadoTipo', attributes: ['nombre'] }],
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['fecha', 'ASC']]
         });
-        return { totalCount: count, data: rows, currentPage: page } || null;
+
+        return {
+            totalCount: count,
+            data: rows
+        } || null;
+
     } catch (error) {
-        console.error('Error al obtener todas las Feriados', error);
+        console.error({
+            message: 'Error en el controlador al obtener todos los feriados:',
+            error: error.message
+        });
         return false;
     }
 };
-//trae una Feriado especifica por id
+
+// Obtener un feriado por ID :
 const getFeriado = async (id) => {
+
     try {
-        const feriado = await Feriado.findOne({
-            where: {
-                id,
-                state: true
-            }
+        const response = await Feriado.findOne({
+            where: { id, state: true }
         });
-
-        return feriado || null;
-    } catch (error) {
-        console.error(`Error al obtener el Feriado: ${error.message}`);
-        return false
-    }
-};
-//Crea una nueva Feriado
-const createFeriado = async ({ nombre, fecha }) => {
-    try {
-        const feriado = await Feriado.create({ nombre, fecha });
-        return feriado || null
+        return response || null;
 
     } catch (error) {
-        console.error('Error al crear una nueva Feriado', error)
-        return false
-    }
-};
-//elimina la Feriado o canbia el estado
-const deleteFeriado = async (id) => {
-    try {
-        const feriado = await Feriado.findByPk(id);
-        feriado.state = false;
-        await feriado.save();
-        return feriado || null
-    } catch (error) {
-        console.error('Error al canbiar de estado al eliminar Feriado');
+        console.error({
+            message: 'Error en el controlador al obtener el feriado por ID:',
+            error: error.message
+        });
         return false;
     }
 };
 
+// Obtener los tipos de feriado :
+const getFeriadoTipos = async () => {
+    
+    try {
+        const response = await FeriadoTipo.findAll();
+        return response || null;
 
-const updateFeriado = async (id, { nombre, fecha }) => {
-    if (id)
-        try {
-            const feriado = await getFeriado(id);
-            if (feriado)
-                await feriado.update({ nombre, fecha });
-            return feriado || null;
-
-        } catch (error) {
-            console.error('Error al actualizar la Feriado:', error.message);
-            return false;
-        }
-    else
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener los tipos de feriado:',
+            error: error.message
+        });
         return false;
+    }
 };
 
-const getFeriadoDiario = async (fecha) => {
+// Validar si la fecha corresponde a un feriado nacional :
+const getFeriadoNacional = async (fecha) => {
     
     try {
         const response = await Feriado.findAll({
-            where: {
-                state: true,
-                fecha: fecha
-            },
+            where: { state: true, fecha, id_feriado_tipo: 1 },
+            raw: true
+        });
+        if (!response || response.length === 0) return false;
+        return true;
+        
+    } catch (error) {
+        console.error({
+            message: 'Error en la validación si la fecha corresponde a un feriado nacional',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Obtener los IDs de los empleados CAS y 728 en un día feriado compensado :
+const getFeriadoCompensado = async (fecha) => {
+    
+    try {
+        const response = await Feriado.findAll({
+            where: { state: true, fecha, id_feriado_tipo: 2 },
             raw: true
         });
         if (!response || response.length === 0) return [];
@@ -90,24 +110,82 @@ const getFeriadoDiario = async (fecha) => {
         const empleados = await Empleado.findAll({
             where: {
                 state: true,
-                id_regimen_laboral: { [Op.ne]: 1 }
+                id_regimen_laboral: { [Op.in]: [2,3,4] }
             },
             attributes: ['id']
         });
+
         const result = empleados.map(r => r.id);
         return result;
         
     } catch (error) {
-        console.error('Error al obtener los descansos en un día:', error);
+        console.error({
+            message: 'Error en el controlador al obtener los IDs de los empleados CAS y 728 en un día feriado compensado',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Crear un feriado :
+const createFeriado = async (nombre, fecha, id_feriado_tipo) => {
+
+    try {
+        const response = await Feriado.create({ nombre, fecha, id_feriado_tipo });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al crear el feriado:',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Actualizar un feriado :
+const updateFeriado = async (id, nombre, fecha, id_feriado_tipo) => {
+
+    try {
+        const response = await Feriado.findByPk(id);
+        if (response) await response.update({ nombre, fecha, id_feriado_tipo });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar el feriado:',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Eliminar un feriado (state false) :
+const deleteFeriado = async (id) => {
+
+    try {
+        const response = await Feriado.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        await response.save();
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al eliminar el feriado:',
+            error: error.message
+        });
         return false;
     }
 };
 
 module.exports = {
     getAllFeriados,
-    createFeriado,
     getFeriado,
-    getFeriadoDiario,
+    getFeriadoTipos,
+    getFeriadoNacional,
+    getFeriadoCompensado,
+    createFeriado,
     updateFeriado,
     deleteFeriado
 };

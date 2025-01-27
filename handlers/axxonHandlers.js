@@ -9,10 +9,7 @@ const {
 } = require('../controllers/axxonController');
 
 const {
-    getEmpleadoByDni,
-    getEmpleado,
     getEmpleadoIdByDni,
-    getEmpleadoById,
     getEmpleadoByIdAttributes
 } = require('../controllers/empleadoController');
 

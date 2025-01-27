@@ -7,7 +7,6 @@ const {
 } = require('../controllers/lugarTrabajoController');
 
 const { createHistorial } = require('../controllers/historialController');
-const { logger } = require('sequelize/lib/utils/logger');
 
 // Handler para obtener todos los lugares de trabajo con paginación y búsqueda :
 const getLugarTrabajosHandler = async (req, res) => {
@@ -33,19 +32,17 @@ const getLugarTrabajosHandler = async (req, res) => {
         const response = await getLugarTrabajos(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
-        if(numPage > totalPages){
-            return res.status(200).json({
-                message:'Página fuera de rango...',
-                data:{
-                    data:[],
-                    currentPage: numPage,
-                    pageCount: response.data.length,
-                    totalCount: response.totalCount,
-                    totalPages: totalPages,
-                 }
+        if (numPage > totalPages) return res.status(200).json({
+            message:'Página fuera de rango...',
+            data:{
+                data:[],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
                 }
-            );
-        }
+            }
+        );
         
         return res.status(200).json({
             message: 'Lugares de trabajo obtenidos exitosamente...',
@@ -59,85 +56,85 @@ const getLugarTrabajosHandler = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error al obtener todas los Lugar de Trabajos ', error)
-        return res.status(500).json({ message: "Error al obtener todas las Lugar de trabajo" })
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los lugares de trabajo',
+            error: error.message
+        })
     }
 };
 
-// Handlers para obtener una LugarTrabajo 
+// Handler para obtener un lugar de trabajo :
 const getLugarTrabajoHandler = async (req, res) => {
-    const id = req.params.id;
-    if (!id || isNaN(id)) {
-        return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
-    }
+
+    const { id } = req.params;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
     try {
         const response = await getLugarTrabajo(id);
-
-        if (!response || response.length === 0) {
-            return res.status(404).json({
-                message: "Lugares de trabajo no encontrado",
-                data: []
-            });
-        }
+        if (!response) return res.status(200).json({
+            message: 'Lugar de trabajo no encontrado',
+            data: []
+        });
 
         return res.status(200).json({
-            message: "Lugares de trabajo encontrada",
+            message: 'Lugar de trabajo encontrado exitosamente...',
             data: response
         });
+
     } catch (error) {
-        console.error(error);
         return res.status(500).json({
-            message: "Error al buscar la Lugares de trabajo",
+            message: 'Error interno al obtener el lugar de trabajo',
             error: error.message
         });
     }
 };
 
-// Handlers para crear un nuevo LugarTrabajo
+// Handlers para crear un lugar de trabajo :
 const createLugarTrabajoHandler = async (req, res) => {
     
     const { nombre } = req.body;
     const token = req.user;
     const errores = [];
+    
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
-
-    if (errores.length > 0) {
-        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
-    }
+    if (errores.length > 0)  return res.status(400).json({
+        message: 'Se encontraron los siguientes errores',
+        data: errores
+    });
 
     try {
-        const nuevaLugarTrabajo = await createLugarTrabajo({ nombre });
-        const historial = await createHistorial(
-            'create',
-            'LugarTrabajo',
-            'nombre',
-            null,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-        return res.status(201).json({
-            message: 'Lugar de Trabajo creado exitosamente',
-            data: nuevaLugarTrabajo
+        const response = await createLugarTrabajo(nombre);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo crear el lugar de trabajo...',
+            data: []
+        });
+
+        const historial = await createHistorial('create', 'LugarTrabajo', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación del lugar de trabajo ${nombre} al historial`);
+
+        return res.status(200).json({
+            message: 'Lugar de trabajo creado exitosamente...',
+            data: response
         });
 
     } catch (error) {
-        console.error('Error al crear el Lugar de Trabajo:', error);
-        return res.status(500).json({ message: 'Error al crear el Lugar de Trabajo', error });
+        return res.status(500).json({
+            message: 'Error interno al crear el lugar de trabajo',
+            error: error.message
+        });
     }
 };
 
-// Handler para modificar un Lugar de Trabajo
+// Handler para actualizar un lugar de trabajo :
 const updateLugarTrabajoHandler = async (req, res) => {
 
     const { id } = req.params;
@@ -145,93 +142,79 @@ const updateLugarTrabajoHandler = async (req, res) => {
     const token = req.user;
     const errores = [];
 
-    if (!id) {
-        errores.push('El campo ID es requerido');
-    }
-    if (isNaN(id)) {
-        errores.push('El campo ID debe ser un número válido');
-    }
+    if (!id) errores.push('El campo ID es requerido');
+    if (isNaN(id)) errores.push('El campo ID debe ser un número válido');
+    if (!nombre) errores.push('El campo nombre es requerido');
+    if (typeof nombre !== 'string') errores.push('El campo nombre debe ser una cadena de texto');
 
-    if (!nombre) {
-        errores.push('El campo nombre es requerido');
-    }
-    if (typeof nombre !== 'string') {
-        errores.push('El campo nombre debe ser una cadena de texto');
-    }
-    const validaNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+( [a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/.test(nombre);
-    if (!validaNombre) {
-        errores.push('El campo nombre debe contener solo letras y espacios');
-    }
-
-    if (errores.length > 0) {
-        return res.status(400).json({ message: 'Se encontraron los siguientes errores', errores });
-    }
+    if (errores.length > 0)  return res.status(400).json({
+        message: 'Se encontraron los siguientes errores',
+        data: errores
+    });
 
     try {
         const previo = await getLugarTrabajo(id);
-        const response = await updateLugarTrabajo(id, { nombre });
-        if (!response) {
-            return res.status(404).json({
-                message: "El Lugar de Trabajo no se encuentra",
-                data: {}
-            });
-        }
+        if (!previo) return res.status(200).json({
+            message: 'Lugar de trabajo no encontrado',
+            data: []
+        });
 
-        const historial = await createHistorial(
-            'update',
-            'LugarTrabajo',
-            'nombre',
-            previo.nombre,
-            nombre,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const response = await updateLugarTrabajo(id, nombre);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo actualizar el lugar de trabajo...',
+            data: []
+        });
+
+        const historial = await createHistorial('update', 'LugarTrabajo', previo, response, token);
+        if (!historial) console.warn(`No se agregó la actualización del lugar de trabajo ${previo.nombre} al historial`);
 
         return res.status(200).json({
-            message: "Registro modificado",
+            message: 'Lugar de trabajo actualizado exitosamente...',
             data: response
         });
+
     } catch (error) {
-        console.error('Error al modificar el Lugar de Trabajo:', error);
-        return res.status(500).json({ message: "Error al modificar el Lugar de Trabajo", error });
+        return res.status(500).json({
+            message: 'Error interno al actualizar el lugar de trabajo',
+            error: error.message
+        });
     }
 };
 
+// Handler para eliminar un lugar de trabajo :
 const deleteLugarTrabajoHandler = async (req, res) => {
     
-    const id = req.params.id;
+    const { id } = req.params;
     const token = req.user;
+    const errores = [];
 
-    // Validación del ID
-    if (isNaN(id)) {
-        return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
-    }
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     try {
-        // Llamada a la función para eliminar (estado a inactivo)
         const response = await deleteLugarTrabajo(id);
+        if (!response) return res.status(200).json({
+            message: 'Lugar de trabajo no encontrado',
+            data: []
+        });
 
-        if (!response) {
-            return res.status(204).json({
-                message: `No se encontró la Lugar de Trabajo con ID${id}`
-            })
-        }
-
-        const historial = await createHistorial(
-            'delete',
-            'LugarTrabajo',
-            'nombre',
-            response.nombre,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('delete', 'LugarTrabajo', response, null, token);
+        if (!historial) console.warn(`No se agregó la eliminación del lugar de trabajo ${response.nombre} al historial`);
 
         return res.status(200).json({
-            message: 'Lugares de Trabajo eliminado correctamente '
+            message: 'Lugar de trabajo eliminado exitosamente...',
+            data: response
         });
+
     } catch (error) {
-        return res.status(404).json({ message: error.message });
+        return res.status(500).json({
+            message: 'Error interno al eliminar el lugar de trabajo',
+            error: error.message
+        });
     }
 };
 
@@ -241,5 +224,4 @@ module.exports = {
     createLugarTrabajoHandler,
     updateLugarTrabajoHandler,
     deleteLugarTrabajoHandler
-}
-
+};

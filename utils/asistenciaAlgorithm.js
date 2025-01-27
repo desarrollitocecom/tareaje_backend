@@ -4,7 +4,7 @@ const { getProtocols } = require('../controllers/axxonController');
 const { createAsistencia } = require('../controllers/asistenciaController');
 const { getVacacionDiaria } = require('../controllers/vacacionesController');
 const { getDescansosDiario } = require('../controllers/descansoController');
-const { getFeriadoDiario } = require('../controllers/feriadoController');
+const { getFeriadoNacional, getFeriadoCompensado } = require('../controllers/feriadoController');
 const { rotativoEmpleado } = require('../controllers/empleadoController');
 
 // Crear la asistencia (ALGORITMO DE ASISTENCIA) :
@@ -15,7 +15,7 @@ const createAsistencias = async (dia, hora) => {
         const protocols = await getProtocols(dia, hora);
 
         // Obtener asistencias de rotativos :
-        if (hora > 6 || hora < 17) {
+        if (hora > 5 || hora < 18) {
             let asistenciaRot;
             const rotativos = await rotativoEmpleado();
             if (!rotativos || rotativos.length === 0) return;
@@ -44,7 +44,8 @@ const createAsistencias = async (dia, hora) => {
         // Obtener los ids de los empleados que presenten vacaciones, descansos o feriado :
         const e_vacaciones = await getVacacionDiaria(dia);
         const e_descansos = await getDescansosDiario(dia);
-        const e_feriado = await getFeriadoDiario(dia);
+        const e_feriado_nacional = await getFeriadoNacional(dia);
+        const e_feriado_compensado = await getFeriadoCompensado(dia);
 
         // Crear la asistencia siguiente el flujo correspondiente :
         for (const empleado of empleados) {
@@ -53,12 +54,14 @@ const createAsistencias = async (dia, hora) => {
             const match1 = (protocols.length > 0) ? protocols.find(protocol => protocol.dni === empleado.dni) : false;
             const match2 = (e_vacaciones.length > 0) ? e_vacaciones.includes(empleado.id) : false;
             const match3 = (e_descansos.length > 0) ? e_descansos.find(e => e.id_empleado === empleado.id) : false;
-            const match4 = (e_feriado.length > 0) ? e_feriado.includes(empleado.id) : false;
+            const match4 = e_feriado_nacional;
+            const match5 = (e_feriado_compensado.length > 0) ? e_feriado_compensado.includes(empleado.id) : false;
 
             if (match1) asistencia = await createAsistencia(dia, match1.hora, 'A', empleado.id, match1.foto);
             else if (match2) asistencia = await createAsistencia(dia, `${horaStr}:00:00`, 'V', empleado.id, 'Sin foto');
             else if (match3) asistencia = await createAsistencia(dia, `${horaStr}:00:00`, match3.tipo, empleado.id, 'Sin foto');
             else if (match4) asistencia = await createAsistencia(dia, `${horaStr}:00:00`, 'DF', empleado.id, 'Sin foto');
+            else if (match5) asistencia = await createAsistencia(dia, `${horaStr}:06:00`, 'NA', empleado.id, 'Sin foto');
             else asistencia = await createAsistencia(dia, `${horaStr}:06:00`, 'F', empleado.id, 'Sin foto');
 
             if (!asistencia) console.warn(`Asistencia no creada para el empleado con ID ${empleado.id}`);
@@ -71,6 +74,4 @@ const createAsistencias = async (dia, hora) => {
     }
 }
 
-module.exports = {
-    createAsistencias
-};
+module.exports = { createAsistencias };

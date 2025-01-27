@@ -23,6 +23,7 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) =>
     try {
         // Construcción dinámica de condiciones :
         const whereCondition = {
+            state: true,
             ...(search && {
                 [Op.and]: search.split(' ').map((term) => ({
                     [Op.or]: [
@@ -32,7 +33,6 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) =>
                 })),
             }),
             ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
-            ...(state !== undefined && { state: state }),
             ...(subgerencia && { id_subgerencia: subgerencia }),
             ...(turno && { id_turno: turno }),
             ...(cargo && { id_cargo: cargo }),

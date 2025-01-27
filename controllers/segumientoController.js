@@ -16,10 +16,20 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
         fechaDate.setDate(fechaDate.getDate() + 1);
     }
 
+    const dateYear = fechaDate.getFullYear();
+    const dateMonth = fechaDate.getMonth();
+    const dateComparate = new Date(dateYear, dateMonth, 1);
+    const dateMin = dateComparate.toISOString().split('T')[0];
+
     try {
         // Construcción dinámica de condiciones :
         const whereCondition = {
-            blacklist: false,
+            f_fin: { 
+                [Op.or]: [
+                    { [Op.gte]: dateMin },
+                    { [Op.is]: null }
+                ]
+            },
             ...(search && {
                 [Op.and]: search.split(' ').map((term) => ({
                     [Op.or]: [
@@ -43,7 +53,7 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
         };
 
         // Obtener todos los empleados :
-        const empleados = await Empleado.findAll({
+        const empleados = await Empleado.findAndCountAll({
             where: whereCondition,
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
@@ -77,7 +87,7 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
         ]);
 
         // Mapeo de las asistencias por empleado y fecha :
-        const asistenciaMap = empleados.reduce((map, empleado) => {
+        const asistenciaMap = empleados.rows.reduce((map, empleado) => {
             map[empleado.id] = asistencias.filter(asistencia => asistencia.id_empleado === empleado.id)
                 .reduce((acc, asistencia) => {
                     acc[asistencia.fecha] = { estado: asistencia.estado, id: asistencia.id };
@@ -87,7 +97,7 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
         }, {});
 
         // Mapeo de los descansos por empleado y fecha :
-        const descansoMap = empleados.reduce((map, empleado) => {
+        const descansoMap = empleados.rows.reduce((map, empleado) => {
             map[empleado.id] = descansos.filter(descanso => descanso.id_empleado === empleado.id)
                 .reduce((acc, descanso) => {
                     acc[descanso.fecha] = { tipo: descanso.tipo, id: descanso.id };
@@ -97,7 +107,7 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
         }, {});
 
         // Resultados finales con optimización :
-        const result = empleados.map(empleado => ({
+        const result = empleados.rows.map(empleado => ({
             id_empleado: empleado.id,
             nombres: empleado.nombres,
             apellidos: empleado.apellidos,
@@ -120,7 +130,7 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
                     id_modelo: null
                 }
 
-                if (asistencia) return {
+                if (asistencia && !descanso) return {
                     fecha,
                     model: 'Asistencia',
                     tipo: asistencia.estado,
@@ -146,7 +156,7 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
         return {
             data: result,
             currentPage: page,
-            totalCount: empleados.length
+            totalCount: empleados.count
         };
 
 
