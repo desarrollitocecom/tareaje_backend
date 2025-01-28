@@ -1,18 +1,23 @@
 const { Justificacion, Asistencia, Empleado } = require('../db_connection');
 const { Op } = require("sequelize");
+
 const { createHistorial } = require('../controllers/historialController');
 
 // Obtener la justificación por ID :
 const getJustificacionById = async (id) => {
 
     try {
-        const justificacion = await Justificacion.findOne({
-            where: { id: id },
+        const response = await Justificacion.findOne({
+            where: { id },
             include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
         });
-        return justificacion || null;
+        return response || null;
+
     } catch (error) {
-        console.error('Error al obtener la justificación por ID:', error);
+        console.error({
+            message: 'Error al obtener la justificación por ID:',
+            error: error.message
+        });
         return false;
     }
 };
@@ -23,25 +28,29 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
     try {
-        const justificaciones = await Justificacion.findAndCountAll({
+        const response = await Justificacion.findAndCountAll({
             limit,
             offset,
             include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }],
             order: [['f_inicio', 'DESC']]
         });
+
+
         return {
-            total: justificaciones.count,
-            data: justificaciones.rows,
-            currentPage: page
+            total: response.count,
+            data: response.rows,
         } || null;
+
     } catch (error) {
-        console.error('Error al obtener todas las justificaciones:', error);
+        console.error({
+            message: 'Error al obtener todas las justificaciones:',
+            error: error.message
+        });
         return false;
     }
 };
 
 // Crear justificacion :
-// >> Tener en cuenta que se creará la justificación una vez se haya verificado que la justificación en cuestión sea VÁLIDA
 const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado, token) => {
 
     try {
@@ -53,15 +62,7 @@ const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio,
         });
         if (justificacion.count !== 0) return 1;
 
-        const newJustificacion = await Justificacion.create({
-            documentos: documentosPaths,
-            descripcion,
-            tipo,
-            f_inicio,
-            f_fin,
-            ids_asistencia,
-            id_empleado
-        });
+        const newJustificacion = await Justificacion.create({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado });
 
         if (!newJustificacion) return null
         // Actualizamos el estado de la asistencias :
