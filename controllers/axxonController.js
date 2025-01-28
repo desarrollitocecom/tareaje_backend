@@ -206,7 +206,7 @@ const searchByFace = async (foto) => {
 
     try {
         const response = await axios.post(urlFindFaces, consulta);
-        if(response.data.Status && response.data.Status === 'SERVER_NOT_READY') {
+        if (response.data.Status && response.data.Status === 'SERVER_NOT_READY') {
             const error = new Error('Lo sentimos, parece que estamos teniendo algunos problemas técnicos en este momento');
             error.statusCode = 500; 
             throw error;
@@ -229,7 +229,7 @@ const searchByFace = async (foto) => {
         if (parseFloat(similitud) < 0.99) {
             console.error('La persona no ha sido reconocida...');
             const error = new Error('No se ha reconocido a la persona...');
-            error.statusCode = 401;
+            error.statusCode = 404;
             throw error;
         }
         return personInfo;
