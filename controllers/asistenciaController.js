@@ -261,7 +261,7 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
         console.error('El formato para la HORA es incorrecto');
         return false;
     }
-    if (!["A", "F", "DM", "DO", "V", "DF", "LSG", "LCG", "LF", "PE"].includes(estado)) {
+    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(estado)) {
         console.error('El estado ingresado no es el correspondiente');
         return false;
     }
@@ -352,6 +352,23 @@ const updateAsistencia = async (fecha, hora, estado, photo_id, id_empleado) => {
     }
 };
 
+// Modificar el estado de una asistencia :
+const updateEstadoAsistencia = async (id, estado) => {
+    
+    try {
+        const response = await Asistencia.findByPk(id);
+        if (response) await response.update({ estado });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar el estado de la asistencia',
+            error: error.message
+        });
+        return false;
+    }
+};
+
 module.exports = {
     getAsistenciaById,
     getAsistenciaDiaria,
@@ -361,4 +378,5 @@ module.exports = {
     createAsistencia,
     createAsistenciaUsuario,
     updateAsistencia,
+    updateEstadoAsistencia
 };

@@ -8,10 +8,11 @@ const {
     updatePago
  } = require('../controllers/pagoController');
 
+ const { createAsistencia, updateEstadoAsistencia } = require('../controllers/asistenciaController')
+
 const {
     Empleado, Cargo, RegimenLaboral, Sexo, Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion, Area, Pago
 } = require('../db_connection');
-const { response } = require('express');
 
 // Obtener toda la información de los empleados (SECTOR TAREAJE - PROVISIONAL SCRIPTS) :
 const getAllUniverseEmpleados = async () => {
@@ -593,7 +594,7 @@ const deleteEmpleado = async (id) => {
 
     try {
         const response = await Empleado.findByPk(id);
-        if (!response) return 1;
+        if (!response) return null;
 
         const ahora = new Date();
         const peruOffset = -5 * 60; // offset de Perú en minutos
@@ -604,8 +605,22 @@ const deleteEmpleado = async (id) => {
         const fecha = (estado) ? fin : null;
         response.state = !estado;
         response.f_fin = fecha;
+
+        if (!estado) {
+            const inicio = new Date(dia);
+            inicio.setDate(inicio.getDate() + 1);
+            const lastDayMonth = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0);
+            let asistenciaFecha = new Date(inicio);
+
+            while (asistenciaFecha <= lastDayMonth) {
+                const date =  asistenciaFecha.toISOString().split('T')[0];
+                await createAsistencia(date, '00:00:00', 'R', response.id, 'Retirado');
+                asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
+            }
+        }
+        
         await response.save();
-        return response || null;
+        return response;
 
     } catch (error) {
         console.error({
