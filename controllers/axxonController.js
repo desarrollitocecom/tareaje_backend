@@ -213,7 +213,7 @@ const searchByFace = async (foto) => {
         }
 
         else if(response.data.FaceList.length === 0) {
-            const error = new Error('No se ha detectado ninguna persona. Por favor, enfoque a la persona.');
+            const error = new Error('No se ha detectado ningún rostro. Por favor, asegúrate de que el rostro esté completamente visible y sin obstrucciones.');
             error.statusCode = 400;
             throw error;
         }
