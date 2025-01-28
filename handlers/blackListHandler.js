@@ -100,7 +100,7 @@ const getAllBlackListHandler = async (req, res) => {
         const response = await getAllBlackList(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
-        if(numPage > totalPages) return res.status(200).json({
+        if (numPage > totalPages) return res.status(200).json({
             message: 'Página fuera de rango...',
             data:{
                 data: [],
@@ -182,15 +182,8 @@ const createBlackListEmpleadoHandler = async (req, res) => {
             data: []
         });
 
-        const historial = await createHistorial(
-            'create',
-            'BlackList',
-            'nombres, apellidos, dni, motivo, f_fin',
-            null,
-            `${nombres}, ${apellidos}, ${dni}, ${motivo}, ${f_fin}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó el create BlackList al historial...');
+        const historial = await createHistorial('create', 'Blacklist', null, response, token);
+        if (!historial) console.warn(`No se agregó la creación del blaklist ${response.dni} al historial`);
 
         return res.status(200).json({
             message: 'Persona ingresada exitosamente en la Black List...',
