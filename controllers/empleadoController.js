@@ -8,10 +8,15 @@ const {
     updatePago
  } = require('../controllers/pagoController');
 
+ const {
+    getIdsAsistenciaRango,
+    createAsistencia,
+    updateEstadoAsistencia
+} = require('../controllers/asistenciaController')
+
 const {
     Empleado, Cargo, RegimenLaboral, Sexo, Jurisdiccion, GradoEstudios, LugarTrabajo, Subgerencia, Turno, Funcion, Area, Pago
 } = require('../db_connection');
-const { response } = require('express');
 
 // Obtener toda la información de los empleados (SECTOR TAREAJE - PROVISIONAL SCRIPTS) :
 const getAllUniverseEmpleados = async () => {
@@ -593,7 +598,7 @@ const deleteEmpleado = async (id) => {
 
     try {
         const response = await Empleado.findByPk(id);
-        if (!response) return 1;
+        if (!response) return null;
 
         const ahora = new Date();
         const peruOffset = -5 * 60; // offset de Perú en minutos
@@ -604,8 +609,35 @@ const deleteEmpleado = async (id) => {
         const fecha = (estado) ? fin : null;
         response.state = !estado;
         response.f_fin = fecha;
+
+        const inicio = dia;
+        inicio.setDate(dia.getDate() + 1);
+        const lastDayMonth = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0);
+        lastDayMonth.setHours(23, 59, 59, 999);
+        
+        if (!response.state) {
+            const validar = await getIdsAsistenciaRango(response.id, fin, lastDayMonth.toISOString().split('T')[0]);
+            let asistenciaFecha = inicio;
+            while (asistenciaFecha <= lastDayMonth) {
+                const date =  asistenciaFecha.toISOString().split('T')[0];
+                const existe = validar.info.find(v => date === v.fecha);
+                if (existe) await updateEstadoAsistencia(existe.id, 'R');
+                else await createAsistencia(date, '00:00:00', 'R', response.id, 'Retirado');
+                asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
+            }
+        }
+
+        else {
+            dia.setUTCHours(0, 0, 0, 0);
+            const asistencias = await getIdsAsistenciaRango(response.id, fin, lastDayMonth.toISOString().split('T')[0])
+            for (const i of asistencias.info) {
+                const analisisDate = new Date(i.fecha);
+                if (analisisDate >= dia && analisisDate <= lastDayMonth) await updateEstadoAsistencia(i.id, null);
+            }
+        }
+        
         await response.save();
-        return response || null;
+        return response;
 
     } catch (error) {
         console.error({
@@ -625,6 +657,18 @@ const deleteEmpleadoBlackList = async (id, f_fin) => {
         response.state = false;
         response.blacklist = true;
         response.f_fin = f_fin;
+
+        const inicio = new Date(f_fin);
+        inicio.setDate(inicio.getDate() + 1);
+        const lastDayMonth = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0);
+        let asistenciaFecha = new Date(inicio);
+
+        while (asistenciaFecha <= lastDayMonth) {
+            const date =  asistenciaFecha.toISOString().split('T')[0];
+            await createAsistencia(date, '00:00:00', 'R', response.id, 'Retirado');
+            asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
+        }
+
         await response.save();
         return response;
 
