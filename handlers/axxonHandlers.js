@@ -188,14 +188,24 @@ const searchByFaceHandler = async (req, res) => {
 
     try {
         const response = await searchByFace(foto);
-        if (!response) return res.status(400).json({
-            message: 'Persona no reconocida...',
-            success: false
-        });
-
         const id = await getEmpleadoIdByDni(response.dni);
+        if (!id) {
+            const error = new Error('No se pudo encontrar a la persona');
+            error.statusCode = 404;
+            throw error;
+        }
+
         const empleado = await getEmpleadoByIdAttributes(id);
+        if (!empleado) {
+            const error = new Error('No se pudo encontrar a la persona');
+            error.statusCode = 404;
+            throw error;
+        }
+
         const hora = await getHorarioFace(empleado.id_subgerencia, empleado.id_turno, empleado.id_area);
+
+        const inicio = (hora) ? parseInt(hora.inicio.split(':')[0]) : 0;
+        const fin = (hora) ? parseInt(hora.fin.split(':')[0]) : 24;
 
         return res.status(200).json({
             message: 'Persona reconocida exitosamente...',
@@ -203,15 +213,16 @@ const searchByFaceHandler = async (req, res) => {
                 subgerencia: empleado['subgerencia.nombre'],
                 turno: empleado['turno.nombre'],
                 estado: empleado.state,
-                inicio: parseInt(hora.inicio.split(':')[0]),
-                fin: parseInt(hora.fin.split(':')[0]),
+                inicio: inicio,
+                fin: fin
             }
         });
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Error en la consulta para obtener el usuario por foto',
-            error: error.message
+            message: error?.message,
+            statusCode: error?.statusCode,
+            error: 'Error al detectar persona'
         });
     }
 };
@@ -223,23 +234,17 @@ const searchByFaceDNIHandler = async (req, res) => {
 
     try {
         const response = await searchByFace(foto);
-        if (!response) return res.status(400).json({
-            message: 'Persona no reconocida',
-            statusCode: 404,
-            success: false
-        });
-
         const id = await getEmpleadoIdByDni(response.dni);
         if (!id){
             const error = new Error('No se pudo encontrar a la persona');
-            error.statusCode = 406;
+            error.statusCode = 404;
             throw error;
         }
         
         const empleado = await getEmpleadoByIdAttributes(id);
         if(!empleado) {
             const error = new Error('No se pudo encontrar a la persona');
-            error.statusCode = 406;
+            error.statusCode = 404;
             throw error;
         }
 
@@ -247,9 +252,12 @@ const searchByFaceDNIHandler = async (req, res) => {
         const ahora = new Date();
         const horaBetween = ahora.getHours();
 
-        const inicio = parseInt(hora.inicio.split(':')[0]);
-        const fin = parseInt(hora.fin.split(':')[0]);
-        const estado = (horaBetween > inicio && horaBetween < fin) ? true : false;
+        const inicio = (hora) ? parseInt(hora.inicio.split(':')[0]) : 0;
+        const fin = (hora) ? parseInt(hora.fin.split(':')[0]) : 24;
+
+        let estado;
+        if (inicio < fin) estado = (horaBetween >= inicio && horaBetween < fin);
+        else estado = (horaBetween >= inicio || horaBetween < fin);
         
         return res.status(200).json({
             message: `Bienvenido ${empleado.nombres.split(" ")[0]} ${empleado.apellidos.split(" ")[0]}`,

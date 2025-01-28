@@ -662,11 +662,12 @@ const getEmpleadoIdByDni = async (dni) => {
 
     try {
         const response = await Empleado.findOne({
-            where: { dni },
+            where: { dni, blacklist: false, state: true },
             attributes: ['id'],
             raw: true
         });
-        return response.id || null;
+        if (response.length === 0) return null;
+        return response.id;
 
     } catch (error) {
         console.error({
