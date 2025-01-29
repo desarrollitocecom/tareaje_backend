@@ -68,7 +68,7 @@ const updateObservacionHandler = async (req, res) => {
 
 
   if (!req.body || !photos || photos.length === 0)
-    res.status(200).json({
+    return res.status(200).json({
       message: "No se encontrò cambios",
       statusCode: 200,
     });

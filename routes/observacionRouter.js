@@ -18,17 +18,17 @@ const updateObservacion = require("../validators/observacion/updateObservacion.v
 const deleteObservacion = require("../validators/observacion/deleteObservacion.validator");
 const permisoAutorizacion = require("../checkers/roleAuth");
 
-const publicObservacionRouter = Router();
-publicObservacionRouter.post(
+const observacionRouter = Router();
+
+observacionRouter.post(
   "/",
+  permisoAutorizacion(["all_system_access", "create_observacion"]),
   saveImage,
   multerError,
   validate(createObservacion),
   validatePhotoField,
   createObservacionHandler,
 );
-
-const observacionRouter = Router();
 
 observacionRouter.get(
   "/",
@@ -63,6 +63,5 @@ observacionRouter.get(
 );
 
 module.exports = {
-  publicObservacionRouter,
   observacionRouter,
 };
