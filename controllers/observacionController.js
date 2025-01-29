@@ -42,6 +42,12 @@ const createObservacion = async (observacion) => {
 const updateObservacion = async (id, observacionData) => {
   await getObservacion(id);
   try {
+    const existingObservacion = await Observacion.findByPk(id);
+    
+    if (observacionData.fotos) {
+      observacionData.fotos = [...new Set([...existingObservacion.fotos, ...observacionData.fotos])];
+    }
+
     const [updated] = await Observacion.update(observacionData, {
       where: { id },
     });

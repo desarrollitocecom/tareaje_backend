@@ -27,9 +27,15 @@ const saveImage = multer({
       error.code = "INVALID_FORMAT";
       return cb(error);
     }
+
+    if (req.files && req.files.length > 5) {
+      const error = new Error("Se ha excedido el límite de archivos permitidos. Máximo permitido: 5 fotos.");
+      error.code = "LIMIT_FILE_COUNT";
+      return cb(error);
+    }
     cb(null, true);
   },
-}).single("photo");
+}).array('photos', 5);
 
 function getFileExtension(filename) {
   const ext = filename.substring(filename.lastIndexOf("."));
