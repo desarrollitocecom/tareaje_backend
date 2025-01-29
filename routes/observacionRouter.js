@@ -5,6 +5,7 @@ const {
   getAllObservacionHandler,
   updateObservacionHandler,
   deleteObservacionHandler,
+  getPhotoByNameHandler,
 } = require("../handlers/observacionHandler");
 const validate = require("../middlewares/validar-campos");
 
@@ -29,13 +30,39 @@ publicObservacionRouter.post(
 
 const observacionRouter = Router();
 
-observacionRouter.get("/",permisoAutorizacion(["all_system_access", "read_observacion"]), getAllObservacionHandler);
-observacionRouter.get("/:id", permisoAutorizacion(["all_system_access", "read_observacion"]), validate(getObservacion), getObservacionHandler);
-observacionRouter.patch("/:id", permisoAutorizacion(["all_system_access", "update_observacion"]), validate(updateObservacion), updateObservacionHandler);
-observacionRouter.delete("/:id", permisoAutorizacion(["all_system_access", "delete_observacion"]), validate(deleteObservacion), deleteObservacionHandler);
-
+observacionRouter.get(
+  "/",
+  permisoAutorizacion(["all_system_access", "read_observacion"]),
+  getAllObservacionHandler,
+);
+observacionRouter.get(
+  "/:id",
+  permisoAutorizacion(["all_system_access", "read_observacion"]),
+  validate(getObservacion),
+  getObservacionHandler,
+);
+observacionRouter.patch(
+  "/:id",
+  permisoAutorizacion(["all_system_access", "update_observacion"]),
+  saveImage,
+  multerError,
+  validatePhotoField,
+  validate(updateObservacion),
+  updateObservacionHandler,
+);
+observacionRouter.delete(
+  "/:id",
+  permisoAutorizacion(["all_system_access", "delete_observacion"]),
+  validate(deleteObservacion),
+  deleteObservacionHandler,
+);
+observacionRouter.get(
+  "/photo/:name",
+  permisoAutorizacion(["all_system_access", "read_observacion"]),
+  getPhotoByNameHandler,
+);
 
 module.exports = {
-    publicObservacionRouter,
-    observacionRouter,
+  publicObservacionRouter,
+  observacionRouter,
 };
