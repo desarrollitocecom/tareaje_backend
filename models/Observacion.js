@@ -29,6 +29,11 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING, // Campo agregado
         allowNull: true,
       },
+      consultaStatus: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'No especificado'
+      },
       estado: {
         type: DataTypes.ENUM("ABIERTO", "CERRADO"),
         allowNull: false,
