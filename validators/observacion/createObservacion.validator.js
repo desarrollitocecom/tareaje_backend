@@ -2,6 +2,7 @@ const { body } = require("express-validator");
 
 const createObservacion = [
   body("comentario").notEmpty().withMessage("El comentario es obligatorio"),
+  body("consultaStatus").notEmpty().withMessage("El estado consulta es obligatorio"),
   body("ubicacion")
   .optional()
   .isString()

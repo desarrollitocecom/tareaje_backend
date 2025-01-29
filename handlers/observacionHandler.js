@@ -32,11 +32,12 @@ const getObservacionHandler = async (req, res) => {
 };
 
 const createObservacionHandler = async (req, res) => {
-  const { comentario, lat, long, ubicacion } = req.body;
+  const { comentario, lat, long, ubicacion, consultaStatus } = req.body;
   const photo = req.file;
 
   const observacionData = {
     comentario,
+    consultaStatus,
     lat,
     long,
     fotos: [photo.filename],
@@ -64,7 +65,7 @@ const updateObservacionHandler = async (req, res) => {
       statusCode: 200,
     });
 
-  const { comentario, lat, long, estado, ubicacion } = req.body;
+  const { comentario, lat, long, estado, ubicacion, consultaStatus } = req.body;
   let updateData = {};
 
   if (comentario) updateData.comentario = comentario;
@@ -72,6 +73,8 @@ const updateObservacionHandler = async (req, res) => {
   if (long) updateData.long = long;
   if (long) updateData.estado = estado;
   if (ubicacion) updateData.ubicacion = ubicacion;
+  if (consultaStatus) updateData.consultaStatus = consultaStatus;
+
 
   try {
     const observacion = await updateObservacion(id, updateData);
