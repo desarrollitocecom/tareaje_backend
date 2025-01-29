@@ -43,7 +43,7 @@ observacionRouter.get(
 );
 observacionRouter.patch(
   "/:id",
-  // permisoAutorizacion(["all_system_access", "update_observacion"]),
+  permisoAutorizacion(["all_system_access", "update_observacion"]),
   saveImage,
   multerError,
   validatePhotoField,
