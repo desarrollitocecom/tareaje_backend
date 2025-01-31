@@ -15,7 +15,7 @@ const getJustificacionById = async (id) => {
 
     } catch (error) {
         console.error({
-            message: 'Error al obtener la justificación por ID:',
+            message: 'Error en el controlador al obtener la justificación por ID:',
             error: error.message
         });
         return false;
@@ -27,6 +27,7 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
 
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
+
     try {
         const response = await Justificacion.findAndCountAll({
             limit,
@@ -43,65 +44,62 @@ const getAllJustificaciones = async (page = 1, limit = 20) => {
 
     } catch (error) {
         console.error({
-            message: 'Error al obtener todas las justificaciones:',
+            message: 'Error en el controlador al obtener todas las justificaciones:',
             error: error.message
         });
         return false;
     }
 };
 
-// Crear justificacion :
-const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado, token) => {
-
+// Validar si una justificación ya existe :
+const validateJustificacion = async (id_empleado, f_inicio) => {
+    
     try {
-        const justificacion = await Justificacion.findAndCountAll({
+        const response = await Justificacion.findOne({
             where: {
                 id_empleado: id_empleado,
                 f_inicio: { [Op.between]: [f_inicio, f_fin] }
             }
         });
-        if (justificacion.count !== 0) return 1;
+        return response || null;
 
-        const newJustificacion = await Justificacion.create({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado });
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al validar la justificación',
+            error: error.message
+        })
+    }
+};
 
-        if (!newJustificacion) return null
+// Crear una justificacion :
+const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado) => {
+
+    try {
+        const response = await Justificacion.create({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado });
+        if (!response) return null
+
         // Actualizamos el estado de la asistencias :
         await Asistencia.update(
             { estado: tipo },
             { where: { id: { [Op.in]: ids_asistencia } } }
         );
-
-        const previo = (tipo === 'A') ? 'F' : 'A';
-        const historial = await createHistorial(
-            'update',
-            'Asistencia',
-            'estado, f_inicio, f_fin, id_empleado',
-            `${previo}, ${f_inicio}, ${f_fin}, ${id_empleado}`,
-            `${tipo}, ${f_inicio}, ${f_fin}, ${id_empleado}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
-        return newJustificacion;
+        return response;
 
     } catch (error) {
-        console.error('Error al crear una nueva justificación:', error);
+        console.error({
+            message: 'Error en el controlador al crear la justificación:',
+            error: error.message
+        });
         return false;
     }
 };
 
-
-// Actualizar justificación: Solo se debe actualizar la DESCRIPCIÓN
-const updateJustificacion = async (id, descripcion) => {
+// Actualizar una justificación:
+const updateJustificacion = async (id, documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado) => {
 
     try {
-        const justificacion = await Justificacion.findByPk(id);
-        if (!justificacion) {
-            console.error('No se encontró la justificación con el ID proporcionado...');
-            return 1;
-        }
-
-        const response = await justificacion.update(descripcion);
+        const response = await Justificacion.findByPk(id);
+        if (response) await response.update({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado });
         return response || null;
 
     } catch (error) {
@@ -113,6 +111,7 @@ const updateJustificacion = async (id, descripcion) => {
 module.exports = {
     getJustificacionById,
     getAllJustificaciones,
+    validateJustificacion,
     createJustificacion,
     updateJustificacion
 };

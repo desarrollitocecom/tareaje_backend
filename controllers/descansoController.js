@@ -1,14 +1,31 @@
 const { Descanso, Empleado, Cargo, Turno, RegimenLaboral } = require("../db_connection");
 const { Op } = require('sequelize');
 
-// Obtener un descanso por ID :
+// Obtener un descanso con atributos del empleado por ID :
 const getDescanso = async (id) => {
+
     try {
         const response = await Descanso.findOne({
             where: { id, state: true },
-            include: [
-                { model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos'] }
-            ]
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'dni'] }]
+        })
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener un descanso con atributos del empleado por ID:',
+            data: error.message
+        });
+        return false;
+    }
+};
+
+// Obtener un descanso por ID :
+const getDescansoById = async (id) => {
+
+    try {
+        const response = await Descanso.findOne({
+            where: { id, state: true }
         })
         return response || null;
 
@@ -30,10 +47,10 @@ const getAllDescansos = async (page = 1, limit = 20) => {
     try {
         const response = await Descanso.findAndCountAll({
             where: { state: true },
-            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'dni'], }],
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'dni'] }],
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['fecha', 'ASC']]
         });
 
         return {
@@ -169,6 +186,7 @@ const getDescansosDiario = async (fecha) => {
 
 // Crear un descanso :
 const createDescanso = async (fecha, tipo, observacion, id_empleado) => {
+
     try {
         const response = await Descanso.create({ fecha, tipo, observacion, id_empleado });
         return response || null;
@@ -183,10 +201,11 @@ const createDescanso = async (fecha, tipo, observacion, id_empleado) => {
 };
 
 // Actualizar un descanso :
-const updateDescanso = async (id, fecha, observacion, id_empleado) => {
+const updateDescanso = async (id, fecha, tipo, observacion, id_empleado) => {
+
     try {
-        const response = await getDescanso(id);
-        if (response) await response.update({ fecha, observacion, id_empleado });
+        const response = await Descanso.findByPk(id);
+        if (response) await response.update({ fecha, tipo, observacion, id_empleado });
         return response || null;
 
     } catch (error) {
@@ -204,7 +223,6 @@ const deleteDescanso = async (id) => {
     try {
         const response = await getDescanso(id);
         if (!response) return null;
-
         response.state = false;
         await response.save();
         return response;
@@ -221,6 +239,7 @@ const deleteDescanso = async (id) => {
 module.exports = {
     getAllDescansos,
     getDescanso,
+    getDescansoById,
     getDescansosRango,
     getDescansosDiario,
     updateDescanso,

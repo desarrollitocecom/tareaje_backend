@@ -11,7 +11,7 @@ const {
  const {
     getIdsAsistenciaRango,
     createAsistencia,
-    updateEstadoAsistencia
+    updateAsistenciaEstado
 } = require('../controllers/asistenciaController')
 
 const {
@@ -621,7 +621,7 @@ const deleteEmpleado = async (id) => {
             while (asistenciaFecha <= lastDayMonth) {
                 const date =  asistenciaFecha.toISOString().split('T')[0];
                 const existe = validar.info.find(v => date === v.fecha);
-                if (existe) await updateEstadoAsistencia(existe.id, 'R');
+                if (existe) await updateAsistenciaEstado(existe.id, 'R');
                 else await createAsistencia(date, '00:00:00', 'R', response.id, 'Retirado');
                 asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
             }
@@ -632,7 +632,7 @@ const deleteEmpleado = async (id) => {
             const asistencias = await getIdsAsistenciaRango(response.id, fin, lastDayMonth.toISOString().split('T')[0])
             for (const i of asistencias.info) {
                 const analisisDate = new Date(i.fecha);
-                if (analisisDate >= dia && analisisDate <= lastDayMonth) await updateEstadoAsistencia(i.id, null);
+                if (analisisDate >= dia && analisisDate <= lastDayMonth) await updateAsistenciaEstado(i.id, null);
             }
         }
         
@@ -727,7 +727,7 @@ const findEmpleado = async (ids_subgerencia, id_turno, ids_area) => {
 
     try {
         const response = await Empleado.findAll({
-            attributes: ['id', 'dni'],
+            attributes: ['id', 'dni', 'id_area'],
             where: {
                 state: true,
                 id_subgerencia: { [Op.in]: ids_subgerencia },
@@ -752,7 +752,7 @@ const rotativoEmpleado = async () => {
     
     try {
         const response = await Empleado.findAll({
-            attributes: ['id','dni'],
+            attributes: ['id','dni', 'id_area'],
             where: {
                 state: true,
                 id_turno: { [Op.in]: [4,5] }

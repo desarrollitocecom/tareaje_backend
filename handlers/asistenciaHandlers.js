@@ -5,8 +5,7 @@ const {
     getAllAsistencias,
     createAsistenciaUsuario,
     createAsistencia,
-    updateAsistencia,
-    updateEstadoAsistencia
+    updateAsistenciaEstado
 } = require('../controllers/asistenciaController');
 
 const { createHistorial } = require('../controllers/historialController');
@@ -211,16 +210,6 @@ const getAllAsistenciasHandler = async (req, res) => {
             });
         }
 
-        const historial = await createHistorial(
-            'read',
-            'Asistencia',
-            'Read All Asistencias',
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
         return res.status(200).json({
             message: "Mostrando asistencias correctamente...",
             data: {
@@ -339,49 +328,8 @@ const createAsistenciaHandler = async (req, res) => {
     }
 };
 
-// PROVISIONAL ACTUALIZAR ASISTENCIA HANDLER :
-const updateAsistenciaHandler = async (req, res) => {
-
-    const { fecha, hora, estado, photo_id, id_empleado } = req.body;
-    const token = req.user;
-    const errores = [];
-
-    if(!fecha) errores.push('El parámetro FECHA es obligatorio');
-    if(!hora) errores.push('El parámetro HORA es obligatorio');
-    if(!estado) errores.push('El parámetro ESTADO es obligatorio');
-    if(!photo_id) errores.push('El parámetro PHOTO ID es eobligatorio');
-    if(!id_empleado) errores.push('El parámetro ID EMPLEADO es obligatorio');
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El parámetro FECHA necesita el formato YYYY-MM-HH');
-    if(!/^\d{2}:\d{2}:\d{2}$/.test(hora)) errores.push('El parámetro HORA necesita el formato HH:MM:SS');
-    if(!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(estado)) {
-        errores.push('El parámetro ESTADO no es correcto, debe ser [A, F, DM, DO, V, DF, LSG, LCG, LF, PE]');
-    }
-    if(isNaN(id_empleado)) errores.push('El parámetro ID EMPLEADO debe ser un entero');
-    if(errores.length > 0) return res.status(400).json({ errores });
-
-    try {
-        const response = await updateAsistencia(fecha, hora, estado, photo_id, id_empleado);
-        if (!response) {
-            return res.status(200).json({
-                message: 'La asistencia no existe, por lo tanto hay que crearla',
-                data: []
-            });
-        }
-        return res.status(200).json({
-            message: 'Asistencia actualizada con éxito...',
-            data: response
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            message: 'Error al actualizar la asistencia...',
-            error: error.message
-        });
-    }
-};
-
 // Handler para actualizar el estado de la asistencia :
-const updateEstadoAsistenciaHandler = async (req, res) => {
+const updateAsistenciaEstadoHandler = async (req, res) => {
 
     const { id } = req.params;
     const { estado } = req.body;
@@ -410,7 +358,7 @@ const updateEstadoAsistenciaHandler = async (req, res) => {
             data: []
         });
 
-        const response = await updateEstadoAsistencia(id, estado);
+        const response = await updateAsistenciaEstado(id, estado);
         if (!response) return res.status(200).json({
             message: 'No se pudo actualizar la asistencia...',
             data: []
@@ -439,6 +387,5 @@ module.exports = {
     getAllAsistenciasHandler,
     createAsistenciaUsuarioHandler,
     createAsistenciaHandler,
-    updateAsistenciaHandler,
-    updateEstadoAsistenciaHandler
+    updateAsistenciaEstadoHandler
 };
