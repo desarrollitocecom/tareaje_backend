@@ -171,7 +171,7 @@ const createBlackListEmpleado = async (
 
     } catch (error) {
         console.error({
-            message: 'Error en el controlador al crear un área',
+            message: 'Error en el controlador al crear un empleado en la Black List',
             data: error
         });
         return false;

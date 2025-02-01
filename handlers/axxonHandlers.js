@@ -252,7 +252,7 @@ const searchByFaceDNIHandler = async (req, res) => {
         const ahora = new Date();
         const horaBetween = ahora.getHours();
 
-        const inicio = (hora) ? parseInt(hora.inicio.split(':')[0]) : 0;
+        const inicio = (hora) ? parseInt(hora.inicio.split(':')[0]) - 1 : 0;
         const fin = (hora) ? parseInt(hora.fin.split(':')[0]) : 24;
 
         let estado;
