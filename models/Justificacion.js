@@ -27,14 +27,15 @@ module.exports = (sequelize) => {
             type: DataTypes.DATEONLY,
             allowNull: false
         },
-        ids_asistencia: {
-            type: DataTypes.ARRAY(DataTypes.UUID),
-            allowNull: false
-        },
         state: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
+        },
+        id_empleado: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: { model:'Empleados', key: 'id' }
         },
     }, {
         tableName: 'Justificaciones',
@@ -43,6 +44,12 @@ module.exports = (sequelize) => {
 
     Justificacion.associate = (db) => {
         Justificacion.belongsTo(db.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+        Justificacion.belongsToMany(db.Asistencia, {
+            through: 'Justificacion_Asistencia',
+            foreignKey: 'id_justificacion',
+            otherKey: 'id_asistencia',
+            as: 'asistencias'
+        })
     };
 
     return Justificacion;

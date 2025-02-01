@@ -43,8 +43,14 @@ module.exports = (sequelize) => {
         ],
     });
 
-    Asistencia.associate = (models) => {
-        Asistencia.belongsTo(models.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+    Asistencia.associate = (db) => {
+        Asistencia.belongsTo(db.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+        Asistencia.belongsToMany(db.Justificacion, {
+            through: 'Justificacion_Asistencia',
+            foreignKey: 'id_asistencia',
+            otherKey: 'id_justificacion',
+            as: 'justificaciones'
+        })
     };
 
     return Asistencia;

@@ -75,8 +75,11 @@ const validateJustificacion = async (id_empleado, f_inicio) => {
 const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado) => {
 
     try {
-        const response = await Justificacion.create({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado });
-        if (!response) return null
+        const response = await Justificacion.create({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, id_empleado });
+        if (!response) return null;
+
+        // Asociar la justificación con las asistencias en la tabla intermedia :
+        await response.setAsistencias(ids_asistencia);
 
         // Actualizamos el estado de la asistencias :
         await Asistencia.update(
