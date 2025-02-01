@@ -1,247 +1,278 @@
 const {
-  updateVacaciones,
-  deleteVaciones,
-  getVacacion,
-  getVacaciones,
-  createVacaciones,
+    getVacacion,
+    getVacacionById,
+    getVacaciones,
+    createVacacion,
+    updateVacacion,
+    deleteVacacion,
 } = require("../controllers/vacacionesController.js");
+
+const {
+    validateAsistencia,
+    createAsistencia,
+    updateAsistencia
+} = require('../controllers/asistenciaController')
 
 const { createHistorial } = require('../controllers/historialController');
 
+// Handler para obtener una vacación por ID :
 const getVacacionHandler = async (req, res) => {
-  const { id } = req.params;
-  if (!id || isNaN(id)) {
-    return res
-      .status(400)
-      .json({ message: "El ID es requerido y debe ser un Numero" });
-  }
-  try {
-    const response = await getVacacion(id);
-    if (!response) {
-      return res.status(404).json({ error: "Vacación no encontrada." });
+
+    const { id } = req.params;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    try {
+        const response = await getVacacion(id);
+        if (!response) return res.status(200).json({
+            message: 'Vacación no encontrado',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Vacación obtenida exitosamente...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener una vacación por ID',
+            error: error.message
+        });
     }
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ error: "Error al obtener la vacación." });
-  }
 };
+
+// Handler para obtener todas las vacaciones :
 const getVacacionesHandler = async (req, res) => {
 
-  const { page = 1, limit = 20  } = req.query;
-  const errores = [];
+    const { page = 1, limit = 20  } = req.query;
+    const errores = [];
 
-  if (isNaN(page)) errores.push("El page debe ser un numero");
-  if (page < 0) errores.push("El page debe ser mayor a 0 ");
-  if (isNaN(limit)) errores.push("El limit debe ser un numero");
-  if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
 
-  if (errores.length > 0) return res.status(400).json({
-      message: 'Se encontraron los siguientes errores...',
-      data: errores,
-  });
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
-  const numPage = parseInt(page);
-  const numLimit = parseInt(limit);
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
 
-  try {
-      const response = await getVacaciones(numPage, numLimit);
-      const totalPages = Math.ceil(response.totalCount / numLimit);
+    try {
+        const response = await getVacaciones(numPage, numLimit);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
 
-      if(numPage > totalPages){
-          return res.status(200).json({
-              message:'Página fuera de rango...',
-              data:{
-                  data:[],
-                  currentPage: numPage,
-                  pageCount: response.data.length,
-                  totalCount: response.totalCount,
-                  totalPages: totalPages,
-               }
-              }
-          );
-      }
-      
-      return res.status(200).json({
-          message: 'Vacaciones obtenidas exitosamente...',
-          data: {
-              data: response.data,
-              currentPage: numPage,
-              pageCount: response.data.length,
-              totalCount: response.totalCount,
-              totalPages: totalPages,
-          }
-      });
-      
-  } catch (error) {
-      console.error('Error al obtener todas las vacaciones en el handler', error);
-      return res.status(500).json({ message: "Error al obtener todas las vacaciones en el handler" });
-  }
+        if (numPage > totalPages) return res.status(200).json({
+            message:'Página fuera de rango...',
+            data:{
+                data:[],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+        
+        return res.status(200).json({
+            message: 'Vacaciones obtenidas exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todas las vacaciones',
+            error: error.message
+        });
+    }
 };
 
-const createVacacionesHandler = async (req, res) => {
+// Handler para crear una vacación :
+const createVacacionHandler = async (req, res) => {
 
-  const { f_inicio}= req.body;
-  const { f_fin}= req.body;
-  const {id_empleado} = req.body;
-  const token = req.user;
+    const { f_inicio, f_fin, id_empleado }= req.body;
+    const token = req.user;
+    const errores = [];
 
-  if (!id_empleado || isNaN(id_empleado)) {
-    return res
-      .status(400)
-      .json({ message: "El ID es requerido y debe ser un Numero" });
-  }
-  console.log("id_emple:" + id_empleado);
-  if (!Date.parse(f_inicio) || !Date.parse(f_fin)) {
-    return res.status(400).json({
-      message:
-        "Fechas inválidas. Asegúrate de usar el formato correcto (YYYY-MM-DD).",
-      data: [],
+    if(!f_inicio) errores.push('El parámetro fecha de inicio es obligatorio');
+    if(!f_fin) errores.push('El parámetro fecha de fin es obligatorio');
+    if(!id_empleado) errores.push('El parámetro ID del empleado es obligatorio');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(f_inicio)) errores.push('La fecha de inicio necesita tener el formato YYYY-MM-HH');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(f_fin)) errores.push('La fecha de fin necesita tener el formato YYYY-MM-HH');
+    if (isNaN(id_empleado) || id_empleado <= 0) errores.push('El ID de empleado debe ser un entero positivo');
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
     });
-  }
-
-  // Validar que la fecha de inicio sea anterior o igual a la fecha de fin
-  if (new Date(f_inicio) > new Date(f_fin)) {
-    return res.status(400).json({
-      message: "La fecha de inicio no puede ser posterior a la fecha de fin.",
-      data: [],
-    });
-  }
-
   
-  try {
-    const newVacaciones = await createVacaciones({f_inicio, f_fin, id_empleado});
-    
-    if (!newVacaciones)
-      return res.status(203).json({
-        message: "La vacacion  no se creo",
-        data: [],
-      });
+    try {
+        const response = await createVacacion(f_inicio, f_fin, id_empleado);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo crear la vacación',
+            data: []
+        });
 
-    const historial = await createHistorial(
-        'create',
-        'Vacacion',
-        'f_inicio, f_fin, id_empleado',
-        null,
-        `${f_inicio}, ${f_fin}, ${id_empleado}`,
-        token
-    );
-    if (!historial) console.warn('No se agregó al historial...');
+        const date = new Date(f_inicio);
+        const fin = new Date(f_fin);
+        while (date <= fin) {
+            const fecha =  date.toISOString().split('T')[0];
+            const result = await validateAsistencia(fecha, id_empleado);
+            if (!result) await createAsistencia(fecha, '00:00:00', 'V', id_empleado, 'Sin Foto');
+            else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id);
+            date.setDate(date.getDate() + 1);
+        }
 
-    return res.status(200).json({
-      message: "nueva vacaion Creada con Exito",
-      data: newVacaciones,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Error al crear una Vacacion en el Handlers create",
-      data: error,
-    });
-  }
+        const historial = await createHistorial('create', 'Vacacion', null, response, token);
+        if (!historial) console.warn('No se agregó la creación de la vacación al historial');
+
+        return res.status(200).json({
+            message: 'Vacación creada exitosamente...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al crear la vacación',
+            error: error.message
+        });
+    }
 };
 
+// Handler para actualizar una vacación :
+const updateVacacionHandler = async (req,res) => {
 
+    const { id } = req.params;
+    const { f_inicio, f_fin, id_empleado } = req.body;
+    const token = req.user;
+    const errores = [];
+
+    if(!f_inicio) errores.push('El parámetro fecha de inicio es obligatorio');
+    if(!f_fin) errores.push('El parámetro fecha de fin es obligatorio');
+    if(!id_empleado) errores.push('El parámetro ID del empleado es obligatorio');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(f_inicio)) errores.push('La fecha de inicio necesita tener el formato YYYY-MM-HH');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(f_fin)) errores.push('La fecha de fin necesita tener el formato YYYY-MM-HH');
+    if (isNaN(id_empleado) || id_empleado <= 0) errores.push('El ID de empleado debe ser un entero positivo');
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    try {
+        const previo = await getVacacionById(id);
+        if (!previo) return res.status(200).json({
+            message: 'Vacación no encontrada',
+            data: []
+        });
+
+        const response = await updateVacacion(id ,f_inicio, f_fin, id_empleado);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo actualizar la vacación...',
+            data: []
+        });
+
+        const date_previo = new Date(previo.f_inicio);
+        const fin_previo = new Date(previo.f_fin);
+        while (date_previo <= fin_previo) {
+            const fecha =  date_previo.toISOString().split('T')[0];
+            const result = await validateAsistencia(fecha, id_empleado);
+            if (result) updateAsistencia(result.id, fecha, result.hora, null, id_empleado, result.photo_id);
+            else console.warn('No se pudo actualizar la vacación nula a la Asistencia')
+            date_previo.setDate(date_previo.getDate() + 1);
+        }
+
+        const date = new Date(f_inicio);
+        const fin = new Date(f_fin);
+        while (date <= fin) {
+            const fecha =  date.toISOString().split('T')[0];
+            const result = await validateAsistencia(fecha, id_empleado);
+            if (!result) await createAsistencia(fecha, '00:00:00', 'V', id_empleado, 'Sin Foto');
+            else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id);
+            date.setDate(date.getDate() + 1);
+        }
+
+        const historial = await createHistorial('update', 'Vacacion', previo, response, token);
+        if (!historial) console.warn('No se agregó la actualización de la vacación al historial');
+
+        return res.status(200).json({
+            message: 'Vacación actualizada exitosamente...',
+            data: response
+        });
+      
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al actualizar la vacación',
+            error: error.message
+        });
+    }
+};
+
+// Handler para eliminar una vacación :
 const deleteVacacionesHandler = async (req, res) => {
 
-  const { id } = req.params;
-  const token = req.user;
+    const { id } = req.params;
+    const token = req.user;
+    const errores = [];
 
-  if (!id || isNaN(id)) {
-    return res
-      .status(400)
-      .json({ message: "El ID es requerido y debe ser un Numero" });
-  }
-  try {
-    const response = await deleteVaciones(id);
-    if (!response)
-      return res.status(204).json({
-        message: `No se encontró la vacacion con ID${id}`,
-      });
-
-    const historial = await createHistorial(
-        'delete',
-        'Vacacion',
-        'f_inicio, f_fin, id_empleado',
-        `${response.f_inicio}, ${response.f_fin}, ${response.id_empleado}`,
-        null,
-        token
-    );
-    if (!historial) console.warn('No se agregó al historial...');
-
-    return res.status(200).json({
-      message: "Vacacion eliminada correctamente (estado cambiado a inactivo)",
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
     });
-  } catch (error) {
-    return res.status(404).json({ message: error.message });
-  }
-};
-const updateVacacionesHandler=async (req,res) => {
 
-  const { id } = req.params; // ID de la vacación a actualizar
-  const { f_inicio, f_fin, id_empleado } = req.body;
-  const token = req.user;
+    try {
+        const response = await deleteVacacion(id);
+        if (!response) return res.status(200).json({
+            message: 'Descanso no encontrado',
+            data: []
+        });
 
-  // Validación de fechas
-  if (!Date.parse(f_inicio) || !Date.parse(f_fin)) {
-    return res.status(400).json({
-      message: 'Fechas inválidas. Asegúrate de usar el formato correcto (YYYY-MM-DD).',
-      data: []
-    });
-  }
-
-  if (new Date(f_inicio) > new Date(f_fin)) {
-    return res.status(400).json({
-      message: 'La fecha de inicio no puede ser posterior a la fecha de fin.',
-      data: []
-    });
-  }
-  try {
-    const previo = await getVacacion(id);
-    const response = await updateVacaciones(id ,f_inicio, f_fin, id_empleado);
-    if (!response) {
-      return res.status(404).json({
-        message: 'Vacación no se puedo moficar  encontrada.',
-        data: []
-      });
-    }
-
-    const anterior = [previo.f_inicio, previo.f_fin, previo.id_empleado];
-    const nuevo = [f_inicio, f_fin, id_empleado];
-    const campos = ['f_inicio', 'f_fin', 'id_empleado'];
-    let historial;
-
-    for (let i = 0; i < anterior.length; i++) {
-        if (anterior[i] !== nuevo[i]) {
-            historial = await createHistorial(
-                'update',
-                'Vacacion',
-                campos[i],
-                anterior[i],
-                nuevo[i],
-                token
-            );
-            if (!historial) console.warn('No se agregó al historial...');
+        const date = new Date(response.f_inicio);
+        const fin = new Date(response.f_fin);
+        while (date <= fin) {
+            const fecha =  date.toISOString().split('T')[0];
+            const result = await validateAsistencia(fecha, response.id_empleado);
+            if (result) await updateAsistencia(result.id, fecha, result.hora, null, response.id_empleado, result.photo_id);
+            else console.warn('No se pudo eliminar la vacación a la Asistencia')
+            date.setDate(date.getDate() + 1);
         }
+
+        const historial = await createHistorial('delete', 'Vacacion', response, null, token);
+        if (!historial) console.warn('No se agregó la eliminación de la vacación al historial');
+
+        return res.status(200).json({
+            message: 'Vacación eliminada exitosamente...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al eliminar la vacación',
+            error: error.message
+        });
     }
-
-    return res.status(200).json({
-        message:"Vacacion modificada",
-        data:response
-
-    })
-    
-  } catch (error) {
-    return res.status(500).json({
-      message: 'Error en el handler de actualización de vacación.',
-      data: error.message
-    });
-  }
-  
-}
+};
 
 module.exports = {
-  createVacacionesHandler,
+  createVacacionHandler,
   getVacacionesHandler,
   getVacacionHandler,
   deleteVacacionesHandler,
-  updateVacacionesHandler
+  updateVacacionHandler
 };

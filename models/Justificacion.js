@@ -9,10 +9,10 @@ module.exports = (sequelize) => {
         },
         documentos: {
             type: DataTypes.ARRAY(DataTypes.STRING),
-            allowNull: false
+            allowNull: true
         },
         tipo: {
-            type: DataTypes.ENUM('F','LSG','LCG','LF','PE','LP'),
+            type: DataTypes.ENUM('A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'),
             allowNull: false
         },
         descripcion: {
