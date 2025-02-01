@@ -24,9 +24,14 @@ module.exports = (sequelize) => {
             allowNull: false,
             references: { model: 'Empleados', key: 'id' }
         },
-        photo_id:{
+        photo_id: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        evidencia: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
         }
     },{
         tableName: 'Asistencias',
