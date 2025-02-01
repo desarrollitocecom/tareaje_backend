@@ -42,6 +42,16 @@ const createObservacion = async (observacion) => {
 const updateObservacion = async (id, observacionData) => {
   await getObservacion(id);
   try {
+    const existingObservacion = await Observacion.findByPk(id);
+    
+    if (observacionData.fotos) {
+      const totalFotos = [...new Set([...existingObservacion.fotos, ...observacionData.fotos])];
+      if (totalFotos.length > 5) {
+        throw new Error("No se pueden agregar más de 5 fotos");
+      }
+      observacionData.fotos = totalFotos;
+    }
+
     const [updated] = await Observacion.update(observacionData, {
       where: { id },
     });
@@ -49,7 +59,7 @@ const updateObservacion = async (id, observacionData) => {
     return await Observacion.findByPk(id);
   } catch (error) {
     console.error({ data: error.message });
-    throw new Error("Error al actualizar");
+    throw new Error(error.message);
   }
 };
 

@@ -265,6 +265,8 @@ const searchByFaceDNIHandler = async (req, res) => {
                 nombres: empleado.nombres,
                 apellidos: empleado.apellidos,
                 dni: empleado.dni,
+                id_subgerencia: empleado.id_subgerencia,
+                subgerencia: empleado['subgerencia.nombre'],
                 turno: empleado['turno.nombre'],
                 celular: empleado.celular,
                 inicio: inicio,

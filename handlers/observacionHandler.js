@@ -32,15 +32,22 @@ const getObservacionHandler = async (req, res) => {
 };
 
 const createObservacionHandler = async (req, res) => {
-  const { comentario, lat, long, ubicacion } = req.body;
-  const photo = req.file;
+  const { comentario, lat, long, ubicacion, consultaStatus } = req.body;
+  const photos = req.files;
 
   const observacionData = {
     comentario,
+    consultaStatus,
     lat,
     long,
-    fotos: [photo.filename],
+    fotos: [],
   };
+
+  if (photos) {
+    photos.forEach(photo => {
+      observacionData.fotos.push(photo.filename);
+    });
+  }
 
   if(ubicacion) observacionData.ubicacion = ubicacion;
 
@@ -57,14 +64,16 @@ const createObservacionHandler = async (req, res) => {
 
 const updateObservacionHandler = async (req, res) => {
   const { id } = req.params;
+  const photos = req.files;
 
-  if (!req.body)
-    res.status(200).json({
+
+  if (!req.body || !photos || photos.length === 0)
+    return res.status(200).json({
       message: "No se encontrò cambios",
       statusCode: 200,
     });
 
-  const { comentario, lat, long, estado, ubicacion } = req.body;
+  const { comentario, lat, long, estado, ubicacion, consultaStatus } = req.body;
   let updateData = {};
 
   if (comentario) updateData.comentario = comentario;
@@ -72,6 +81,15 @@ const updateObservacionHandler = async (req, res) => {
   if (long) updateData.long = long;
   if (long) updateData.estado = estado;
   if (ubicacion) updateData.ubicacion = ubicacion;
+  if (consultaStatus) updateData.consultaStatus = consultaStatus;
+
+
+  if (photos) {
+    updateData.fotos = [];
+    photos.forEach(photo => {
+      updateData.fotos.push(photo.filename);
+    });
+  }
 
   try {
     const observacion = await updateObservacion(id, updateData);
@@ -100,10 +118,33 @@ const deleteObservacionHandler = async (req, res) => {
   }
 };
 
+const getPhotoByNameHandler = async (req, res) => {
+  const { name } = req.params;
+  const pathPhoto = process.env.FOTOS_OBSERVACION_RUTA;
+  const photoPath = `${pathPhoto}/${name}`;
+
+  try {
+    res.sendFile(photoPath, (err) => {
+      if (err) {
+        res.status(404).json({
+          message: `No se encontró la foto: ${name}`,
+          statusCode: 404,
+        });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      statusCode: 500,
+    });
+  }
+};
+
 module.exports = {
   getAllObservacionHandler,
   getObservacionHandler,
   createObservacionHandler,
   updateObservacionHandler,
   deleteObservacionHandler,
+  getPhotoByNameHandler
 };

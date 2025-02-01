@@ -11,6 +11,11 @@ const updateObservacion = [
     .optional()
     .notEmpty()
     .withMessage("El comentario no puede estar vacío"),
+  
+    body("consultaStatus")
+    .optional()
+    .notEmpty()
+    .withMessage("el estado de consulta no puede estar vacío"),
 
     body("ubicacion")
         .optional()
