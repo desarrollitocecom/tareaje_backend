@@ -77,16 +77,6 @@ const getAllJustificacionesHandler = async (req, res) => {
             });
         }
 
-        const historial = await createHistorial(
-            'read',
-            'Justificacion',
-            'Read All Justificaciones',
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
         return res.status(200).json({
             message: 'Mostrando justificaciones...',
             data: {

@@ -594,7 +594,7 @@ const updateEmpleadoPago = async (
 };
 
 // Cambio del estado del empleado (ACTIVO - CESADO) :
-const deleteEmpleado = async (id) => {
+const deleteEmpleado = async (id, f_fin) => {
 
     try {
         const response = await Empleado.findByPk(id);
@@ -610,8 +610,8 @@ const deleteEmpleado = async (id) => {
         response.state = !estado;
         response.f_fin = fecha;
 
-        const inicio = dia;
-        inicio.setDate(dia.getDate() + 1);
+        const inicio = new Date(fin);
+        inicio.setDate(inicio.getDate() + 1);
         const lastDayMonth = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0);
         lastDayMonth.setHours(23, 59, 59, 999);
         
