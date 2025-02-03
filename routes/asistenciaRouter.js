@@ -7,8 +7,7 @@ const {
     getAsistenciaRangoHandler,
     getAllAsistenciasHandler,
     createAsistenciaUsuarioHandler,
-    createAsistenciaHandler,
-    updateAsistenciaEstadoHandler
+    createAsistenciaHandler
 } = require('../handlers/asistenciaHandlers');
 
 const permisoAutorizacion = require("../checkers/roleAuth");
@@ -19,6 +18,5 @@ router.get('/diaria/:fecha', permisoAutorizacion(["all_system_access", "read_asi
 router.post('/', permisoAutorizacion(["all_system_access", "read_asistencia"]), getAsistenciaRangoHandler);
 router.post('/create/', permisoAutorizacion(["all_system_access", "create_asistencia"]), createAsistenciaUsuarioHandler);
 router.post('/crear/', permisoAutorizacion(["all_system_access", "create_asistencia"]), createAsistenciaHandler);
-router.patch('/:id', permisoAutorizacion(["all_system_access", "update_asistencia"]), updateAsistenciaEstadoHandler);
 
 module.exports = router;

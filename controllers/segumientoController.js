@@ -54,6 +54,7 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
 
         const empleados = await Empleado.findAndCountAll({
             where: whereCondition,
+            distinct: true, // IMPORTANTE: Evita la duplicación en el conteo
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Turno, as: 'turno', attributes: ['nombre'] },

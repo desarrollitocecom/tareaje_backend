@@ -905,16 +905,40 @@ const updateEmpleadoPagoHandler = async (req, res) => {
 const deleteEmpleadoHandler = async (req, res) => {
 
     const { id } = req.params;
+    const { f_fin } = req.body;
     const token = req.user;
+    const errores = [];
+
+    const config_f_fin = (f_fin) ? f_fin : null;
     
-    if (!id || isNaN(id)) return res.status(400).json({ message: 'El ID es requerido y debe ser un Numero' });
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (config_f_fin && !Date.parse(config_f_fin)) errores.push("La fecha de inicio debe tener el formato YYYY-MM-DD");
+    
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
 
     try {
-        const response = await deleteEmpleado(id);
-        if (response === 1) return res.status(200).json({ message: 'Empleado no encontrado', data: {} });
-        if (!response) return res.status(200).json({ message: 'No se pudo eliminar al empleado', data: {} });
+        const empleado = await getEmpleado(id);
+        if (!empleado) return res.status(404).json({
+            message: 'Empleado no encontrado',
+            data: []
+        });
 
-        // Agregar el cambio de estado del empleado al historial :
+        const ahora = new Date();
+        const peruOffset = -5 * 60; // offset de Perú en minutos
+        const localOffset = ahora.getTimezoneOffset(); 
+        const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+        const fin = (config_f_fin) ? config_f_fin : dia.toISOString().split('T')[0];
+
+        const response = await deleteEmpleado(id, fin);
+        if (!response) return res.status(400).json({
+            message: 'No se pudo cambiar el estado al empleado...',
+            data: []
+        });
+
         const historial = await createHistorial('delete', 'Empleado', response, null, token);
         if (!historial) console.warn(`No se agregó el cambio de estado del empleado con DNI ${response.dni} al historial`);
 
@@ -922,6 +946,7 @@ const deleteEmpleadoHandler = async (req, res) => {
             message: 'Empleado eliminado exitosamente...',
             data: response
         });
+
     } catch (error) {
         res.status(500).json({
             message: 'Error interno al eliminar al empleado',
