@@ -773,9 +773,11 @@ const fechaEmpleado = async (id, fecha) => {
 
     try {
         const response = await Empleado.findByPk(id);
-        response.f_nacimiento = fecha;
+        if (!response) return null;
+        response.f_fin = fecha;
+        response.blacklist = true;
         await response.save();
-        return response || null;
+        return response;
 
     } catch (error) {
         console.error({
