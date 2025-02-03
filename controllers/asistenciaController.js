@@ -266,12 +266,11 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
     const errores = [];
     if (!fecha) errores.push('Es necesario que exista el parámetro FECHA');
     if (!hora) errores.push('Es necesario que exista el parámetro HORA');
-    if (!estado) errores.push('Es necesario que exista el parámetro ESTADO');
     if (!id_empleado) errores.push('Es necesario que exista el parámetro ID EMPLEADO');
     if (!photo_id) errores.push('Es necesario que exista el parámetro PHOTO ID');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El formato para la FECHA es incorrecto');
     if (!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(hora)) errores.push('El formato para la HORA es incorrecto');
-    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(estado)) errores.push('El estado ingresado no es el correspondiente');
+    if (estado && !['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(estado)) errores.push('El estado ingresado no es el correspondiente');
     if (isNaN(id_empleado)) errores.push('El formato para el ID EMPLEADO debe ser un entero');
 
     if (errores.length > 0) {
@@ -332,23 +331,6 @@ const updateAsistencia = async (id, fecha, hora, estado, id_empleado, photo_id, 
     }
 };
 
-// Modificar el estado de una asistencia :
-const updateAsistenciaEstado = async (id, estado) => {
-    
-    try {
-        const response = await Asistencia.findByPk(id);
-        if (response) await response.update({ estado });
-        return response || null;
-
-    } catch (error) {
-        console.error({
-            message: 'Error en el controlador al actualizar el estado de la asistencia',
-            error: error.message
-        });
-        return false;
-    }
-};
-
 module.exports = {
     getAsistenciaById,
     getAsistenciaDiaria,
@@ -358,6 +340,5 @@ module.exports = {
     validateAsistencia,
     createAsistencia,
     createAsistenciaUsuario,
-    updateAsistencia,
-    updateAsistenciaEstado
+    updateAsistencia
 };

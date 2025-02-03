@@ -5,7 +5,7 @@ const {
     updateJustificacion
 } = require('../controllers/justificacionController');
 
-const { getIdsAsistenciaRango, updateAsistenciaEstado } = require('../controllers/asistenciaController')
+const { getIdsAsistenciaRango } = require('../controllers/asistenciaController')
 const { deleteFile } = require('../utils/filesFunctions');
 const { createHistorial } = require('../controllers/historialController');
 const path = require('path');
@@ -21,7 +21,7 @@ const getJustificacionByIdHandler = async (req,res) => {
     try {
         const justificacion = await getJustificacionById(id);
         if (!justificacion){
-            return res.status(200).json({
+            return res.status(400).json({
                 message: 'La justificación no fue encontrada para este ID...',
                 data: []
             });
@@ -34,7 +34,7 @@ const getJustificacionByIdHandler = async (req,res) => {
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Error en la consulta para obtener la justificación...',
+            message: 'Error interno al obtener la justificación',
             error: error.message
         });
     }
@@ -44,7 +44,6 @@ const getJustificacionByIdHandler = async (req,res) => {
 const getAllJustificacionesHandler = async (req, res) => {
     
     const { page = 1, limit = 20 } = req.query;
-    const token = req.user;
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un entero');
@@ -90,7 +89,7 @@ const getAllJustificacionesHandler = async (req, res) => {
         
     } catch (error) {
         return res.status(500).json({
-            message: 'Error en la consulta para obtener las justificaciones...',
+            message: 'Error interno al obtener las justificaciones',
             error: error.message
         });
     }
@@ -102,15 +101,14 @@ const createJustificacionHandler = async (req, res) => {
     const { descripcion, tipo, fecha, id_empleado } = req.body;
     const token = req.user;
     const errores = [];
-    if (!descripcion) errores.push('El parámetro DESCRIPCIÓN es obligatorio');
-    if (!tipo) errores.push('El parámetro TIPO es obligatorio');
-    if (!fecha) errores.push('El parámetro FECHA es obligatorio');
-    if (!id_empleado) errores.push('El parámetro ID EMPLEADO es obligatorio...');
-
-    if (typeof descripcion !== 'string') errores.push('La DESCRIPCIÓN debe ser un string...');
-    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(tipo)) errores.push('El TIPO debe ser [A,F,DO,DL,DC,LF,N,DM,LSG,LCG,SSG,V,R,DF]');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El formato para FECHA es incorrecto, debe ser YYYY-MM-HH');
-    if (isNaN(id_empleado)) errores.push('El ID EMPLEADO debe ser un entero');
+    if (!descripcion) errores.push('La descripción es un campo obligatorio');
+    if (!tipo) errores.push('El tipo es un campo obligatorio');
+    if (!fecha) errores.push('La fecha es un campo obligatorio');
+    if (!id_empleado) errores.push('El ID del empleado es un campo obligatorio');
+    if (typeof descripcion !== 'string') errores.push('La descripción debe ser una cadena de texto');
+    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(tipo)) errores.push('El tipo debe ser [A,F,DO,DL,DC,LF,N,DM,LSG,LCG,SSG,V,R,DF]');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('EL formato de la fecha es incorrecto, debe ser YYYY-MM-HH');
+    if (isNaN(id_empleado)) errores.push('El ID del empleado debe ser un entero');
 
     if (errores.length > 0) {
         if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
@@ -123,41 +121,25 @@ const createJustificacionHandler = async (req, res) => {
     try {
         const asistencia = await getIdsAsistenciaRango(id_empleado, fecha, fecha);
         if (!asistencia) {
-            errores.push(`No se obtuvo la asistencia para este dia...`);
             if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
-            return res.status(400).json({
-                message: 'Se encontraron los siguientes errores....',
-                data: errores
+            return res.status(404).json({
+                message: 'No se registra asistencia para este día...',
+                data: []
             });
         }
 
         // Guardar la ruta de los PDFs :
         let documentos = null;
         if (req.files || req.files.length > 0) documentos = req.files.map((file) => `uploads/pdfs/${file.filename}`);
+
+        // Validar que el estado no sea el mismo de la asistencia registrada :
         const estado = asistencia.info[0].estado;
+        if (tipo === estado) return res.status(400).json({
+            message: 'El estado es el mismo de la asistencia registrada, por favor cambiarlo...',
+            data: []
+        });
 
-        // Formato de envío de errores en caso no haya asistencias o los estados no sean 'A' o 'F' :
-        if (!['A','F'].includes(estado)) {
-            errores.push('Solo se pueden modificar asistencias o faltas...');
-            if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
-            return res.status(400).json({
-                message: 'Se encontraron los siguientes errores...',
-                data: errores,
-            });
-        }
-
-        if (estado === 'A' && tipo !== 'F') errores.push('Solo se pueden modificar asistencias por faltas...');
-        if (estado === 'F' && tipo === 'F') errores.push('Es absurdo modificar una falta por una falta...');
-
-        // Formato de envío de errores en el tipo de estado :
-        if (errores.length > 0){
-            if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
-            return res.status(400).json({
-                message: 'Se encontraron los siguientes errores...',
-                data: errores,
-            });
-        }
-
+        // Crear la justificación para ese día :
         const ids = [];
         ids.push(asistencia.info[0].id);
         const response = await createJustificacion(documentos, descripcion, tipo, fecha, fecha, ids, id_empleado, token);
@@ -170,21 +152,12 @@ const createJustificacionHandler = async (req, res) => {
             });
         }
 
-        const general = {
-            id_empleado: id_empleado,
-            documentos: documentos,
-            descripcion: descripcion,
-            tipo: tipo,
-            f_inicio: fecha,
-            f_fin: fecha
-        };
-
         const historial = await createHistorial('create', 'Justificacion', null, response, token);
-        if (!historial) console.warn('No se agregó la creación de la justificación al historial');
+        if (!historial) console.warn('No se agregó la creación de la justificación en una fecha al historial');
 
         return res.status(200).json({
-            message: 'Justificación creada con éxito.',
-            data: general,
+            message: 'Justificación creada exitosamente...',
+            data: response,
         });
 
     } catch (error) {
@@ -203,17 +176,17 @@ const createJustificacionRangoHandler = async (req, res) => {
     const token = req.user;
     const errores = [];
     
-    if (!descripcion) errores.push('El parámetro DESCRIPCIÓN es obligatorio');
-    if (!tipo) errores.push('El parámetro TIPO es obligatorio');
-    if (!f_inicio) errores.push('El parámetro FECHA INICIO es obligatorio');
-    if (!f_fin) errores.push('El parámetro FECHA FIN es obligatorio');
-    if (!id_empleado) errores.push('El parámetro ID EMPLEADO es obligatorio...');
+    if (!descripcion) errores.push('La descripción es un campo obligatorio');
+    if (!tipo) errores.push('El tipo es un campo obligatorio');
+    if (!f_inicio) errores.push('La fecha de inicio es un campo obligatorio');
+    if (!f_fin) errores.push('La fecha de fin es un campo obligatorio');
+    if (!id_empleado) errores.push('El ID del empleado es un campo obligatorio');
 
-    if (typeof descripcion !== 'string') errores.push('La DESCRIPCIÓN debe ser un string...');
-    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(tipo)) errores.push('El TIPO debe ser [A,F,DO,DL,DC,LF,N,DM,LSG,LCG,SSG,V,R,DF]');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(f_inicio)) errores.push('El formato para FECHA INICIO es incorrecto, debe ser YYYY-MM-HH');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(f_fin)) errores.push('El formato para FECHA FIN es incorrecto, debe ser YYYY-MM-HH');
-    if (isNaN(id_empleado)) errores.push('El ID EMPLEADO debe ser un entero');
+    if (typeof descripcion !== 'string') errores.push('La descripción debe ser una cadena de texto');
+    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(tipo)) errores.push('El tipo debe ser [A,F,DO,DL,DC,LF,N,DM,LSG,LCG,SSG,V,R,DF]');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(f_inicio)) errores.push('EL formato de la fecha de inicio es incorrecto, debe ser YYYY-MM-HH');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(f_fin)) errores.push('EL formato de la fecha de fin es incorrecto, debe ser YYYY-MM-HH');
+    if (isNaN(id_empleado)) errores.push('El ID del empleado debe ser un entero');
 
     // Formato de envío de errores de validaciones :
     if (errores.length > 0) {
@@ -227,11 +200,10 @@ const createJustificacionRangoHandler = async (req, res) => {
     try {
         const datos = await getIdsAsistenciaRango(id_empleado, f_inicio, f_fin);
         if (!datos) {
-            errores.push(`No se obtuvieron los ids de asistencia desde ${f_inicio} hasta ${f_fin}`);
             if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
-            return res.status(200).json({
-                message: 'Se encontraron los siguientes errores....',
-                data: errores
+            return res.status(404).json({
+                message: `No se obtuvieron las asistencias desde ${f_inicio} hasta ${f_fin}`,
+                data: []
             });
         }
 
@@ -248,52 +220,25 @@ const createJustificacionRangoHandler = async (req, res) => {
         }
 
         const estados = [];
-        const erroneos = [];
         const ids = [];
+        const nulos = [];
 
-        for (let i = 0; i < datos.info.length; i++) {
-            estados.push(datos.info[i].estado);
-            ids.push(datos.info[i].id);
-            if (!['A','F'].includes(datos.info[i].estado)) erroneos.push(datos.info[i].estado);
-            if (datos.info[i].fecha !== dates[i]) errores.push(`No existe asistencia del ${dates[i]}`);
+        for (const date of dates) {
+            const asistencia = datos.info.find(d => d.fecha === date);
+            if (!asistencia) {
+                nulos.push(date);
+                continue;
+            }
+            estados.push(asistencia.estado);
+            ids.push(asistencia.id);
         }
 
-        if (erroneos.length !== 0) errores.push('Solo se pueden modificar asistencias o faltas...');
-
-        // Formato de envío de errores en caso no haya asistencias o los estados no sean 'A' o 'F' :
-        if (errores.length > 0) {
+        // Formato de envío de errores en caso no haya asistencia en un día específico :
+        if (nulos.length > 0) {
             if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
-            return res.status(400).json({
-                message: 'Se encontraron los siguientes errores...',
-                data: errores,
-            });
-        }
-
-        const hasA = estados.includes('A');
-        const hasF = estados.includes('F');
-        const allA = estados.every(estado => estado === 'A');
-        const allF = estados.every(estado => estado === 'F');
-
-        // Formato de envío de errores en caso se presente este caso ['A', 'F', 'F'] :
-        if (hasA && hasF) {
-            errores.push('En este rango se presentan tanto asistencias y faltas');
-            errores.push('Se pueden modificar solo faltas o solo asistencias...');
-            if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
-            return res.status(400).json({
-                message: 'Se encontraron los siguientes errores...',
-                data: errores,
-            });
-        }
-
-        if (allA) if (tipo !== 'F') errores.push('Solo se pueden modificar asistencias por faltas...');
-        if (allF) if (tipo === 'F') errores.push('Es absurdo modificar una falta por una falta...');
-
-        // Formato de envío de errores en el tipo de estado :
-        if (errores.length > 0){
-            if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
-            return res.status(400).json({
-                message: 'Se encontraron los siguientes errores...',
-                data: errores,
+            return res.status(404).json({
+                message: 'No se obtuvieron las asistencias para estos días...',
+                data: nulos,
             });
         }
 
@@ -306,31 +251,19 @@ const createJustificacionRangoHandler = async (req, res) => {
             });
         }
 
-        const general = {
-            id_empleado: id_empleado,
-            nombres: datos.nombre,
-            apellidos: datos.apellido,
-            dni: datos.dni,
-            documentos: documentos,
-            descripcion: descripcion,
-            tipo: tipo,
-            f_inicio: f_inicio,
-            f_fin: f_fin
-        };
-
         const historial = await createHistorial('create', 'Justificacion', null, response, token);
-        if (!historial) console.warn('No se agregó la creación de la justificación al historial');
+        if (!historial) console.warn('No se agregó la creación de la justificación en un rango de fechas al historial');
 
         return res.status(200).json({
-            message: 'Justificación creada con éxito.',
-            data: general,
+            message: 'Justificación creada exitosamente...',
+            data: response,
         });
 
     } catch (error) {
         if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
         return res.status(500).json({
             message: 'Error interno al crear la justificación',
-            error: error.message,
+            error: error.message
         });
     }
 };
@@ -339,41 +272,47 @@ const createJustificacionRangoHandler = async (req, res) => {
 const updateJustificacionHandler = async (req, res) => {
 
     const { id } = req.params;
-    const { descripcion } = req.body;
+    const { documentos, descripcion, tipo, f_inicio, f_fin, id_empleado } = req.body;
     const token = req.user;
+    const errores = [];
 
-    if (!id) return res.status(400).json({ message: 'El parámetro ID es requerido y debe ser un entero' });
-    if (!descripcion) return res.status(400).json({ message: 'El parámetro ESTADO debe ser un string' });
-    if (isNaN(id)) return res.status(400).json({ message: 'El ID debe ser un entero' });
-    if (typeof descripcion !== 'string') return res.status(400).json({ message: 'La descripción debe ser un string' });
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (!tipo) errores.push('El tipo es un campo obligatorio');
+    if (!f_inicio) errores.push('La fecha de inicio es un campo obligatorio');
+    if (!f_fin) errores.push('La fecha de fin es un campo obligatorio');
+    if (!id_empleado) errores.push('El ID del empleado es un campo obligatorio');
+
+    if (typeof descripcion !== 'string') errores.push('La descripción debe ser una cadena de texto');
+    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(tipo)) errores.push('El tipo debe ser [A,F,DO,DL,DC,LF,N,DM,LSG,LCG,SSG,V,R,DF]');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(f_inicio)) errores.push('EL formato de la fecha de inicio es incorrecto, debe ser YYYY-MM-HH');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(f_fin)) errores.push('EL formato de la fecha de fin es incorrecto, debe ser YYYY-MM-HH');
+    if (isNaN(id_empleado)) errores.push('El ID del empleado debe ser un entero');
+
+    // Formato de envío de errores de validaciones :
+    if (errores.length > 0) {
+        if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
+        return res.status(400).json({
+            message: 'Se encontraron los siguientes errores...',
+            data: errores
+        });
+    }
 
     try {
         const previo = await getJustificacionById(id);
-        const response = await updateJustificacion(id, { descripcion });
+        if (!previo) return res.status(404).json({
+            message: 'Justificación no encontrada',
+            data: []
+        });
 
-        if (!response) {
-            return res.status(400).json({
-                message: 'No se pudo actualizar la justificación...',
-                data: []
-            });
-        }
+        const response = await updateJustificacion(id, documentos, descripcion, tipo, f_inicio, f_fin, ids, id_empleado);
+        if (!response) return res.status(400).json({
+            message: 'No se pudo actualizar la justificación...',
+            data: []
+        });
 
-        if (response === 1) {
-            return res.status(200).json({
-                message: 'Para este ID no hay justificación...',
-                data: []
-            });
-        }
-
-        const historial = await createHistorial(
-            'update',
-            'Justificacion',
-            'descripcion',
-            previo.descripcion,
-            descripcion,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('update', 'Justificacion', previo, response, token);
+        if (!historial) console.warn('No se agregó la actualización de la justificación al historial');
 
         return res.status(200).json({
             message: 'Justificación actualizada con éxito...',
@@ -382,7 +321,7 @@ const updateJustificacionHandler = async (req, res) => {
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Error en la consulta para actualizar una justificación...',
+            message: 'Error interno al actualizar la justificación...',
             error: error.message
         });
     }

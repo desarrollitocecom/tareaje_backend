@@ -1,15 +1,12 @@
 const { Justificacion, Asistencia, Empleado } = require('../db_connection');
 const { Op } = require("sequelize");
 
-const { createHistorial } = require('../controllers/historialController');
-
-// Obtener la justificación por ID :
-const getJustificacionById = async (id) => {
-
+// Obtener una justificaión por ID :
+const getJustificacion = async (id) => {
+    
     try {
         const response = await Justificacion.findOne({
-            where: { id },
-            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
+            where: {state: true, id}
         });
         return response || null;
 
@@ -20,9 +17,28 @@ const getJustificacionById = async (id) => {
         });
         return false;
     }
+}
+
+// Obtener una justificación por ID con atributos del empleados :
+const getJustificacionById = async (id) => {
+
+    try {
+        const response = await Justificacion.findOne({
+            where: { state: true, id },
+            include: [{ model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos', 'dni'] }]
+        });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener la justificación por ID con atributos:',
+            error: error.message
+        });
+        return false;
+    }
 };
 
-// Obtener todas las justificaciones :
+// Obtener todas las justificaciones con paginación :
 const getAllJustificaciones = async (page = 1, limit = 20) => {
 
     const offset = page == 0 ? null : (page - 1) * limit;
@@ -106,12 +122,13 @@ const updateJustificacion = async (id, documentosPaths, descripcion, tipo, f_ini
         return response || null;
 
     } catch (error) {
-        console.error('Error al actualizar la asistencia:', error);
+        console.error('Error en el controlador al actualizar la justificación:', error);
         return false;
     }
 };
 
 module.exports = {
+    getJustificacion,
     getJustificacionById,
     getAllJustificaciones,
     validateJustificacion,
