@@ -90,7 +90,7 @@ const createAsistencias = async (dia, hora) => {
                 if (!response) asistencia = await createAsistencia(dia, `${horaStr}:06:00`, 'NA', empleado.id, 'Sin foto');
                 else asistencia = await updateAsistencia(response.id, dia, `${horaStr}:06:00`, 'NA', empleado.id, 'Sin foto');
             }
-            else if (empleado.id_area === 2 && fecha.getDay() === 0) continue;
+            else if (empleado.id_area === 2 && fecha.getDay() === 6) continue;
             else {
                 if (!response) asistencia = await createAsistencia(dia, `${horaStr}:06:00`, 'F', empleado.id, 'Sin foto');
                 else asistencia = await updateAsistencia(response.id, dia, `${horaStr}:06:00`, 'F', empleado.id, 'Sin foto');

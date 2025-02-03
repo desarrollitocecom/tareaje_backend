@@ -17,7 +17,7 @@ router.post('/create/', permisoAutorizacion(["all_system_access", "create_axxon"
 router.get('/', permisoAutorizacion(["all_system_access", "read_axxon"]), readPersonHandler);
 router.get('/delete/:dni', permisoAutorizacion(["all_system_access", "delete_axxon"]), deletePersonHandler);
 router.get('/:dni', permisoAutorizacion(["all_system_access", "read_axxon"]), getEmpleadoIdHandler);
-router.get('/photo/:id', permisoAutorizacion(["all_system_access", "read_axxon"]), getPhotoHandler);
+router.get('/photo/:id', permisoAutorizacion(["all_system_access", "read_empleado"]), getPhotoHandler);
 router.post('/facescan/', permisoAutorizacion(["all_system_access", "photo_axxon"]), searchByFaceHandler);
 router.post('/face/', permisoAutorizacion(["all_system_access", "photo_axxon"]), searchByFaceDNIHandler);
 router.post('/protocol/', permisoAutorizacion(["all_system_access", "read_asistencia"]),getProtocolsHandler);

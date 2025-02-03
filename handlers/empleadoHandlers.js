@@ -1013,16 +1013,19 @@ const fechaEmpleadoHandler = async (req, res) => {
     try {
         const response = await fechaEmpleado(id, fecha);
         if (!response) return res.status(400).json({
-            message: "No se pudo nacimiento",
+            message: "No se pufo actualizar Black List",
             data: []
         });
         
         return res.status(201).json({
-            message: "Nacimiento completo exitoso",
+            message: "Black List exitoso",
             data: response
         });
     } catch (error) {
-        return res.status(500).json({ message: "Error interno del servidor al crear la función.", error });
+        return res.status(500).json({
+            message: "Error interno al actualizar Black List",
+            error
+        });
     }
 }
 
