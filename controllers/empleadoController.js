@@ -9,9 +9,9 @@ const {
  } = require('../controllers/pagoController');
 
  const {
-    getIdsAsistenciaRango,
     createAsistencia,
-    updateAsistenciaEstado
+    updateAsistencia,
+    validateAsistencia
 } = require('../controllers/asistenciaController')
 
 const {
@@ -599,40 +599,35 @@ const deleteEmpleado = async (id, f_fin) => {
     try {
         const response = await Empleado.findByPk(id);
         if (!response) return null;
-
-        const ahora = new Date();
-        const peruOffset = -5 * 60; // offset de Perú en minutos
-        const localOffset = ahora.getTimezoneOffset(); 
-        const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
-        const fin = dia.toISOString().split('T')[0];
         const estado = response.state;
-        const fecha = (estado) ? fin : null;
         response.state = !estado;
+        const fecha = (response.state) ? null : f_fin;
         response.f_fin = fecha;
 
-        const inicio = new Date(fin);
+        const inicio = new Date(f_fin);
         inicio.setDate(inicio.getDate() + 1);
         const lastDayMonth = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0);
-        lastDayMonth.setHours(23, 59, 59, 999);
+        let asistenciaFecha = inicio;
         
         if (!response.state) {
-            const validar = await getIdsAsistenciaRango(response.id, fin, lastDayMonth.toISOString().split('T')[0]);
-            let asistenciaFecha = inicio;
             while (asistenciaFecha <= lastDayMonth) {
                 const date =  asistenciaFecha.toISOString().split('T')[0];
-                const existe = validar.info.find(v => date === v.fecha);
-                if (existe) await updateAsistenciaEstado(existe.id, 'R');
-                else await createAsistencia(date, '00:00:00', 'R', response.id, 'Retirado');
+                const asistencia = await validateAsistencia(date, id);
+                if (!asistencia) await createAsistencia(date, '00:00:00', 'R', response.id, 'Sin foto');
+                else if (!asistencia.estado) await updateAsistencia(asistencia.id, date, '00:00:00', 'R', id, 'Sin foto');
+                else await await updateAsistencia(asistencia.id, date, asistencia.hora, 'R', id, asistencia.photo_id);
                 asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
             }
         }
 
         else {
-            dia.setUTCHours(0, 0, 0, 0);
-            const asistencias = await getIdsAsistenciaRango(response.id, fin, lastDayMonth.toISOString().split('T')[0])
-            for (const i of asistencias.info) {
-                const analisisDate = new Date(i.fecha);
-                if (analisisDate >= dia && analisisDate <= lastDayMonth) await updateAsistenciaEstado(i.id, null);
+            while (asistenciaFecha <= lastDayMonth) {
+                const date =  asistenciaFecha.toISOString().split('T')[0];
+                const asistencia = await validateAsistencia(date, id);
+                if (!asistencia) await createAsistencia(date, '00:00:00', null, response.id, 'Sin foto');
+                else if (!asistencia.estado) await updateAsistencia(asistencia.id, date, asistencia.hora, null, id, asistencia.photo_id);
+                else await await updateAsistencia(asistencia.id, date, asistencia.hora, null, id, asistencia.photo_id);
+                asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
             }
         }
         
@@ -661,11 +656,14 @@ const deleteEmpleadoBlackList = async (id, f_fin) => {
         const inicio = new Date(f_fin);
         inicio.setDate(inicio.getDate() + 1);
         const lastDayMonth = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0);
-        let asistenciaFecha = new Date(inicio);
+        let asistenciaFecha = inicio;
 
         while (asistenciaFecha <= lastDayMonth) {
             const date =  asistenciaFecha.toISOString().split('T')[0];
-            await createAsistencia(date, '00:00:00', 'R', response.id, 'Retirado');
+            const asistencia = await validateAsistencia(date, id);
+            if (!asistencia) await createAsistencia(date, '00:00:00', 'R', response.id, 'Sin foto');
+            else if (!asistencia.estado) await updateAsistencia(asistencia.id, date, '00:00:00', 'R', id, 'Sin foto');
+            else await await updateAsistencia(asistencia.id, date, asistencia.hora, 'R', id, asistencia.photo_id);
             asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
         }
 
@@ -678,7 +676,7 @@ const deleteEmpleadoBlackList = async (id, f_fin) => {
             data: error
         });
         return false;
-    }  
+    }
 };
 
 // Obtener información básica del empleado :

@@ -134,10 +134,12 @@ const getAllBlackListHandler = async (req, res) => {
 const createBlackListEmpleadoHandler = async (req, res) => {
 
     const { id, nombres, apellidos, dni, motivo, id_cargo, id_turno, id_regimen_laboral, id_sexo, 
-        id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area
+        id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area, f_fin
     } = req.body;
     const token = req.user;
     const errores = [];
+
+    const config_f_fin = (f_fin) ? f_fin : null;
 
     if (!id) errores.push('El parámetro ID es obligatorio');
     if (isNaN(id)) errores.push('El ID debe ser un entero');
@@ -146,6 +148,7 @@ const createBlackListEmpleadoHandler = async (req, res) => {
     if (!dni) errores.push('El parámetro DNI es obligatorio');
     if (!/^\d{8}$/.test(dni)) errores.push('El DNI debe tener 8 dígitos');
     if (!motivo) errores.push('El motivo es un parámetro obligatorio');
+    if (config_f_fin && !Date.parse(config_f_fin)) errores.push("La fecha de inicio debe tener el formato YYYY-MM-DD");
     if (!id_cargo) errores.push('El ID de cargo es un parámetro obligatorio');
     if (!id_turno) errores.push('El ID de turno es un parámetro obligatorio');
     if (!id_regimen_laboral) errores.push('El ID de régimen laboral es un parámetro obligatorio');
@@ -156,6 +159,7 @@ const createBlackListEmpleadoHandler = async (req, res) => {
     if (!id_lugar_trabajo) errores.push('El ID de lugar de trabajo es un parámetro obligatorio');
     if (!id_area) errores.push('El ID de área es un parámetro obligatorio');
     if (!id_funcion) errores.push('El ID de función es un parámetro obligatorio');
+    
     if (errores.length > 0) return res.status(400).json({
         message: 'Se encontraron los siguientes errores...',
         data: errores,
@@ -166,15 +170,16 @@ const createBlackListEmpleadoHandler = async (req, res) => {
         const peruOffset = -5 * 60; // offset de Perú en minutos
         const localOffset = ahora.getTimezoneOffset(); 
         const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
-        const f_fin = dia.toISOString().split('T')[0];
-        const empleado = await deleteEmpleadoBlackList(id, f_fin);
-        if (!empleado) return res.status(200).json({
+        const fin = (config_f_fin) ? config_f_fin : dia.toISOString().split('T')[0];
+
+        const empleado = await deleteEmpleadoBlackList(id, fin);
+        if (!empleado) return res.status(404).json({
             message: 'Empleado no encontrado...',
             data: []
         });
 
         const response = await createBlackListEmpleado(
-            nombres, apellidos, dni, motivo, f_fin, id_cargo, id_turno, id_regimen_laboral, id_sexo, 
+            nombres, apellidos, dni, motivo, fin, id_cargo, id_turno, id_regimen_laboral, id_sexo, 
             id_jurisdiccion, id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area
         );
         if (!response) return res.status(400).json({
