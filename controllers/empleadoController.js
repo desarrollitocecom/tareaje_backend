@@ -23,7 +23,6 @@ const getAllUniverseEmpleados = async () => {
 
     try {
         const response = await Empleado.findAndCountAll({
-            where: { blacklist: false },
             order: [['dni', 'ASC']],
         });
 
@@ -615,7 +614,7 @@ const deleteEmpleado = async (id, f_fin) => {
                 const asistencia = await validateAsistencia(date, id);
                 if (!asistencia) await createAsistencia(date, '00:00:00', 'R', response.id, 'Sin foto');
                 else if (!asistencia.estado) await updateAsistencia(asistencia.id, date, '00:00:00', 'R', id, 'Sin foto');
-                else await await updateAsistencia(asistencia.id, date, asistencia.hora, 'R', id, asistencia.photo_id);
+                else await await updateAsistencia(asistencia.id, date, asistencia.hora, asistencia.estado, id, asistencia.photo_id);
                 asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
             }
         }
@@ -626,7 +625,8 @@ const deleteEmpleado = async (id, f_fin) => {
                 const asistencia = await validateAsistencia(date, id);
                 if (!asistencia) await createAsistencia(date, '00:00:00', null, response.id, 'Sin foto');
                 else if (!asistencia.estado) await updateAsistencia(asistencia.id, date, asistencia.hora, null, id, asistencia.photo_id);
-                else await await updateAsistencia(asistencia.id, date, asistencia.hora, null, id, asistencia.photo_id);
+                else if (asistencia.estado === 'R') await updateAsistencia(asistencia.id, date, asistencia.hora, null, id, asistencia.photo_id);
+                else await updateAsistencia(asistencia.id, date, asistencia.hora, asistencia.estado, id, asistencia.photo_id);
                 asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
             }
         }
@@ -663,7 +663,7 @@ const deleteEmpleadoBlackList = async (id, f_fin) => {
             const asistencia = await validateAsistencia(date, id);
             if (!asistencia) await createAsistencia(date, '00:00:00', 'R', response.id, 'Sin foto');
             else if (!asistencia.estado) await updateAsistencia(asistencia.id, date, '00:00:00', 'R', id, 'Sin foto');
-            else await await updateAsistencia(asistencia.id, date, asistencia.hora, 'R', id, asistencia.photo_id);
+            else await updateAsistencia(asistencia.id, date, asistencia.hora, asistencia.estado, id, asistencia.photo_id);
             asistenciaFecha.setDate(asistenciaFecha.getDate() + 1);
         }
 
