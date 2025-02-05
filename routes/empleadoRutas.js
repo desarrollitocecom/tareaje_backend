@@ -13,6 +13,7 @@ const {
     createEmpleadoOnlyInfoHandler,
     updateEmpleadoHandler,
     updateEmpleadoPagoHandler,
+    updateEmpleadoOnlyInfoHandler,
     deleteEmpleadoHandler,
     findEmpleadoHandler,
     blackDeleteHandler,
@@ -29,10 +30,11 @@ rutas.get('/:id',permisoAutorizacion(["all_system_access", "read_empleado"]), ge
 rutas.get('/pagos/:id',permisoAutorizacion(["all_system_access", "read_empleadoPagos"]), getEmpleadoPagoHandler);
 rutas.get('/dni/:dni', permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoByDniHandler);
 rutas.post('/', permisoAutorizacion(["all_system_access", "create_empleado"]), saveImage, multerError, createEmpleadoHandler);
-rutas.post('/only/', permisoAutorizacion(["all_system_access", "create_empleado"]), createEmpleadoOnlyInfoHandler);
+rutas.post('/only/create/', permisoAutorizacion(["all_system_access", "create_empleado"]), createEmpleadoOnlyInfoHandler);
 rutas.post('/pagos/', permisoAutorizacion(["all_system_access", "create_empleadoPagos"]), uploadImageAndPdf, multerError, createEmpleadoPagoHandler)
 rutas.patch('/:id', permisoAutorizacion(["all_system_access", "update_empleado"]), saveImage, multerError, updateEmpleadoHandler);
-rutas.patch('/pagos/:id', permisoAutorizacion(["all_system_access", "update_empleadoPagos"]), uploadImageAndPdf, multerError, updateEmpleadoPagoHandler)
+rutas.patch('/pagos/:id', permisoAutorizacion(["all_system_access", "update_empleadoPagos"]), uploadImageAndPdf, multerError, updateEmpleadoPagoHandler);
+rutas.patch('/only/update/:id', permisoAutorizacion(["all_system_access", "update_empleadoPagos"]), updateEmpleadoOnlyInfoHandler);
 rutas.delete('/:id',permisoAutorizacion(["all_system_access", "delete_empleado"]), deleteEmpleadoHandler);
 rutas.post('/find/',permisoAutorizacion(["all_system_access", "read_empleado"]), findEmpleadoHandler);
 rutas.delete('/black/:id',permisoAutorizacion(["all_system_access", "delete_empleado"]), blackDeleteHandler);

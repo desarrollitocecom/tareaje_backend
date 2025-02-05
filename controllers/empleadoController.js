@@ -414,6 +414,65 @@ const createEmpleado = async (
     }
 };
 
+// Crear a un empleado con toda la información sin la foto, asimismo registrarlo en DB de Incidencias (SECTOR TAREAJE Y PAGOS) :
+const createEmpleadoInfo = async (
+    nombres, apellidos, dni, ruc, hijos, edad,
+    f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones, carrera, f_fin,
+    id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+    id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area, state,
+    carasDni, cci, certiAdulto, claveSol, suspension
+) => {
+
+    try {
+        const response = await Empleado.create({
+            nombres, apellidos, dni, ruc, hijos, edad,
+            f_nacimiento, correo, domicilio, celular, f_inicio, foto, observaciones, carrera, f_fin,
+            id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+            id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area, state
+        });
+        if (!response) return null;
+
+        const result = await createPago(carasDni, cci, certiAdulto, claveSol, suspension, response.id);
+        if (!result) console.warn(`No se pudo crear la información de pagos para el empleado con DNI ${dni}`);
+
+        /* if (Number(id_subgerencia) !== 1) return response;
+
+        // Los IDs de cargo de ambas tablas no coinciden por lo que se hace lo siguiente :
+        const ids_cargos = { 1: 32, 2: 1, 3: 33, 4: 34, 6: 36, 11: 2, 13: 41, 17: 45, 19: 11, 72: 54 };
+        const id_cargo_incidencias = ids_cargos[Number(id_cargo)];
+        if (!id_cargo_incidencias) return response;
+
+        const consulta = {
+            "nombres": nombres,
+            "apellidoPaterno": apellidos.split(' ')[0],
+            "apellidoMaterno": apellidos.split(' ')[1],
+            "cargo_sereno_id": id_cargo_incidencias,
+            "dni": dni
+        };
+
+        try {
+            const sereno = await axios.post(INCIDENCIAS_CREATE_URL, consulta);
+            if (!sereno) console.warn(`No se pudo registrar en la DB de Incidencias para el empleado con DNI ${dni}`);
+            else console.log(`Sereno con DNI ${dni} registrado exitosamente en la DB de Incidencias`);
+            
+        } catch (error) {
+            console.error({
+                message: `Error al registrar en la DB de Incidencias al empleado con DNI ${dni}`,
+                data: error
+            });
+        } */
+
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al crear solo la información del empleado',
+            data: error
+        });
+        return false;
+    }
+};
+
 // Actualizar la información sin incluir datos privados del empleado (SECTOR TAREAJE) :
 const updateEmpleado = async (
     id, nombres, apellidos, dni, ruc, hijos, edad,
@@ -586,6 +645,72 @@ const updateEmpleadoPago = async (
     } catch (error) {
         console.error({
             message: 'Error en el controlador al actualizar al empleado para el sector de pagos',
+            data: error
+        });
+        return false;
+    }
+};
+
+// Actualizar la información sin incluir datos privados del empleado (SECTOR TAREAJE) :
+const updateEmpleadoInfo = async (
+    id, nombres, apellidos, dni, ruc, hijos, edad,
+    f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, carrera, foto, f_fin,
+    id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+    id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area, state
+) => {
+
+    try {
+        const response = await Empleado.findByPk(id);
+        await response.update({
+            nombres, apellidos, dni, ruc, hijos, edad,
+            f_nacimiento, correo, domicilio, celular, f_inicio, observaciones, carrera, foto, f_fin,
+            id_cargo, id_turno, id_regimen_laboral, id_sexo, id_jurisdiccion,
+            id_grado_estudios, id_subgerencia, id_funcion, id_lugar_trabajo, id_area, state
+        });
+        
+        if (!response) return null;
+
+        /* if (Number(id_subgerencia) !== 1) return response;
+
+        // Los IDs de cargo de ambas tablas no coinciden por lo que se hace lo siguiente :
+        const ids_cargos = { 1: 32, 2: 1, 3: 33, 4: 34, 6: 36, 11: 2, 13: 41, 17: 45, 19: 11, 72: 54 };
+        const id_cargo_incidencias = ids_cargos[Number(id_cargo)];
+        if (!id_cargo_incidencias) return response;
+
+        const serenos = await getAllSerenos();
+        if (!serenos) {
+            console.warn('No se obtuvieron los serenos de la DB de Incidencias...');
+            return response;
+        }
+
+        const dato = serenos.find(sereno => sereno.dni === dni);
+        if (dato) return response;
+
+        const consulta = {
+            "nombres": nombres,
+            "apellidoPaterno": apellidos.split(' ')[0],
+            "apellidoMaterno": apellidos.split(' ')[1],
+            "cargo_sereno_id": id_cargo_incidencias,
+            "dni": dni
+        };
+
+        try {
+            const sereno = await axios.post(INCIDENCIAS_CREATE_URL, consulta);
+            if (!sereno) console.warn(`No se pudo registrar en la DB de Incidencias para el empleado con DNI ${dni}`);
+            else console.log(`Sereno con DNI ${dni} registrado exitosamente en la DB de Incidencias`);
+            
+        } catch (error) {
+            console.error({
+                message: `Error al registrar en la DB de Incidencias al empleado con DNI ${dni}`,
+                data: error
+            });
+        } */
+
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar solo la información del empleado',
             data: error
         });
         return false;
@@ -856,10 +981,12 @@ module.exports = {
     findEmpleado,
     rotativoEmpleado,
     createEmpleado,
+    createEmpleadoInfo,
     deleteEmpleado,
     deleteEmpleadoBlackList,
     updateEmpleado,
     updateEmpleadoPago,
+    updateEmpleadoInfo,
     fechaEmpleado,
     getEmpleadoById,
     getEmpleadoByIdAttributes
