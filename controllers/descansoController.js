@@ -82,9 +82,20 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
         fechaDate.setDate(fechaDate.getDate() + 1);
     }
 
+    const dateYear = fechaDate.getFullYear();
+    const dateMonth = fechaDate.getMonth();
+    const dateComparate = new Date(dateYear, dateMonth, 1);
+    const dateMin = dateComparate.toISOString().split('T')[0];
+
     try {
         // Construcción dinámica de condiciones :
         const whereCondition = {
+            f_fin: { 
+                [Op.or]: [
+                    { [Op.gte]: dateMin },
+                    { [Op.is]: null }
+                ]
+            },
             ...(search && {
                 [Op.and]: search.split(' ').map((term) => ({
                     [Op.or]: [
@@ -138,6 +149,7 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
             dni: empleado.dni,
             cargo: empleado.cargo ? empleado.cargo.nombre : null,
             turno: empleado.turno ? empleado.turno.nombre : null,
+            f_fin: empleado.f_fin ? empleado.f_fin : null,
             regimen: empleado.regimenLaboral ? empleado.regimenLaboral.nombre : null,
             descansos: dias.map(fecha => {
                 const descanso = descansoMap[empleado.id]?.[fecha];

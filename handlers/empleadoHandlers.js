@@ -525,7 +525,7 @@ const createEmpleadoOnlyInfoHandler = async (req, res) => {
     if (isNaN(hijos)) errores.push("El número de hijos debe ser un número entero mayor o igual a 0");
     if (isNaN(edad)) errores.push("La edad debe ser un entero entre 0 y 120");
     if (!Date.parse(f_nacimiento)) errores.push("La fecha de nacimiento debe tener el formato YYYY-MM-DD");
-    if (config_correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config_correo)) errores.push("El correo electrónico no es válido");
+    //if (config_correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config_correo)) errores.push("El correo electrónico no es válido");
     if (config_domicilio && config_domicilio.length < 5) errores.push("El domicilio debe tener al menos 5 caracteres");
     if (config_celular && !/^\d{9}$/.test(config_celular)) errores.push("El número de celular debe tener entre 9 y 15 dígitos");
     if (config_f_inicio && !Date.parse(config_f_inicio)) errores.push("La fecha de inicio debe tener el formato YYYY-MM-DD");
@@ -931,9 +931,8 @@ const updateEmpleadoOnlyInfoHandler = async (req, res) => {
     if (isNaN(hijos)) errores.push("El número de hijos debe ser un número entero mayor o igual a 0");
     if (isNaN(edad)) errores.push("La edad debe ser un entero entre 0 y 120");
     if (!Date.parse(f_nacimiento)) errores.push("La fecha de nacimiento debe tener el formato YYYY-MM-DD");
-    if (config_correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config_correo)) errores.push("El correo electrónico no es válido");
+    //if (config_correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config_correo)) errores.push("El correo electrónico no es válido");
     if (config_domicilio && config_domicilio.length < 5) errores.push("El domicilio debe tener al menos 5 caracteres");
-    if (config_celular && !/^\d{9}$/.test(config_celular)) errores.push("El número de celular debe tener entre 9 y 15 dígitos");
     if (config_f_inicio && !Date.parse(config_f_inicio)) errores.push("La fecha de inicio debe tener el formato YYYY-MM-DD");
     if (config_observaciones && config_observaciones.length > 200) errores.push("Las observaciones no pueden exceder 200 caracteres");
     if (config_f_fin && !Date.parse(config_f_fin)) errores.push("La fecha de fin debe tener el formato YYYY-MM-DD");
@@ -954,13 +953,6 @@ const updateEmpleadoOnlyInfoHandler = async (req, res) => {
     });
 
     try {
-        // Validar si la personaa no pertenece a la Black List :
-        const dark = await validateBlackList(nombres, apellidos, dni);
-        if (dark) return res.status(200).json({
-            message: 'La persona pertenece a la Black List, no puede laborar',
-            data: []
-        });
-
         const previo = await getEmpleadoById(id);
         if (!previo) return res.status(200).json({
             message: 'Empleado no encontrado',

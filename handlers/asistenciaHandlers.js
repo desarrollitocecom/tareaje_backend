@@ -4,7 +4,8 @@ const {
     getAsistenciaRango,
     getAllAsistencias,
     createAsistenciaUsuario,
-    createAsistencia
+    createAsistencia,
+    updateAsistencia
 } = require('../controllers/asistenciaController');
 
 const { createHistorial } = require('../controllers/historialController');
@@ -114,7 +115,6 @@ const getAsistenciaRangoHandler = async (req, res) => {
     const { inicio, fin } = req.body;
     const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state } = req.query;
     const filters = { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state };
-    const token = req.user;
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un número entero...');
@@ -147,16 +147,6 @@ const getAsistenciaRangoHandler = async (req, res) => {
             });
         }
 
-        const historial = await createHistorial(
-            'read',
-            'Asistencia',
-            `Read Asistencias ${inicio} to ${fin}`,
-            null,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
-
         return res.status(200).json({
             message: `Mostrando las asistencias del ${inicio} al ${fin}`,
             data: {
@@ -180,7 +170,6 @@ const getAsistenciaRangoHandler = async (req, res) => {
 const getAllAsistenciasHandler = async (req, res) => {
 
     const { page = 1, limit = 20 } = req.query;
-    const token = req.user;
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un número entero...');
@@ -241,8 +230,8 @@ const createAsistenciaUsuarioHandler = async (req, res) => {
     if(!id_empleado) errores.push('El parámetro ID EMPLEADO es obligatorio');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El parámetro FECHA necesita el formato YYYY-MM-HH');
     if(!/^\d{2}:\d{2}:\d{2}$/.test(hora)) errores.push('El parámetro HORA necesita el formato HH:MM:SS');
-    if(!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(estado)) {
-        errores.push('El parámetro ESTADO no es correcto, debe ser [A, F, DM, DO, V, DF, LSG, LCG, LF, PE]');
+    if(!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF','T'].includes(estado)) {
+        errores.push('El parámetro ESTADO no es correcto, debe ser [A, F, DO, DL, DC, LF, NA, DM, LSG, LCG, SSG, V, R, DF, T]');
     }
     if(isNaN(id_empleado)) errores.push('El parámetro ID EMPLEADO debe ser un entero');
     if(errores.length > 0) return res.status(400).json({ errores });
@@ -263,15 +252,8 @@ const createAsistenciaUsuarioHandler = async (req, res) => {
             });
         }
 
-        const historial = await createHistorial(
-            'create',
-            'Asistencia',
-            'fecha, hora, estado, id_empleado',
-            null,
-            `${fecha}, ${hora}, ${estado}, ${id_empleado}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('create', 'Asistencia', null, response, token);
+        if (!historial) console.warn('No se agregó la creación de la asistencia al historial...');
 
         return res.status(200).json({
             message: 'Asistencia creada con éxito...',
@@ -280,17 +262,16 @@ const createAsistenciaUsuarioHandler = async (req, res) => {
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Error en createAsistenciaUsuario',
+            message: 'Error en el controlador al crear una asistencia manual',
             error: error.message
         });
     }
-}
+};
 
 // PROVISIONAL CREAR ASISTENCIA HANDLER :
 const createAsistenciaHandler = async (req, res) => {
 
     const { fecha, hora, estado, photo_id, id_empleado } = req.body;
-    const token = req.user;
     const errores = [];
 
     if(!fecha) errores.push('El parámetro FECHA es obligatorio');
@@ -300,8 +281,8 @@ const createAsistenciaHandler = async (req, res) => {
     if(!id_empleado) errores.push('El parámetro ID EMPLEADO es obligatorio');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El parámetro FECHA necesita el formato YYYY-MM-HH');
     if(!/^\d{2}:\d{2}:\d{2}$/.test(hora)) errores.push('El parámetro HORA necesita el formato HH:MM:SS');
-    if(!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(estado)) {
-        errores.push('El parámetro ESTADO no es correcto, debe ser [A, F, DM, DO, V, DF, LSG, LCG, LF, PE]');
+    if(!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF','T'].includes(estado)) {
+        errores.push('El parámetro ESTADO no es correcto, debe ser [A, F, DO, DL, DC, LF, NA, DM, LSG, LCG, SSG, V, R, DF, T]');
     }
     if(isNaN(id_empleado)) errores.push('El parámetro ID EMPLEADO debe ser un entero');
     if(errores.length > 0) return res.status(400).json({ errores });
@@ -327,11 +308,39 @@ const createAsistenciaHandler = async (req, res) => {
     }
 };
 
+// PROVISIONAL :
+const updateAsistenciaHandler = async (req, res) => {
+
+    const { id } = req.params;
+    const { fecha, hora, estado, id_empleado, photo_id } = req.body;
+
+    try {
+        const response = await updateAsistencia(id, fecha, hora, estado, id_empleado, photo_id);
+        if (!response) {
+            return res.status(200).json({
+                message: 'No se pudo actualizar la asistencia...',
+                data: []
+            });
+        }
+        return res.status(200).json({
+            message: 'Asistencia actualizada exitosamente',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error al actualizar la asistencia...',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getAsistenciaByIdHandler,
     getAsistenciaDiariaHandler,
     getAsistenciaRangoHandler,
     getAllAsistenciasHandler,
     createAsistenciaUsuarioHandler,
-    createAsistenciaHandler
+    createAsistenciaHandler,
+    updateAsistenciaHandler
 };
