@@ -311,7 +311,8 @@ const createAsistenciaHandler = async (req, res) => {
 // PROVISIONAL :
 const updateAsistenciaHandler = async (req, res) => {
 
-    const { id, fecha, hora, estado, id_empleado, photo_id } = req.body;
+    const { id } = req.params;
+    const { fecha, hora, estado, id_empleado, photo_id } = req.body;
 
     try {
         const response = await updateAsistencia(id, fecha, hora, estado, id_empleado, photo_id);
@@ -322,7 +323,7 @@ const updateAsistenciaHandler = async (req, res) => {
             });
         }
         return res.status(200).json({
-            message: 'Asistencia actualizada con éxito...',
+            message: 'Asistencia actualizada exitosamente',
             data: response
         });
 
