@@ -35,6 +35,7 @@ const createAsistencias = async (dia, hora) => {
                     const response = await validateAsistencia(dia, rotativo.id);
                     if (match1) {
                         if (!response) asistenciaRot = await createAsistencia(dia, match1.hora, 'A', rotativo.id, match1.foto);
+                        else if (response.estado === 'A') continue;
                         else if (!response.estado) asistenciaRot = await updateAsistencia(response.id, dia, match1.hora, 'A', rotativo.id, match1.foto);
                         else asistenciaRot = await updateAsistencia(response.id, dia, match1.hora, response.estado, rotativo.id, match1.foto, true);
                         if (!asistenciaRot) console.warn(`Asistencia no creada para el empleado rotativo con ID ${rotativo.id}`);
@@ -45,15 +46,18 @@ const createAsistencias = async (dia, hora) => {
                         const match3 = (e_feriado_compensado.length > 0) ? e_feriado_compensado.includes(rotativo.id) : false;
                         if (match2) {
                             if (!response) asistenciaRot = await createAsistencia(dia, `${horaStr}:00:00`, 'DF', rotativo.id, 'Sin foto');
+                            if (!response.estado) asistenciaRot = await updateAsistencia(response.id, dia, response.hora, response.estado, empleado.id, response.photo_id, response.evidencia);
                             else asistenciaRot = await updateAsistencia(response.id, dia, `${horaStr}:00:00`, 'DF', rotativo.id, 'Sin foto');
                         }
                         else if (match3) {
                             if (!response) asistenciaRot = await createAsistencia(dia, `${horaStr}:06:00`, 'NA', rotativo.id, 'Sin foto');
+                            if (!response.estado) asistenciaRot = await updateAsistencia(response.id, dia, response.hora, response.estado, empleado.id, response.photo_id, response.evidencia);
                             else asistenciaRot = await updateAsistencia(response.id, dia, `${horaStr}:06:00`, 'NA', rotativo.id, 'Sin foto');
                         }
                         else if (rotativo.id_area === 2 && fecha.getDay() === 0) continue;
                         else {
                             if (!response) asistenciaRot = await createAsistencia(dia, `${horaStr}:06:00`, 'F', rotativo.id, 'Sin foto');
+                            if (!response.estado) asistenciaRot = await updateAsistencia(response.id, dia, response.hora, response.estado, empleado.id, response.photo_id, response.evidencia);
                             else asistenciaRot = await updateAsistencia(response.id, dia, `${horaStr}:06:00`, 'F', rotativo.id, 'Sin foto');
                         }
                     }
@@ -78,21 +82,23 @@ const createAsistencias = async (dia, hora) => {
             const response = await validateAsistencia(dia, empleado.id);
 
             if (match1) {
-                if (!response) asistencia = await createAsistencia(dia, match1.hora, 'A', empleado.id, match1.foto);
-                else if (!response.estado) asistencia = await updateAsistencia(response.id, dia, match1.hora, 'A', empleado.id, match1.foto);
+                if (!response) asistencia = await createAsistencia(dia, match1.hora, 'A', empleado.id, match1.foto, true);
+                else if (!response.estado) asistencia = await updateAsistencia(response.id, dia, match1.hora, 'A', empleado.id, match1.foto, true);
                 else asistencia = await updateAsistencia(response.id, dia, match1.hora, response.estado, empleado.id, match1.foto, true);
             }
             else if (match2) {
                 if (!response) asistencia = await createAsistencia(dia, `${horaStr}:00:00`, 'DF', empleado.id, 'Sin foto');
+                if (!response.estado) asistencia = await updateAsistencia(response.id, dia, response.hora, response.estado, empleado.id, response.photo_id, response.evidencia);
                 else asistencia = await updateAsistencia(response.id, dia, `${horaStr}:00:00`, 'DF', empleado.id, 'Sin foto');
             }
             else if (match3) {
                 if (!response) asistencia = await createAsistencia(dia, `${horaStr}:06:00`, 'NA', empleado.id, 'Sin foto');
+                if (!response.estado) asistencia = await updateAsistencia(response.id, dia, response.hora, response.estado, empleado.id, response.photo_id, response.evidencia);
                 else asistencia = await updateAsistencia(response.id, dia, `${horaStr}:06:00`, 'NA', empleado.id, 'Sin foto');
             }
-            else if (empleado.id_area === 2 && fecha.getDay() === 6) continue;
             else {
                 if (!response) asistencia = await createAsistencia(dia, `${horaStr}:06:00`, 'F', empleado.id, 'Sin foto');
+                if (!response.estado) asistencia = await updateAsistencia(response.id, dia, response.hora, response.estado, empleado.id, response.photo_id, response.evidencia);
                 else asistencia = await updateAsistencia(response.id, dia, `${horaStr}:06:00`, 'F', empleado.id, 'Sin foto');
             }
             if (!asistencia) console.warn(`Asistencia no creada para el empleado con ID ${empleado.id}`);

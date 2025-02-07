@@ -270,7 +270,7 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
     if (!photo_id) errores.push('Es necesario que exista el parámetro PHOTO ID');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El formato para la FECHA es incorrecto');
     if (!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(hora)) errores.push('El formato para la HORA es incorrecto');
-    if (estado && !['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(estado)) errores.push('El estado ingresado no es el correspondiente');
+    if (estado && !['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF','T'].includes(estado)) errores.push('El estado ingresado no es el correspondiente');
     if (isNaN(id_empleado)) errores.push('El formato para el ID EMPLEADO debe ser un entero');
 
     if (errores.length > 0) {
