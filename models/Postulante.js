@@ -150,7 +150,7 @@ module.exports = (sequelize) => {
         Postulante.belongsTo(db.Distrito, { foreignKey: 'id_distrito', as: 'distrito' });
         Postulante.belongsTo(db.Entidad, { foreignKey: 'id_entidad', as: 'entidad' });
         Postulante.belongsTo(db.Cargo, { foreignKey: 'id_cargo', as: 'cargo' });
-        Postulante.belongsTo(db.Sexo, { foreignKey: 'id_sexo', as: 'sexos' });
+        Postulante.belongsTo(db.Sexo, { foreignKey: 'id_sexo', as: 'sexo' });
         Postulante.belongsTo(db.RegimenLaboral, { foreignKey: 'id_regimen_laboral', as: 'regimenLaboral' });
         Postulante.belongsTo(db.GradoEstudios, { foreignKey: 'id_grado_estudios', as: 'gradoEstudios' });
         Postulante.belongsTo(db.Subgerencia, { foreignKey: 'id_subgerencia', as: 'subgerencia' });

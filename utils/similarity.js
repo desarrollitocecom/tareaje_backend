@@ -1,3 +1,6 @@
+// Usamos Jaro-Winkler para la similitud de cadenas :
+const { JaroWinklerDistance } = require('natural');
+
 // Función de Levenshtein para determinar la similitud entre cadenas de texto :
 const levenshtein = (a, b) => {
     
@@ -14,17 +17,18 @@ const levenshtein = (a, b) => {
     return matrix[a.length][b.length];
 };
 
-// Función para encontrar el elemento más similar con un umbral definido :
-const searchBestSimilarity = (general, datos, umbral = 0.85) => {
-
+// Función para encontrar el elemento más similar con Jaro-Winkler
+const searchBestSimilarity = (general, datos, umbral = 0.88) => {
     const result = datos.reduce((closest, dato) => {
-        const similarity = 1 - levenshtein(general, dato) / Math.max(general.length, dato.length);
-        if (!closest || similarity > closest.similarity) return { dato, similarity };
+        const similarity = JaroWinklerDistance(general, dato);
+
+        if (!closest || similarity > closest.similarity) {
+            return { dato, similarity };
+        }
         return closest;
     }, null);
 
-    if (!result || result.similarity < umbral) return null;
-    return result;
+    return result && result.similarity >= umbral ? result : null;
 };
 
 module.exports = { searchBestSimilarity };

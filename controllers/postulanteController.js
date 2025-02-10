@@ -13,9 +13,8 @@ const getPostulante = async (id) => {
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Sexo, as: 'sexo', attributes: ['nombre'] },
                 { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
-                { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
                 { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
-                { model: Convocatoria, as: 'convocatoria', attributes: ['nombre'] }
+                { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
             ]
         });
         return response || null;
@@ -48,7 +47,7 @@ const getPostulanteById = async (id) => {
 // Obtener todos los postulantes con paginación, búsqueda y filtros :
 const getAllPostulantes = async (page = 1, limit = 20, filters = {}) => {
 
-    const { search, dni, cargo, subgerencia, sexo, grado, edadMin, edadMax, hijosMin, hijosMax } = filters;
+    const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
 
@@ -64,7 +63,6 @@ const getAllPostulantes = async (page = 1, limit = 20, filters = {}) => {
     try {
         // Construcción dinámica de condiciones :
         const whereCondition = {
-            blacklist: false,
             ...(search && {
                 [Op.and]: search.split(' ').map((term) => ({
                     [Op.or]: [
@@ -74,10 +72,12 @@ const getAllPostulantes = async (page = 1, limit = 20, filters = {}) => {
                 })),
             }),
             ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
             ...(cargo && { id_cargo: cargo }),
-            ...(sexo && { id_sexo: sexo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
             ...(grado && { id_grado_estudios: grado }),
-            ...(subgerencia && { id_sexo: subgerencia }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(convocatoria && { id_convocatoria: convocatoria }),
             ...(validDateFromEdadMin && validDateFromEdadMax && {
                 f_nacimiento: { [Op.between]: [dateFromEdadMin, dateFromEdadMax] },
             }),
@@ -93,7 +93,7 @@ const getAllPostulantes = async (page = 1, limit = 20, filters = {}) => {
             { model: Sexo, as: 'sexo', attributes: ['nombre'] },
             { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
             { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
-            { model: Convocatoria, as: 'convocatoria', attributes: ['nombre'] }
+            { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
         ];
 
         const response = await Postulante.findAndCountAll({
@@ -118,18 +118,18 @@ const getAllPostulantes = async (page = 1, limit = 20, filters = {}) => {
     }
 };
 
-// Crear la información de un postulante :
+// Crear la información inicial de un postulante :
 const createPostulante = async (
     nombres, apellidos, dni, ruc, f_nacimiento, talla, hijos, correo, domicilio, celular, f_registro,
-    carrera, cv, observaciones, clave_cul, id_distrito,
-    id_cargo, id_sexo, id_regimen_laboral, id_grado_estudios, id_subgerencia, state_blacklist
+    carrera, cv, observaciones, id_distrito,
+    id_cargo, id_sexo, id_regimen_laboral, id_grado_estudios, id_subgerencia, id_convocatoria, state_blacklist
 ) => {
 
     try {
         const response = await Postulante.create({
             nombres, apellidos, dni, ruc, f_nacimiento, talla, hijos, correo, domicilio, celular, f_registro,
-            carrera, cv, observaciones, clave_cul, id_distrito,
-            id_cargo, id_sexo, id_regimen_laboral, id_grado_estudios, id_subgerencia, state_blacklist
+            carrera, cv, observaciones, id_distrito,
+            id_cargo, id_sexo, id_regimen_laboral, id_grado_estudios, id_subgerencia, id_convocatoria, state_blacklist
         });
         return response || null;
 
@@ -142,19 +142,19 @@ const createPostulante = async (
     }
 };
 
-// Actualizar la información del postulante :
+// Actualizar la información inicial de un postulante :
 const updatePostulante = async (
-    id, nombres, apellidos, dni, ruc, f_nacimiento, talla, hijos, correo, domicilio, celular, carrera, cv,
-    observaciones, cuenta, cci, clave_sol, clave_cul, id_distrito, id_entidad,
-    id_cargo, id_sexo, id_regimen_laboral, id_grado_estudios, id_subgerencia
+    id, nombres, apellidos, dni, ruc, f_nacimiento, talla, hijos, correo, domicilio, celular,
+    carrera, cv, observaciones, id_distrito,
+    id_cargo, id_sexo, id_regimen_laboral, id_grado_estudios, id_subgerencia, id_convocatoria, state_blacklist
 ) => {
 
     try {
         const response = await Postulante.findByPk(id);
         await response.update({
-            nombres, apellidos, dni, ruc, f_nacimiento, talla, hijos, correo, domicilio, celular, carrera, cv,
-            observaciones, cuenta, cci, clave_sol, clave_cul, id_distrito, id_entidad,
-            id_cargo, id_sexo, id_regimen_laboral, id_grado_estudios, id_subgerencia
+            nombres, nombres, apellidos, dni, ruc, f_nacimiento, talla, hijos, correo, domicilio, celular,
+            carrera, cv, observaciones, id_distrito,
+            id_cargo, id_sexo, id_regimen_laboral, id_grado_estudios, id_subgerencia, id_convocatoria, state_blacklist
         });
         return response || null;
 
