@@ -19,7 +19,10 @@ const getDistrito = async (id) => {
 };
 
 // Obtener los distritos :
-const getAllDistritos = async () => {
+const getAllDistritos = async (page = 1, limit = 20) => {
+
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
     
     try {
         const { count, rows } = await Distrito.findAndCountAll({
