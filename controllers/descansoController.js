@@ -46,7 +46,7 @@ const getAllDescansos = async (page = 1, limit = 20) => {
 
     try {
         const response = await Descanso.findAndCountAll({
-            where: { state: true },
+            //where: { state: true },
             include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'dni'] }],
             limit,
             offset,

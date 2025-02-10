@@ -5,7 +5,8 @@ const {
     getAllAsistencias,
     createAsistenciaUsuario,
     createAsistencia,
-    updateAsistencia
+    updateAsistencia,
+    validateAsistencia
 } = require('../controllers/asistenciaController');
 
 const { createHistorial } = require('../controllers/historialController');
@@ -315,6 +316,11 @@ const updateAsistenciaHandler = async (req, res) => {
     const { fecha, hora, estado, id_empleado, photo_id } = req.body;
 
     try {
+        // const result = validateAsistencia(fecha, id_empleado);
+        // if (!result) return res.status(200).json({
+        //     message: 'No existe asistencia...',
+        //     data: []
+        // });
         const response = await updateAsistencia(id, fecha, hora, estado, id_empleado, photo_id);
         if (!response) {
             return res.status(200).json({
