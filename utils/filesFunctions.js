@@ -4,7 +4,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 // Rutas para guardar las fotos y las justificaciones :
-const { FOTOS_RUTA, PDF_RUTA, DNI_RUTA } = process.env;
+const { FOTOS_RUTA, PDF_RUTA, DNI_RUTA, CV_RUTA } = process.env;
 
 // Configuración de almacenamiento para fotos :
 const imageStorage = multer.diskStorage({
@@ -62,6 +62,30 @@ const savePdf = multer({
         cb(null, true);
     },
 }).array('documents', 100);
+
+// Middleware para manejar la subida de un solo PDF de hasta 250 MB :
+const uploadCv = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, CV_RUTA);
+        },
+        filename: (req, file, cb) => {
+            const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+            cb(null, uniqueName);
+        },
+    }),
+    limits: {
+        fileSize: 250 * 1024 * 1024, // Tamaño máximo a 250MB
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype !== 'application/pdf') {
+            const error = new Error('Formato de documento no permitido. Solo PDFs.');
+            error.code = 'INVALID_FORMAT';
+            return cb(error);
+        }
+        cb(null, true);
+    },
+}).single('document');
 
 // Middleware para manejar la subida de una imagen y un PDF :
 const uploadImageAndPdf = multer({
@@ -179,12 +203,28 @@ const deletePhoto = (file) => {
     });
 };
 
+// Función para eliminar CVs :
+const deleteCv = (file) => {
+    const filePath = path.join(CV_RUTA, file);
+    return new Promise((resolve, reject) => {
+        const absolutePath = path.resolve(filePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlink(absolutePath, (err) => {
+                if (err) return reject(new Error(`Error al eliminar el archivo: ${err.message}`));
+                resolve(`Archivo eliminado correctamente: ${absolutePath}`);
+            });
+        } else resolve(`Archivo no encontrado: ${absolutePath}`);
+    });
+};
+
 module.exports = {
     saveImage,
     savePdf,
     uploadImageAndPdf,
+    uploadCv,
     multerError,
     deleteFile,
     deletePdfDNI,
-    deletePhoto
+    deletePhoto,
+    deleteCv
 };
