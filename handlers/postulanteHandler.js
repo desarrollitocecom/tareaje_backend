@@ -2,6 +2,7 @@ const {
     getPostulante,
     getPostulanteById,
     getAllPostulantes,
+    getAllPostulantesBlackList,
     createPostulante,
     updatePostulante,
     deletePostulante
@@ -70,7 +71,7 @@ const getAllPostulantesHandler = async (req, res) => {
         const response = await getAllPostulantes(numPage, numLimit, filters);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
-        if(numPage > totalPages) return res.status(200).json({
+        if (numPage > totalPages) return res.status(200).json({
             message: 'Página fuera de rango...',
             data:{
                 data: [],
@@ -95,6 +96,60 @@ const getAllPostulantesHandler = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: 'Error interno al obtener todos los postulantes',
+            error: error.message
+        });
+    }
+};
+
+// Handler para obtener todos los postulantes :
+const getAllPostulantesBlackListHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = req.query;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax };
+    const errores = [];
+
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+
+    try {
+        const response = await getAllPostulantesBlackList(numPage, numLimit, filters);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data:{
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes de la Black List obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes de la Black List',
             error: error.message
         });
     }
@@ -357,6 +412,7 @@ const deletePostulanteHandler = async (req, res) => {
 module.exports = {
     getPostulanteHandler,
     getAllPostulantesHandler,
+    getAllPostulantesBlackListHandler,
     createPostulanteHandler,
     updatePostulanteHandler,
     deletePostulanteHandler
