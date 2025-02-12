@@ -12,12 +12,12 @@ const updateObservacion = [
     .notEmpty()
     .withMessage("El comentario no puede estar vacío"),
   
-    body("consultaStatus")
+  body("consultaStatus")
     .optional()
     .notEmpty()
     .withMessage("el estado de consulta no puede estar vacío"),
 
-    body("ubicacion")
+  body("ubicacion")
         .optional()
         .isString()
         .withMessage("La ubicación debe ser un texto válido"),
