@@ -29,6 +29,7 @@ const seguimientoRouter = require('./seguimientoRouter');
 const { observacionRouter } = require('./observacionRouter');
 const postulanteRouter = require('./postulanteRouter');
 const convocatoriaRouter = require('./convocatoriaRouter');
+const pruebasRouter = require('./pruebasRouter');
 
 // Usa prefijos para organizar las rutas :
 router.use('/apikeys', apiKeyRouter);
@@ -59,5 +60,6 @@ router.use('/seguimiento', seguimientoRouter);
 router.use('/observaciones', observacionRouter);
 router.use('/postulantes', postulanteRouter);
 router.use('/convocatorias', convocatoriaRouter);
+router.use('/pruebas', pruebasRouter);
 
 module.exports = router;
