@@ -1,14 +1,31 @@
 const { Descanso, Empleado, Cargo, Turno, RegimenLaboral } = require("../db_connection");
 const { Op } = require('sequelize');
 
-// Obtener un descanso por ID :
+// Obtener un descanso con atributos del empleado por ID :
 const getDescanso = async (id) => {
+
     try {
         const response = await Descanso.findOne({
             where: { id, state: true },
-            include: [
-                { model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos'] }
-            ]
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'dni'] }]
+        })
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener un descanso con atributos del empleado por ID:',
+            data: error.message
+        });
+        return false;
+    }
+};
+
+// Obtener un descanso por ID :
+const getDescansoById = async (id) => {
+
+    try {
+        const response = await Descanso.findOne({
+            where: { id, state: true }
         })
         return response || null;
 
@@ -29,11 +46,11 @@ const getAllDescansos = async (page = 1, limit = 20) => {
 
     try {
         const response = await Descanso.findAndCountAll({
-            where: { state: true },
-            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'dni'], }],
+            //where: { state: true },
+            include: [{ model: Empleado, as: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'dni'] }],
             limit,
             offset,
-            order: [['id', 'ASC']]
+            order: [['fecha', 'ASC']]
         });
 
         return {
@@ -65,9 +82,20 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
         fechaDate.setDate(fechaDate.getDate() + 1);
     }
 
+    const dateYear = fechaDate.getFullYear();
+    const dateMonth = fechaDate.getMonth();
+    const dateComparate = new Date(dateYear, dateMonth, 1);
+    const dateMin = dateComparate.toISOString().split('T')[0];
+
     try {
         // Construcción dinámica de condiciones :
         const whereCondition = {
+            f_fin: { 
+                [Op.or]: [
+                    { [Op.gte]: dateMin },
+                    { [Op.is]: null }
+                ]
+            },
             ...(search && {
                 [Op.and]: search.split(' ').map((term) => ({
                     [Op.or]: [
@@ -121,6 +149,7 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
             dni: empleado.dni,
             cargo: empleado.cargo ? empleado.cargo.nombre : null,
             turno: empleado.turno ? empleado.turno.nombre : null,
+            f_fin: empleado.f_fin ? empleado.f_fin : null,
             regimen: empleado.regimenLaboral ? empleado.regimenLaboral.nombre : null,
             descansos: dias.map(fecha => {
                 const descanso = descansoMap[empleado.id]?.[fecha];
@@ -169,6 +198,7 @@ const getDescansosDiario = async (fecha) => {
 
 // Crear un descanso :
 const createDescanso = async (fecha, tipo, observacion, id_empleado) => {
+
     try {
         const response = await Descanso.create({ fecha, tipo, observacion, id_empleado });
         return response || null;
@@ -183,10 +213,11 @@ const createDescanso = async (fecha, tipo, observacion, id_empleado) => {
 };
 
 // Actualizar un descanso :
-const updateDescanso = async (id, fecha, observacion, id_empleado) => {
+const updateDescanso = async (id, fecha, tipo, observacion, id_empleado) => {
+
     try {
-        const response = await getDescanso(id);
-        if (response) await response.update({ fecha, observacion, id_empleado });
+        const response = await Descanso.findByPk(id);
+        if (response) await response.update({ fecha, tipo, observacion, id_empleado });
         return response || null;
 
     } catch (error) {
@@ -204,7 +235,6 @@ const deleteDescanso = async (id) => {
     try {
         const response = await getDescanso(id);
         if (!response) return null;
-
         response.state = false;
         await response.save();
         return response;
@@ -221,6 +251,7 @@ const deleteDescanso = async (id) => {
 module.exports = {
     getAllDescansos,
     getDescanso,
+    getDescansoById,
     getDescansosRango,
     getDescansosDiario,
     updateDescanso,

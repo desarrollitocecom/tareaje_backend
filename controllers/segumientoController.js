@@ -1,4 +1,4 @@
-const { Asistencia, Descanso, Vacacion, Empleado, Cargo, Turno, RegimenLaboral } = require('../db_connection');
+const { Asistencia, Cargo,  Empleado, Justificacion, RegimenLaboral, Turno } = require('../db_connection');
 const { Op } = require('sequelize');
 
 // Obtener asistencias (todos los estados) en un rango de fechas con filtros :
@@ -52,116 +52,90 @@ const getSeguimiento = async (page = 1, limit = 20, inicio, fin, filters = {}) =
             ...(state !== undefined && { state }),
         };
 
-        // Obtener todos los empleados :
         const empleados = await Empleado.findAndCountAll({
             where: whereCondition,
+            distinct: true, // IMPORTANTE: Evita la duplicación en el conteo
             include: [
                 { model: Cargo, as: 'cargo', attributes: ['nombre'] },
                 { model: Turno, as: 'turno', attributes: ['nombre'] },
-                { model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'] }
+                { model: RegimenLaboral, as: 'regimenLaboral', attributes: ['nombre'] },
+                {
+                    model: Asistencia,
+                    as: 'asistencias',
+                    attributes: ['id', 'fecha', 'estado', 'evidencia'],
+                    required: false,
+                    where: {
+                        fecha: { [Op.between]: [inicio, fin] }
+                    },
+                    include: [
+                        {
+                            model: Justificacion,
+                            as: 'justificaciones',
+                            attributes: ['id', 'documentos', 'descripcion', 'f_inicio', 'f_fin'],
+                            required: false,
+                            where: { state: true },
+                            through: { attributes: [] }
+                        }
+                    ]
+                }
             ],
             limit,
             offset,
-            order: [['apellidos', 'ASC']],
-            raw: true
+            order: [['apellidos', 'ASC']]
         });
-
-        // Obtener todas las asistencias y descansos en una sola consulta:
-        const [asistencias, descansos] = await Promise.all([
-            Asistencia.findAll({
-                where: {
-                    fecha: { [Op.between]: [inicio, fin] }
-                },
-                include: [{ model: Empleado, as: 'empleado', attributes: ['id'] }],
-                raw: true
-            }),
-            Descanso.findAll({
-                where: {
-                    state: true,
-                    fecha: { [Op.between]: [inicio, fin] }
-                },
-                attributes: ['id', 'id_empleado', 'fecha', 'tipo'],
-                order: [['fecha', 'ASC']],
-                raw: true
-            })
-        ]);
-
-        // Mapeo de las asistencias por empleado y fecha :
-        const asistenciaMap = empleados.rows.reduce((map, empleado) => {
-            map[empleado.id] = asistencias.filter(asistencia => asistencia.id_empleado === empleado.id)
-                .reduce((acc, asistencia) => {
-                    acc[asistencia.fecha] = { estado: asistencia.estado, id: asistencia.id };
-                    return acc;
-                }, {});
-            return map;
-        }, {});
-
-        // Mapeo de los descansos por empleado y fecha :
-        const descansoMap = empleados.rows.reduce((map, empleado) => {
-            map[empleado.id] = descansos.filter(descanso => descanso.id_empleado === empleado.id)
-                .reduce((acc, descanso) => {
-                    acc[descanso.fecha] = { tipo: descanso.tipo, id: descanso.id };
-                    return acc;
-                }, {});
-            return map;
-        }, {});
-
-        // Resultados finales con optimización :
-        const result = empleados.rows.map(empleado => ({
-            id_empleado: empleado.id,
-            nombres: empleado.nombres,
-            apellidos: empleado.apellidos,
-            dni: empleado.dni,
-            cargo: empleado['cargo.nombre'],
-            turno: empleado['turno.nombre'],
-            regimen: empleado['regimenLaboral.nombre'],
-            estados: dias.map(fecha => {
-                
-                const asistencia = asistenciaMap[empleado.id]?.[fecha];
-                const descanso = descansoMap[empleado.id]?.[fecha];
-
-                const dateFecha = new Date(fecha);
-                const dateFin = new Date(empleado.f_fin);
-
-                if (!empleado.state && dateFecha >= dateFin) return {
-                    fecha,
-                    model: null,
-                    tipo: 'R',
-                    id_modelo: null
-                }
-
-                if (asistencia && !descanso) return {
-                    fecha,
-                    model: 'Asistencia',
-                    tipo: asistencia.estado,
-                    id_modelo: asistencia.id
+        
+        // Transformar el resultado para estructurar asistencias por fecha :
+        const result = empleados.rows.map(empleado => {
+            const asistenciaMap = empleado.asistencias.reduce((acc, asistencia) => {
+                acc[asistencia.fecha] = {
+                    estado: asistencia.estado,
+                    id: asistencia.id,
+                    evidencia: asistencia.evidencia,
+                    exist: asistencia.justificaciones.length > 0,
+                    id_justificacion: asistencia.justificaciones.length > 0 ? asistencia.justificaciones[0].id : null,
+                    documentos: asistencia.justificaciones.length > 0 ? asistencia.justificaciones[0].documentos : null,
+                    descripcion: asistencia.justificaciones.length > 0 ? asistencia.justificaciones[0].descripcion : null,
+                    f_inicio: asistencia.justificaciones.length > 0 ? asistencia.justificaciones[0].f_inicio : null,
+                    f_fin: asistencia.justificaciones.length > 0 ? asistencia.justificaciones[0].descripcion : null
                 };
-
-                if (descanso) return {
+                return acc;
+            }, {});
+        
+            return {
+                id_empleado: empleado.id,
+                nombres: empleado.nombres,
+                apellidos: empleado.apellidos,
+                dni: empleado.dni,
+                cargo: empleado.cargo?.nombre || null,
+                turno: empleado.turno?.nombre || null,
+                regimen: empleado.regimenLaboral?.nombre || null,
+                estados: dias.map(fecha => ({
                     fecha,
-                    model: 'Descanso',
-                    tipo: descanso.tipo,
-                    id_modelo: descanso.id
-                };
-
-                return {
-                    fecha,
-                    model: null,
-                    tipo: null,
-                    id_modelo: null
-                };
-            })
-        }));
-
+                    tipo: asistenciaMap[fecha]?.estado || null,
+                    id_asistencia: asistenciaMap[fecha]?.id || null,
+                    evidencia: asistenciaMap[fecha]?.evidencia ?? false,
+                    justificacion: {
+                        exist: asistenciaMap[fecha]?.exist || null,
+                        id_justificacion: asistenciaMap[fecha]?.id_justificacion || null,
+                        documentos: asistenciaMap[fecha]?.documentos || null,
+                        descripcion: asistenciaMap[fecha]?.descripcion || null,
+                        f_inicio: asistenciaMap[fecha]?.f_inicio || null,
+                        f_fin: asistenciaMap[fecha]?.f_fin || null,
+                    }
+                }))
+            };
+        });
+        
         return {
             data: result,
-            currentPage: page,
             totalCount: empleados.count
         };
 
-
     } catch (error) {
-        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        console.error({
+            message: 'Error al obtener las asistencias de un rango de fechas:',
+            error: error.message
+        });
         return false;
     }
 };

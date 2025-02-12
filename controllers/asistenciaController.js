@@ -1,19 +1,23 @@
 const { Asistencia, Empleado, Cargo, Turno, RegimenLaboral } = require('../db_connection');
 const { Op } = require('sequelize');
 
-// Obtener la asistencias por ID (formato UUID) :
+// Obtener la asistencia por ID (formato UUID) :
 const getAsistenciaById = async (id) => {
 
     try {
         const asistencia = await Asistencia.findByPk(id);
         return asistencia || null;
+
     } catch (error) {
-        console.error('Error al obtener la asistencia por ID: ', error);
+        console.error({
+            message: 'Error al obtener la asistencia por ID: ',
+            error: error.message
+        });
         return false;
     }
 };
 
-// Obtener las asistencias (todos los estados) de un día determinado con filtros :
+// Obtener las asistencias (todos los estados) de un día determinado con filtros - ASISTENCIA DEL PERSONAL :
 const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) => {
 
     const { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state, estado } = filters; // Extraer filtros
@@ -71,12 +75,15 @@ const getAsistenciaDiaria = async (page = 1, limit = 20, fecha, filters = {}) =>
         };
 
     } catch (error) {
-        console.error('Error al obtener las asistencias de un día determinado:', error);
+        console.error({
+            message: 'Error al obtener las asistencias de un día determinado:',
+            error: error.message
+        });
         return false;
     }
 };
 
-// Obtener ids asistencias con datos de empleado en un rango de fechas :
+// Obtener los IDs de asistencias con datos de empleado en un rango de fechas :
 const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
 
     try {
@@ -107,15 +114,18 @@ const getIdsAsistenciaRango = async (id_empleado, inicio, fin) => {
         return result;
 
     } catch (error) {
-        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        console.error({
+            message: 'Error al obtener las asistencias de un rango de fechas:',
+            error: error.message
+        });
         return false;
     }
 };
 
-// Obtener asistencias (todos los estados) en un rango de fechas con filtros :
+// Obtener asistencias (todos los estados) en un rango de fechas con filtros - SEGUIMIENTO DEL PERSONAL :
 const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {}) => {
 
-    const { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state } = filters; // Extraer filtros
+    const { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, state } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
     const dias = [];
@@ -199,22 +209,26 @@ const getAsistenciaRango = async (page = 1, limit = 20, inicio, fin, filters = {
         };
 
     } catch (error) {
-        console.error('Error al obtener las asistencias de un rango de fechas:', error);
+        console.error({
+            message: 'Error al obtener las asistencias de un rango de fechas:',
+            error: error.message
+        });
         return false;
     }
 };
 
 // Obtener todas las asistencias :
-const getAllAsistencias = async (page = 1, pageSize = 20) => {
+const getAllAsistencias = async (page = 1, limit = 20) => {
 
-    const offset = (page - 1) * pageSize;
-    const limit = pageSize;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
 
     try {
         const response = await Asistencia.findAndCountAll({
             limit,
             offset,
-            order: [['fecha', 'ASC']]
+            order: [['fecha', 'ASC']],
+            raw: true
         });
 
         return {
@@ -229,69 +243,57 @@ const getAllAsistencias = async (page = 1, pageSize = 20) => {
     }
 };
 
-// Crear Asistencia desde el algoritmo (SIN HANDLER) :
+// Validar si una asistencia ya existe para evitar duplicados
+const validateAsistencia = async (fecha, id_empleado) => {
+    
+    try {
+        const response = await Asistencia.findOne({
+            where: { fecha: fecha, id_empleado: id_empleado }
+        });
+        return response || null; 
+
+    } catch (error) {
+        console.error({
+            message: 'Error al validar la asistencia',
+            error: error.message
+        })
+    }
+};
+
+// Crear asistencia para el algoritmo (SIN HANDLER) :
 const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
 
-    // Validaciones para crear de forma correcta la asistencia correspondiente :
-    if (!fecha) {
-        console.error('Es necesario que exista el parámetro FECHA');
-        return false;
-    }
-    if (!hora) {
-        console.error('Es necesario que exista el parámetro HORA');
-        return false;
-    }
-    if (!estado) {
-        console.error('Es necesario que exista el parámetro ESTADO');
-        return false;
-    }
-    if (!id_empleado) {
-        console.error('Es necesario que exista el parámetro ID EMPLEADO');
-        return false;
-    }
-    if (!photo_id) {
-        console.error('Es necesario que exista el parámetro PHOTO ID');
-        return false;
-    }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-        console.error('El formato para la FECHA es incorrecto');
-        return false;
-    }
-    if (!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(hora)) {
-        console.error('El formato para la HORA es incorrecto');
-        return false;
-    }
-    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(estado)) {
-        console.error('El estado ingresado no es el correspondiente');
-        return false;
-    }
-    if (isNaN(id_empleado)) {
-        console.error('El formato para el ID EMPLEADO debe ser un entero');
+    const errores = [];
+    if (!fecha) errores.push('Es necesario que exista el parámetro FECHA');
+    if (!hora) errores.push('Es necesario que exista el parámetro HORA');
+    if (!id_empleado) errores.push('Es necesario que exista el parámetro ID EMPLEADO');
+    if (!photo_id) errores.push('Es necesario que exista el parámetro PHOTO ID');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('El formato para la FECHA es incorrecto');
+    if (!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(hora)) errores.push('El formato para la HORA es incorrecto');
+    if (estado && !['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF','T'].includes(estado)) errores.push('El estado ingresado no es el correspondiente');
+    if (isNaN(id_empleado)) errores.push('El formato para el ID EMPLEADO debe ser un entero');
+
+    if (errores.length > 0) {
+        console.warn({
+            message: 'Se encontraron los siguientes errores:',
+            errores: errores
+        });
         return false;
     }
 
     try {
-        const result = await Asistencia.findOne({
-            where: { fecha: fecha, id_empleado: id_empleado },
-            raw: true
-        });
-        if (result) return 1;
-
-        const response = await Asistencia.create({
-            fecha: fecha,
-            hora: hora,
-            estado: estado,
-            id_empleado: id_empleado,
-            photo_id: photo_id
-        });
+        const response = await Asistencia.create({ fecha, hora, estado, id_empleado, photo_id });
         if (!response) {
-            console.warn('Resultado nulo: No se pudo crear la asistencia');
+            console.warn('No se pudo crear la asistencia');
             return false;
         }
         return true;
 
     } catch (error) {
-        console.error('Error al crear una nueva asistencia:', error);
+        console.error({
+            message: 'Error al crear asistencia automática:',
+            error: error.message
+        });
         return false;
     }
 };
@@ -300,69 +302,29 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
 const createAsistenciaUsuario = async (fecha, hora, estado, id_empleado) => {
 
     try {
-        const asistencias = await Asistencia.findAndCountAll({
-            where: {
-                fecha: fecha,
-                hora: hora,
-                id_empleado: id_empleado
-            }
-        })
-        if (asistencias.rows.length) return 1;
-
-        const newAsistencia = await Asistencia.create({
-            fecha: fecha,
-            hora: hora,
-            estado: estado,
-            id_empleado: id_empleado,
-            photo_id: "Asistencia manual"
-        });
-        return newAsistencia || null;
-
-    } catch (error) {
-        console.error('Error al crear una nueva asistencia:', error);
-        return false;
-    }
-};
-
-// Actualizar la asistencia :
-// >> Dirigirse al controlador de Justificaciones: createJustificacion
-
-// PROVISIONAL, SOLO PARA LA PRESENTACIÓN :
-const updateAsistencia = async (fecha, hora, estado, photo_id, id_empleado) => {
-    
-    try {
-        const asistencia = await Asistencia.findOne({
-            where: {
-                fecha: fecha,
-                id_empleado: id_empleado
-            }
-        });
-
-        if (!asistencia || asistencia.length === 0) return null;
-        await asistencia.update({
-            hora: hora,
-            estado: estado,
-            photo_id: photo_id
-        });
-        return asistencia;
-
-    } catch (error) {
-        console.log('Error al actualizar la asistencia:', error);
-        return false;
-    }
-};
-
-// Modificar el estado de una asistencia :
-const updateEstadoAsistencia = async (id, estado) => {
-    
-    try {
-        const response = await Asistencia.findByPk(id);
-        if (response) await response.update({ estado });
+        const response = await Asistencia.create({ fecha, hora, estado, id_empleado, photo_id: 'Asistencia manual' });
         return response || null;
 
     } catch (error) {
         console.error({
-            message: 'Error en el controlador al actualizar el estado de la asistencia',
+            message: 'Error al crear una asistencia manual:',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Actualizar la asistencia para el algoritmo (SIN HANDLER) :
+const updateAsistencia = async (id, fecha, hora, estado, id_empleado, photo_id, evidencia = false) => {
+    
+    try {
+        const response = await Asistencia.findByPk(id);
+        if (response) await response.update({ fecha, hora, estado, id_empleado, photo_id, evidencia});
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error al actualizar una asistencia automáticamente:',
             error: error.message
         });
         return false;
@@ -375,8 +337,8 @@ module.exports = {
     getAsistenciaRango,
     getIdsAsistenciaRango,
     getAllAsistencias,
+    validateAsistencia,
     createAsistencia,
     createAsistenciaUsuario,
-    updateAsistencia,
-    updateEstadoAsistencia
+    updateAsistencia
 };

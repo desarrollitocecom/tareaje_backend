@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const http = require("http");
 const path = require('path');
 const { sequelize } = require("./db_connection");
-const { FOTOS_RUTA, PDF_RUTA, DNI_RUTA } = process.env;
+const { FOTOS_RUTA, PDF_RUTA, DNI_RUTA, CV_RUTA } = process.env;
 const tareajeRutas = require("./routes/index");
 const { PORT_TAREAJE } = process.env;
 const { initializeSocket, userSockets } = require("./sockets");
@@ -43,6 +43,7 @@ initializeSocket(server); // Inicializamos Socket.io
 app.use('/uploads/fotos', express.static(path.resolve(FOTOS_RUTA)));
 app.use('/uploads/pdfs', express.static(path.resolve(PDF_RUTA)));
 app.use('/uploads/pdfdni', express.static(path.resolve(DNI_RUTA)));
+app.use('/uploads/cv', express.static(path.resolve(CV_RUTA)));
 app.use("/", tareajeRutas);
 
 app.get("/", (req, res) => {

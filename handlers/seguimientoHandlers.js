@@ -16,7 +16,10 @@ const getSeguimientoHandler = async (req, res) => {
     if (!fin) errores.push('La fecha de fin es obligatoria...');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(inicio)) errores.push('El formato para INICIO es incorrecto, debe ser YYYY-MM-HH)');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fin)) errores.push('El formato para FIN es incorrecto, debe ser YYYY-MM-HH');
-    if (errores.length > 0) return res.status(400).json({ errores });
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores
+    });
 
     const numPage = parseInt(page);
     const numLimit = parseInt(limit);
@@ -49,7 +52,7 @@ const getSeguimientoHandler = async (req, res) => {
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Error en interno al obtener el seguimiento del personal',
+            message: 'Error interno al obtener el seguimiento del personal',
             error: error.message
         });
     }

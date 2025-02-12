@@ -1,20 +1,20 @@
 const { Router } = require('express');
-const rutas = Router();
+const router = Router();
+
 const {
-    createVacacionesHandler,
+    createVacacionHandler,
     getVacacionesHandler,
     getVacacionHandler,
     deleteVacacionesHandler,
-    updateVacacionesHandler
+    updateVacacionHandler
 } = require('../handlers/vacacionesHandlers');
+
 const permisoAutorizacion = require("../checkers/roleAuth");
 
+router.post('/', permisoAutorizacion(["all_system_access", "create_vacacion"]), createVacacionHandler);
+router.get('/', permisoAutorizacion(["all_system_access", "read_vacacion"]), getVacacionesHandler);
+router.get('/:id', permisoAutorizacion(["all_system_access", "read_vacacion"]), getVacacionHandler);
+router.patch('/:id', permisoAutorizacion(["all_system_access", "update_vacacion"]), updateVacacionHandler);
+router.delete('/:id', permisoAutorizacion(["all_system_access", "delete_vacacion"]), deleteVacacionesHandler)
 
-rutas.post('/', permisoAutorizacion(["all_system_access", "create_vacacion"]), createVacacionesHandler);
-rutas.get('/', permisoAutorizacion(["all_system_access", "read_vacacion"]), getVacacionesHandler);
-rutas.get('/:id', permisoAutorizacion(["all_system_access", "read_vacacion"]), getVacacionHandler);
-rutas.patch('/:id', permisoAutorizacion(["all_system_access", "update_vacacion"]), updateVacacionesHandler);
-rutas.delete('/:id', permisoAutorizacion(["all_system_access", "delete_vacacion"]), deleteVacacionesHandler)
-
-
-module.exports = rutas;
+module.exports = router;

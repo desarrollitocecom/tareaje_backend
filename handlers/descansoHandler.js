@@ -1,11 +1,18 @@
 const {
     getDescanso,
+    getDescansoById,
     getAllDescansos,
     getDescansosRango,
     createDescanso,
     updateDescanso,
     deleteDescanso
 } = require("../controllers/descansoController");
+
+const {
+    validateAsistencia,
+    createAsistencia,
+    updateAsistencia
+} = require('../controllers/asistenciaController')
 
 const { createHistorial } = require('../controllers/historialController');
 
@@ -24,7 +31,7 @@ const getDescansoHandler = async (req, res) => {
 
     try {
         const response = await getDescanso(id);
-        if (!response) return res.status(404).json({
+        if (!response) return res.status(200).json({
             message: 'Descanso no encontrado',
             data: []
         });
@@ -36,7 +43,7 @@ const getDescansoHandler = async (req, res) => {
         
     } catch (error) {
         return res.status(500).json({
-            message: 'Error interno del servidor al obtener un descanso por ID',
+            message: 'Error interno al obtener un descanso por ID',
             error: error.message
         });
     }
@@ -88,7 +95,7 @@ const getAllDescansosHandler = async (req, res) => {
         
     } catch (error) {
         return res.status(500).json({
-            message: 'Error al obtener todos los cargos en el handler',
+            message: 'Error interno al obtener todos los cargos en el handler',
             error: error.message
         });
     }
@@ -164,7 +171,7 @@ const createDescansoHandler = async (req, res) => {
     if (isNaN(Date.parse(fecha))) errores.push('El parámetro fecha debe tener el formatov YYYY-MM-DD');
     if (!tipo) errores.push('El parámetro TIPO es obligatorio');
     if (!['DL','DO','DC'].includes(tipo)) errores.push('El tipo debe ser [DL, DO, DC]');
-    if (config_observacion && typeof observacion !== 'string') errores.push('La observación debe ser una cadena de texto');
+    if (config_observacion && typeof config_observacion !== 'string') errores.push('La observación debe ser una cadena de texto');
     if (!id_empleado) errores.push('El parámetro ID de empleado es obligatorio');
     if (isNaN(id_empleado) || id_empleado <= 0) errores.push('El ID de empleado debe ser un entero positivo');
     if (errores.length > 0) return res.status(400).json({
@@ -173,21 +180,18 @@ const createDescansoHandler = async (req, res) => {
     });
 
     try {
-        const response = await createDescanso(fecha, tipo, observacion, id_empleado);
+        const response = await createDescanso(fecha, tipo, config_observacion, id_empleado);
         if (!response) return res.status(200).json({
             message: 'No se pudo crear el descanso',
             data: []
         });
 
-        const historial = await createHistorial(
-            'create',
-            'Descanso',
-            'fecha, tipo, id_empleado',
-            null,
-            `${fecha}, ${tipo}, ${id_empleado}`,
-            token
-        );
-        if (!historial) console.warn('No se agregó la creación del descanso al historial...');
+        const result = await validateAsistencia(fecha, id_empleado);
+        if (!result) await createAsistencia(fecha, '00:00:00', tipo, id_empleado, 'Sin Foto');
+        else await updateAsistencia(result.id, fecha, result.hora, tipo, id_empleado, result.photo_id);
+
+        const historial = await createHistorial('create', 'Descanso', null, response, token);
+        if (!historial) console.warn('No se agregó la creación del descanso al historial');
 
         return res.status(200).json({
             message: 'Descanso creado exitosamente...',
@@ -217,7 +221,7 @@ const updateDescansoHandler = async (req, res) => {
     if (isNaN(Date.parse(fecha))) errores.push('El parámetro fecha debe tener el formatov YYYY-MM-DD');
     if (!tipo) errores.push('El parámetro TIPO es obligatorio');
     if (!['DL','DO','DC'].includes(tipo)) errores.push('El tipo debe ser [DL, DO, DC]');
-    if (config_observacion && typeof observacion !== 'string') errores.push('La observación debe ser una cadena de texto');
+    if (config_observacion && typeof config_observacion !== 'string') errores.push('La observación debe ser una cadena de texto');
     if (!id_empleado) errores.push('El parámetro ID de empleado es obligatorio');
     if (isNaN(id_empleado) || id_empleado <= 0) errores.push('El ID de empleado debe ser un entero positivo');
     if (errores.length > 0) return res.status(400).json({
@@ -226,21 +230,23 @@ const updateDescansoHandler = async (req, res) => {
     });
 
     try {
-        const previo = await getDescanso(id);
-        const response = await updateDescanso(id, fecha, config_observacion, id_empleado);
+        const previo = await getDescansoById(id);
+        if (!previo) return res.status(200).json({
+            message: 'Descanso no encontrado',
+            data: []
+        });
+
+        const response = await updateDescanso(id, fecha, tipo, config_observacion, id_empleado);
         if (!response) return res.status(200).json({
             message: 'No se pudo actualizar el descanso...',
             data: []
         });
 
-        const historial = await createHistorial(
-            'update',
-            'Descanso',
-            'fecha, tipo, id_empleado',
-            `${previo.fecha}, ${previo.tipo}, ${previo.id_empleado}`,
-            `${response.fecha}, ${response.tipo}, ${response.id_empleado}`,
-            token
-        );
+        const result = await validateAsistencia(fecha, id_empleado);
+        if (!result) await createAsistencia(fecha, '00:00:00', tipo, id_empleado, 'Sin Foto');
+        else await updateAsistencia(result.id, fecha, result.hora, tipo, id_empleado, result.photo_id);
+
+        const historial = await createHistorial('update', 'Descanso', previo, response, token);
         if (!historial) console.warn('No se agregó la actualización del descanso al historial...');
 
         return res.status(200).json({
@@ -273,22 +279,19 @@ const deleteDescansoHandler = async (req, res) => {
     try {
         const response = await deleteDescanso(id);
         if (!response) return res.status(200).json({
-            message: 'Descanso no encontrado...',
+            message: 'Descanso no encontrado',
             data: []
         });
 
-        const historial = await createHistorial(
-            'delete',
-            'Descanso',
-            'fecha, observacion, id_empleado',
-            `${response.fecha}, ${response.observacion}, ${response.id_empleado}`,
-            null,
-            token
-        );
-        if (!historial) console.warn('No se agregó al historial...');
+        const historial = await createHistorial('delete', 'Descanso', response, null, token);
+        if (!historial) console.warn('No se agregó la eliminación del descanso al historial');
+
+        const result = await validateAsistencia(response.fecha, response.id_empleado);
+        if (result) await updateAsistencia(result.id, result.fecha, result.hora, null, result.id_empleado, result.photo_id);
+        else console.warn('No se pudo eliminar el descanso en Asistencia');
 
         return res.status(200).json({
-            message: "Descanso eliminado exitosamente...",
+            message: 'Descanso eliminado exitosamente...',
             data: response
         });
 

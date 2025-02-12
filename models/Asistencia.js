@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         estado: {
-            type: DataTypes.ENUM('A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'),
+            type: DataTypes.ENUM('A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF','T'),
             allowNull: true
         },
         id_empleado: {
@@ -24,9 +24,14 @@ module.exports = (sequelize) => {
             allowNull: false,
             references: { model: 'Empleados', key: 'id' }
         },
-        photo_id:{
+        photo_id: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        evidencia: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
         }
     },{
         tableName: 'Asistencias',
@@ -38,8 +43,14 @@ module.exports = (sequelize) => {
         ],
     });
 
-    Asistencia.associate = (models) => {
-        Asistencia.belongsTo(models.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+    Asistencia.associate = (db) => {
+        Asistencia.belongsTo(db.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+        Asistencia.belongsToMany(db.Justificacion, {
+            through: 'Justificacion_Asistencia',
+            foreignKey: 'id_asistencia',
+            otherKey: 'id_justificacion',
+            as: 'justificaciones'
+        })
     };
 
     return Asistencia;
