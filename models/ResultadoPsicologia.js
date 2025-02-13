@@ -1,4 +1,5 @@
 const { DataTypes } = require("sequelize");
+const { defaultValueSchemable } = require("sequelize/lib/utils");
 
 module.exports = (sequelize) => {
     const ResultadoPsicologia = sequelize.define('ResultadoPsicologia', {
@@ -8,56 +9,13 @@ module.exports = (sequelize) => {
             primaryKey: true
         },
         respuestas: {
-            type: DataTypes.JSON,
+            type: DataTypes.JSONB,
             allowNull: false
         },
-        E: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        M: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        J: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        I: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        S: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        A: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        B: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        T: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        SE: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-        O1: {
-            type: DataTypes.TEXT,
-            allowNull: true
-        },
-        O2: {
-            type: DataTypes.TEXT,
-            allowNull: true
-        },
-        O3: {
-            type: DataTypes.TEXT,
-            allowNull: true
+        id_prueba: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            reference: { model: 'PruebaRespuestas', key: 'id' }
         },
         id_postulante: {
             type: DataTypes.INTEGER,
@@ -75,6 +33,7 @@ module.exports = (sequelize) => {
 
     ResultadoPsicologia.associate = (models) => {
         ResultadoPsicologia.belongsTo(models.Postulante, { foreignKey: 'id_postulante', as: 'postulante' });
+        ResultadoPsicologia.belongsTo(models.PruebaRespuesta, { foreignKey: 'id_prueba', as: 'prueba' });
     };
 
     return ResultadoPsicologia;

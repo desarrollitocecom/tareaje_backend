@@ -61,21 +61,15 @@ const rendirPruebaDISCHandler = async (req, res) => {
             success: false
         });
 
-        const id_patron = await getPatronDISC(patron);
-        if (!id_patron) return res.status(400).json({
+        const id_prueba = await getPatronDISC(patron);
+        if (!id_prueba) return res.status(400).json({
             message: 'Error interno 02 al rendir la prueba psicológica',
             success: false
         });
 
-        const r = await getRespuestasDISC(id_patron);
-        if (!r) return res.status(400).json({
-            message: 'Error interno 03 al rendir la prueba psicológica',
-            success: false
-        });
-
-        const response = await createResultadosDISC(respuestas, r.E, r.M, r.J, r.I, r.S, r.A, r.B, r.T, r.SE, r.O1, r.O2, r.O3, id);
+        const response = await createResultadosDISC(respuestas, id_prueba, id);
         if (!response) return res.status(400).json({
-            message: 'Error interno 04 al rendir la prueba psicológica',
+            message: 'Error interno 03 al rendir la prueba psicológica',
             success: false
         });
 
@@ -128,7 +122,7 @@ const getResultadosDISCHandler = async (req, res) => {
 // Handler para evaluar la prueba psicológica de un postulante (Apto o No Apto) :
 const evaluateResultadosDISCHandler = async (req, res) => {
     
-    const { id } = req.params;
+    const { id, estado } = req.body;
     const errores = [];
 
     if (!id) errores.push('El parámetro ID es obligatorio');
