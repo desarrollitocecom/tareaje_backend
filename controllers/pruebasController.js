@@ -113,7 +113,23 @@ const calculateDISC = async (respuestas) => {
         
     } catch (error) {
         console.error({
-            message: 'Error en el controlador al calculat el puntaje DISC',
+            message: 'Error en el controlador al calcular el puntaje DISC',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Crear los patrones (provisional debido a la gran cantidad de patrones) :
+const createPatronDISC = async (patron, id_respuesta) => {
+    
+    try {
+        const response = await PruebaPatron.create({ patron, id_respuesta });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al crear el patrón de la prueba psicológica',
             error: error.message
         });
         return false;
@@ -210,6 +226,7 @@ const evaluateResultadosDISC = async (id_postulante, estado) => {
 module.exports = {
     getPreguntasDISC,
     calculateDISC,
+    createPatronDISC,
     getPatronDISC,
     getRespuestasDISC,
     createResultadosDISC,

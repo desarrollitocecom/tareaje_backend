@@ -13,39 +13,39 @@ module.exports = (sequelize) => {
         },
         E: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         M: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         J: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         I: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         S: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         A: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         B: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         T: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         SE: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
         },
         O1: {
             type: DataTypes.TEXT,
