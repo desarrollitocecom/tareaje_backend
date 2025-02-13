@@ -1,6 +1,7 @@
 const {
     getPreguntasDISC,
     calculateDISC,
+    createPatronDISC,
     getPatronDISC,
     getRespuestasDISC,
     createResultadosDISC,
@@ -159,8 +160,46 @@ const evaluateResultadosDISCHandler = async (req, res) => {
     }
 };
 
+// Handler para crear un patrón (provisional por la gran cantidad de patrones) :
+const createPatronDISCHandler = async (req, res) => {
+    
+    const { patron, id_respuesta } = req.body;
+    const errores = [];
+
+    if (!patron) errores.push('El patrón es obligatorio');
+    if (isNaN(patron)) errores.push('El patrón debe ser un entero');
+    if (!id_respuesta) errores.push('El ID de respuesta es obligatorio');
+    if (isNaN(id_respuesta)) errores.push('El ID de respuesta debe ser un entero');
+
+    if (errores.length > 0) return res.status(200).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    try {
+        const response = await createPatronDISC(patron, id_respuesta);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo crear el patrón',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Patron creado',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al crear el patrón de la prueba psicológica',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getPreguntasDISCHandler,
     rendirPruebaDISCHandler,
-    evaluateResultadosDISCHandler
+    getResultadosDISCHandler,
+    evaluateResultadosDISCHandler,
+    createPatronDISCHandler,
 };

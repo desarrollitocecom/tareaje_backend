@@ -133,7 +133,7 @@ const createVacacionHandler = async (req, res) => {
             const fecha =  date.toISOString().split('T')[0];
             const result = await validateAsistencia(fecha, id_empleado);
             if (!result) await createAsistencia(fecha, '00:00:00', 'V', id_empleado, 'Sin Foto');
-            else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id);
+            else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id, result.evidencia);
             date.setDate(date.getDate() + 1);
         }
 
@@ -191,7 +191,7 @@ const updateVacacionHandler = async (req,res) => {
         while (date_previo <= fin_previo) {
             const fecha =  date_previo.toISOString().split('T')[0];
             const result = await validateAsistencia(fecha, id_empleado);
-            if (result) updateAsistencia(result.id, fecha, result.hora, null, id_empleado, result.photo_id);
+            if (result) updateAsistencia(result.id, fecha, result.hora, null, id_empleado, result.photo_id, result.evidencia);
             else console.warn('No se pudo actualizar la vacación nula a la Asistencia')
             date_previo.setDate(date_previo.getDate() + 1);
         }
@@ -202,7 +202,7 @@ const updateVacacionHandler = async (req,res) => {
             const fecha =  date.toISOString().split('T')[0];
             const result = await validateAsistencia(fecha, id_empleado);
             if (!result) await createAsistencia(fecha, '00:00:00', 'V', id_empleado, 'Sin Foto');
-            else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id);
+            else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id, result.evidencia);
             date.setDate(date.getDate() + 1);
         }
 
@@ -248,7 +248,7 @@ const deleteVacacionesHandler = async (req, res) => {
         while (date <= fin) {
             const fecha =  date.toISOString().split('T')[0];
             const result = await validateAsistencia(fecha, response.id_empleado);
-            if (result) await updateAsistencia(result.id, fecha, result.hora, null, response.id_empleado, result.photo_id);
+            if (result) await updateAsistencia(result.id, fecha, result.hora, null, response.id_empleado, result.photo_id, result.evidencia);
             else console.warn('No se pudo eliminar la vacación a la Asistencia')
             date.setDate(date.getDate() + 1);
         }
