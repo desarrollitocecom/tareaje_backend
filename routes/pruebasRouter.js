@@ -5,6 +5,7 @@ const {
     getPreguntasDISCHandler,
     createPatronDISCHandler,
     rendirPruebaDISCHandler,
+    updateRespuestasDISCHandler,
     getResultadosDISCHandler,
     evaluateResultadosDISCHandler
 } = require('../handlers/pruebasHandlers');
@@ -16,5 +17,6 @@ router.post('/', permisoAutorizacion(["all_system_access", "read_pruebas"]), ren
 router.get('/result/:id', permisoAutorizacion(["all_system_access", "read_pruebas"]), getResultadosDISCHandler);
 router.post('/evaluate/', permisoAutorizacion(["all_system_access", "read_pruebas"]), evaluateResultadosDISCHandler);
 // router.post('/patron/', permisoAutorizacion(["all_system_access", "read_pruebas"]), createPatronDISCHandler);
+router.patch('/respuesta/:id', permisoAutorizacion(["all_system_access", "read_pruebas"]), updateRespuestasDISCHandler);
 
 module.exports = router;
