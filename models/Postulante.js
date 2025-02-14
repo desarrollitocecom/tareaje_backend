@@ -141,7 +141,7 @@ module.exports = (sequelize) => {
             type: DataTypes.BOOLEAN,
             allowNull: true,
         },
-        state_psicologica: {
+        state_fisica: {
             type: DataTypes.BOOLEAN,
             allowNull: true,
         },
