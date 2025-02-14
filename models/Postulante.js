@@ -137,6 +137,14 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: false
         },
+        state_psicologica: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+        },
+        state_fisica: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+        },
         id_convocatoria: {
             type: DataTypes.INTEGER,
             references: { model: 'Convocatorias', key: 'id' }

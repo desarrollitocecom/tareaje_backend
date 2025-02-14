@@ -1,4 +1,4 @@
-const { PruebaPregunta, PruebaRespuesta, PruebaPatron, ResultadPsicologia } = require('../db_connection');
+const { PruebaPregunta, PruebaRespuesta, PruebaPatron, ResultadoPsicologia } = require('../db_connection');
 
 // Obtener todas las preguntas de la prueba psicológica :
 const getPreguntasDISC = async () => {
@@ -144,13 +144,30 @@ const getPatronDISC = async (patron) => {
             where: { patron },
             raw: true
         });
-        if (!response) return null;
+        if (!response || response.length === 0) return null;
         return response.id_respuesta;
 
     } catch (error) {
         console.error({
            message: 'Error en el controlador al obtener el ID de las respuestas finales de la prueba psicológica',
            error: error.message 
+        });
+        return false;
+    }
+};
+
+// Actualizar las respuestas finales de la prueba psicológica (provisional por la gran cantidad de información) :
+const updateRespuestasDISC = async (id, nombre, E, M, J, I, S, A, B, T, SE, O1, O2, O3) => {
+    
+    try {
+        const response = await PruebaRespuesta.findByPk(id);
+        if (response) await response.update({ nombre, E, M, J, I, S, A, B, T, SE, O1, O2, O3 });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar las respuestas finales de la prueba psicológica',
+            error: error.message 
         });
         return false;
     }
@@ -173,16 +190,16 @@ const getRespuestasDISC = async (id) => {
 };
 
 // Crear los resultados finales de la prueba psicológica para su posterior evaluación :
-const createResultadosDISC = async (respuestas, E, M, J, I, S, A, B, T, SE, O1, O2, O3, id_postulante) => {
+const createResultadosDISC = async (respuestas, id_prueba, id_postulante) => {
     
     try {
-        const response = await ResultadPsicologia.create({ respuestas, E, M, J, I, S, A, B, T, SE, O1, O2, O3, id_postulante });
+        const response = await ResultadoPsicologia.create({ respuestas, id_prueba, id_postulante });
         return response || null;
         
     } catch (error) {
         console.error({
             message: 'Error en el controlador al crear los resultados finales de la prueba psicológica',
-            error: error.message 
+            error: error.message
         });
         return false;
     }
@@ -192,7 +209,10 @@ const createResultadosDISC = async (respuestas, E, M, J, I, S, A, B, T, SE, O1, 
 const getResultadosDISC = async (id_postulante) => {
     
     try {
-        const response = await ResultadPsicologia.findOne({ where: id_postulante });
+        const response = await ResultadoPsicologia.findOne({
+            where: { id_postulante },
+            include: [{ model: PruebaRespuesta, as: 'prueba' }]
+        });
         return response || null;
         
     } catch (error) {
@@ -208,7 +228,9 @@ const getResultadosDISC = async (id_postulante) => {
 const evaluateResultadosDISC = async (id_postulante, estado) => {
     
     try {
-        const response = await ResultadPsicologia.findOne({ where: id_postulante });
+        const response = await ResultadoPsicologia.findOne({
+            where: { id_postulante }
+        });
         if (!response) return null;
         response.state_accept = estado;
         response.save();
@@ -217,7 +239,7 @@ const evaluateResultadosDISC = async (id_postulante, estado) => {
     } catch (error) {
         console.error({
             message: 'Error en el controlador al evaluar los resultados finales de un postulante en la prueba psicológica',
-            error: error.message 
+            error: error.message
         });
         return false;
     }
@@ -228,6 +250,7 @@ module.exports = {
     calculateDISC,
     createPatronDISC,
     getPatronDISC,
+    updateRespuestasDISC,
     getRespuestasDISC,
     createResultadosDISC,
     getResultadosDISC,
