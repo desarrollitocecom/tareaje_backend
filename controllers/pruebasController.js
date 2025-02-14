@@ -156,6 +156,23 @@ const getPatronDISC = async (patron) => {
     }
 };
 
+// Actualizar las respuestas finales de la prueba psicológica (provisional por la gran cantidad de información) :
+const updateRespuestasDISC = async (id, nombre, E, M, J, I, S, A, B, T, SE, O1, O2, O3) => {
+    
+    try {
+        const response = await PruebaRespuesta.findByPk(id);
+        if (response) await response.update({ nombre, E, M, J, I, S, A, B, T, SE, O1, O2, O3 });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al actualizar las respuestas finales de la prueba psicológica',
+            error: error.message 
+        });
+        return false;
+    }
+};
+
 // Obtener las respuestas finales de la prueba psicológica :
 const getRespuestasDISC = async (id) => {
     
@@ -233,6 +250,7 @@ module.exports = {
     calculateDISC,
     createPatronDISC,
     getPatronDISC,
+    updateRespuestasDISC,
     getRespuestasDISC,
     createResultadosDISC,
     getResultadosDISC,

@@ -1,6 +1,10 @@
 const { Postulante, Distrito, Entidad, Convocatoria, Cargo, Sexo, GradoEstudios, Subgerencia } = require('../db_connection');
 const { Op } = require('sequelize');
 
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+// -------------------------------------------------  INFORMACIÓN DE UN POSTULANTE  ------------------------------------------------- //
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+
 // Obtener la información del postulante :
 const getPostulante = async (id) => {
 
@@ -44,7 +48,11 @@ const getPostulanteById = async (id) => {
     }
 }
 
-// Obtener todos los postulantes con paginación, búsqueda y filtros :
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+// ----------------------------------------------------  MÓDULOS DE POSTULANTES  ---------------------------------------------------- //
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+
+// 01 - Obtener todos los postulantes con paginación, búsqueda y filtros :
 const getAllPostulantes = async (page = 1, limit = 20, filters = {}) => {
 
     const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
@@ -118,7 +126,7 @@ const getAllPostulantes = async (page = 1, limit = 20, filters = {}) => {
     }
 };
 
-// Obtener todos los postulantes con paginación, búsqueda y filtros :
+// 02 - Obtener todos los postulantes de la Black List con paginación, búsqueda y filtros :
 const getAllPostulantesBlackList = async (page = 1, limit = 20, filters = {}) => {
 
     const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
@@ -192,6 +200,476 @@ const getAllPostulantesBlackList = async (page = 1, limit = 20, filters = {}) =>
         return false;
     }
 };
+
+// 03 - Obtener a todos los postulantes que no hayan rendido la prueba psicológica :
+const getAllPostulantesNoPsicologica = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
+    // Calcular fechas basadas en edad mínima y máxima :
+    const today = new Date();
+    const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null;
+    const dateFromEdadMax = edadMin ? new Date(today.getFullYear() - edadMin, today.getMonth(), today.getDate()) : null;
+
+    // Asegurarse de que dateFromEdadMin y dateFromEdadMax son fechas válidas :
+    const validDateFromEdadMin = dateFromEdadMin instanceof Date && !isNaN(dateFromEdadMin);
+    const validDateFromEdadMax = dateFromEdadMax instanceof Date && !isNaN(dateFromEdadMax);
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            state_blacklist: false,
+            prueba_psicologica: false,
+            ...(search && {
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(grado && { id_grado_estudios: grado }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(convocatoria && { id_convocatoria: convocatoria }),
+            ...(validDateFromEdadMin && validDateFromEdadMax && {
+                f_nacimiento: { [Op.between]: [dateFromEdadMin, dateFromEdadMax] },
+            }),
+            ...(hijosMin && hijosMax && {
+                hijos: { [Op.between]: [hijosMin, hijosMax] }
+            })
+        };
+
+        const includeConditions = [
+            { model: Distrito, as: 'distrito', attributes: ['nombre'] },
+            { model: Entidad, as: 'entidad', attributes: ['nombre'] },
+            { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+            { model: Sexo, as: 'sexo', attributes: ['nombre'] },
+            { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+            { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+            { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
+        ];
+
+        const response = await Postulante.findAndCountAll({
+            where: whereCondition,
+            include: includeConditions,
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        return {
+            totalCount: response.count,
+            data: response.rows
+        } || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener todos los postulantes de la Black List',
+            data: error
+        });
+        return false;
+    }
+};
+
+// 04 - Obtener a todos los postulantes que no hayan pasado la prueba psicológica :
+const getAllPostulantesPsicologicaNoAptos = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
+    // Calcular fechas basadas en edad mínima y máxima :
+    const today = new Date();
+    const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null;
+    const dateFromEdadMax = edadMin ? new Date(today.getFullYear() - edadMin, today.getMonth(), today.getDate()) : null;
+
+    // Asegurarse de que dateFromEdadMin y dateFromEdadMax son fechas válidas :
+    const validDateFromEdadMin = dateFromEdadMin instanceof Date && !isNaN(dateFromEdadMin);
+    const validDateFromEdadMax = dateFromEdadMax instanceof Date && !isNaN(dateFromEdadMax);
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            state_blacklist: false,
+            prueba_psicologica: true,
+            state_psicologica: false,
+            ...(search && {
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(grado && { id_grado_estudios: grado }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(convocatoria && { id_convocatoria: convocatoria }),
+            ...(validDateFromEdadMin && validDateFromEdadMax && {
+                f_nacimiento: { [Op.between]: [dateFromEdadMin, dateFromEdadMax] },
+            }),
+            ...(hijosMin && hijosMax && {
+                hijos: { [Op.between]: [hijosMin, hijosMax] }
+            })
+        };
+
+        const includeConditions = [
+            { model: Distrito, as: 'distrito', attributes: ['nombre'] },
+            { model: Entidad, as: 'entidad', attributes: ['nombre'] },
+            { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+            { model: Sexo, as: 'sexo', attributes: ['nombre'] },
+            { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+            { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+            { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
+        ];
+
+        const response = await Postulante.findAndCountAll({
+            where: whereCondition,
+            include: includeConditions,
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        return {
+            totalCount: response.count,
+            data: response.rows
+        } || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener todos los postulantes de la Black List',
+            data: error
+        });
+        return false;
+    }
+};
+
+// 05 - Obtener a todos los postulantes que hayan pasado la prueba psicológica :
+const getAllPostulantesPsicologicaAptos = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
+    // Calcular fechas basadas en edad mínima y máxima :
+    const today = new Date();
+    const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null;
+    const dateFromEdadMax = edadMin ? new Date(today.getFullYear() - edadMin, today.getMonth(), today.getDate()) : null;
+
+    // Asegurarse de que dateFromEdadMin y dateFromEdadMax son fechas válidas :
+    const validDateFromEdadMin = dateFromEdadMin instanceof Date && !isNaN(dateFromEdadMin);
+    const validDateFromEdadMax = dateFromEdadMax instanceof Date && !isNaN(dateFromEdadMax);
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            state_blacklist: false,
+            prueba_psicologica: true,
+            state_psicologica: true,
+            ...(search && {
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(grado && { id_grado_estudios: grado }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(convocatoria && { id_convocatoria: convocatoria }),
+            ...(validDateFromEdadMin && validDateFromEdadMax && {
+                f_nacimiento: { [Op.between]: [dateFromEdadMin, dateFromEdadMax] },
+            }),
+            ...(hijosMin && hijosMax && {
+                hijos: { [Op.between]: [hijosMin, hijosMax] }
+            })
+        };
+
+        const includeConditions = [
+            { model: Distrito, as: 'distrito', attributes: ['nombre'] },
+            { model: Entidad, as: 'entidad', attributes: ['nombre'] },
+            { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+            { model: Sexo, as: 'sexo', attributes: ['nombre'] },
+            { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+            { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+            { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
+        ];
+
+        const response = await Postulante.findAndCountAll({
+            where: whereCondition,
+            include: includeConditions,
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        return {
+            totalCount: response.count,
+            data: response.rows
+        } || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener todos los postulantes de la Black List',
+            data: error
+        });
+        return false;
+    }
+};
+
+// 06 - Obtener a todos los postulantes que no hayan asistido a la prueba física :
+const getAllPostulantesNoFisica = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
+    // Calcular fechas basadas en edad mínima y máxima :
+    const today = new Date();
+    const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null;
+    const dateFromEdadMax = edadMin ? new Date(today.getFullYear() - edadMin, today.getMonth(), today.getDate()) : null;
+
+    // Asegurarse de que dateFromEdadMin y dateFromEdadMax son fechas válidas :
+    const validDateFromEdadMin = dateFromEdadMin instanceof Date && !isNaN(dateFromEdadMin);
+    const validDateFromEdadMax = dateFromEdadMax instanceof Date && !isNaN(dateFromEdadMax);
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            state_blacklist: false,
+            prueba_psicologica: true,
+            state_psicologica: true,
+            prueba_fisica: false,
+            ...(search && {
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(grado && { id_grado_estudios: grado }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(convocatoria && { id_convocatoria: convocatoria }),
+            ...(validDateFromEdadMin && validDateFromEdadMax && {
+                f_nacimiento: { [Op.between]: [dateFromEdadMin, dateFromEdadMax] },
+            }),
+            ...(hijosMin && hijosMax && {
+                hijos: { [Op.between]: [hijosMin, hijosMax] }
+            })
+        };
+
+        const includeConditions = [
+            { model: Distrito, as: 'distrito', attributes: ['nombre'] },
+            { model: Entidad, as: 'entidad', attributes: ['nombre'] },
+            { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+            { model: Sexo, as: 'sexo', attributes: ['nombre'] },
+            { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+            { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+            { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
+        ];
+
+        const response = await Postulante.findAndCountAll({
+            where: whereCondition,
+            include: includeConditions,
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        return {
+            totalCount: response.count,
+            data: response.rows
+        } || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener todos los postulantes de la Black List',
+            data: error
+        });
+        return false;
+    }
+};
+
+// 07 - Obtener a todos los postulantes que no hayan pasado la prueba física :
+const getAllPostulantesFisicaNoAptos = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
+    // Calcular fechas basadas en edad mínima y máxima :
+    const today = new Date();
+    const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null;
+    const dateFromEdadMax = edadMin ? new Date(today.getFullYear() - edadMin, today.getMonth(), today.getDate()) : null;
+
+    // Asegurarse de que dateFromEdadMin y dateFromEdadMax son fechas válidas :
+    const validDateFromEdadMin = dateFromEdadMin instanceof Date && !isNaN(dateFromEdadMin);
+    const validDateFromEdadMax = dateFromEdadMax instanceof Date && !isNaN(dateFromEdadMax);
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            state_blacklist: false,
+            prueba_psicologica: true,
+            state_psicologica: true,
+            prueba_fisica: true,
+            state_fisica: false,
+            ...(search && {
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(grado && { id_grado_estudios: grado }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(convocatoria && { id_convocatoria: convocatoria }),
+            ...(validDateFromEdadMin && validDateFromEdadMax && {
+                f_nacimiento: { [Op.between]: [dateFromEdadMin, dateFromEdadMax] },
+            }),
+            ...(hijosMin && hijosMax && {
+                hijos: { [Op.between]: [hijosMin, hijosMax] }
+            })
+        };
+
+        const includeConditions = [
+            { model: Distrito, as: 'distrito', attributes: ['nombre'] },
+            { model: Entidad, as: 'entidad', attributes: ['nombre'] },
+            { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+            { model: Sexo, as: 'sexo', attributes: ['nombre'] },
+            { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+            { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+            { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
+        ];
+
+        const response = await Postulante.findAndCountAll({
+            where: whereCondition,
+            include: includeConditions,
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        return {
+            totalCount: response.count,
+            data: response.rows
+        } || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener todos los postulantes de la Black List',
+            data: error
+        });
+        return false;
+    }
+};
+
+// 08 - Obtener a todos los postulantes que no hayan pasado la prueba física :
+const getAllPostulantesFisicaAptos = async (page = 1, limit = 20, filters = {}) => {
+
+    const { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
+    // Calcular fechas basadas en edad mínima y máxima :
+    const today = new Date();
+    const dateFromEdadMin = edadMax ? new Date(today.getFullYear() - edadMax - 1, today.getMonth(), today.getDate() + 1) : null;
+    const dateFromEdadMax = edadMin ? new Date(today.getFullYear() - edadMin, today.getMonth(), today.getDate()) : null;
+
+    // Asegurarse de que dateFromEdadMin y dateFromEdadMax son fechas válidas :
+    const validDateFromEdadMin = dateFromEdadMin instanceof Date && !isNaN(dateFromEdadMin);
+    const validDateFromEdadMax = dateFromEdadMax instanceof Date && !isNaN(dateFromEdadMax);
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            state_blacklist: false,
+            prueba_psicologica: true,
+            state_psicologica: true,
+            prueba_fisica: true,
+            state_fisica: true,
+            ...(search && {
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(grado && { id_grado_estudios: grado }),
+            ...(sexo && { id_sexo: sexo }),
+            ...(convocatoria && { id_convocatoria: convocatoria }),
+            ...(validDateFromEdadMin && validDateFromEdadMax && {
+                f_nacimiento: { [Op.between]: [dateFromEdadMin, dateFromEdadMax] },
+            }),
+            ...(hijosMin && hijosMax && {
+                hijos: { [Op.between]: [hijosMin, hijosMax] }
+            })
+        };
+
+        const includeConditions = [
+            { model: Distrito, as: 'distrito', attributes: ['nombre'] },
+            { model: Entidad, as: 'entidad', attributes: ['nombre'] },
+            { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+            { model: Sexo, as: 'sexo', attributes: ['nombre'] },
+            { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+            { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+            { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
+        ];
+
+        const response = await Postulante.findAndCountAll({
+            where: whereCondition,
+            include: includeConditions,
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        return {
+            totalCount: response.count,
+            data: response.rows
+        } || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener todos los postulantes de la Black List',
+            data: error
+        });
+        return false;
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+// ------------------------------------- CREACIÓN, ACTUALIZACIÓN Y ELIMINACIÓN DE UN POSTULANTE  ------------------------------------ //
+// ---------------------------------------------------------------------------------------------------------------------------------- //
 
 // Crear la información inicial de un postulante :
 const createPostulante = async (

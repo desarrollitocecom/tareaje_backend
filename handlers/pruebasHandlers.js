@@ -3,7 +3,7 @@ const {
     calculateDISC,
     createPatronDISC,
     getPatronDISC,
-    getRespuestasDISC,
+    updateRespuestasDISC,
     createResultadosDISC,
     getResultadosDISC,
     evaluateResultadosDISC
@@ -154,6 +154,10 @@ const evaluateResultadosDISCHandler = async (req, res) => {
     }
 };
 
+// ------------------------------------------------------------------------------------------------------- //
+// --------------------------------------------  PROVISIONAL  -------------------------------------------- //
+// ------------------------------------------------------------------------------------------------------- //
+
 // Handler para crear un patrón (provisional por la gran cantidad de patrones) :
 const createPatronDISCHandler = async (req, res) => {
     
@@ -190,10 +194,56 @@ const createPatronDISCHandler = async (req, res) => {
     }
 };
 
+// Handler para actualizar los respuestas de la prueba psicológica (provisional por la gran cantidad de información) :
+const updateRespuestasDISCHandler = async (req, res) => {
+    
+    const { id } = req.params;
+    const { nombre, E, M, J, I, S, A, B, T, SE, O1, O2, O3 } = req.body;
+    const errores = [];
+
+    if (!id) errores.push('El patrón es obligatorio');
+    if (isNaN(id)) errores.push('El patrón debe ser un entero');
+    if (!nombre) errores.push('El parámetro nombre es obligatorio');
+    if (!E) errores.push('El parámetro E es obligatorio');
+    if (!M) errores.push('El parámetro M es obligatorio');
+    if (!J) errores.push('El parámetro J es obligatorio');
+    if (!I) errores.push('El parámetro I es obligatorio');
+    if (!S) errores.push('El parámetro S es obligatorio');
+    if (!A) errores.push('El parámetro A es obligatorio');
+    if (!B) errores.push('El parámetro B es obligatorio');
+    if (!T) errores.push('El parámetro T es obligatorio');
+    if (!SE) errores.push('El parámetro SE es obligatorio');
+
+    if (errores.length > 0) return res.status(200).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    try {
+        const response = await updateRespuestasDISC(id, nombre, E, M, J, I, S, A, B, T, SE, O1, O2, O3);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo actualizar las respuestas',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Respuestas actualizadas',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al crear el patrón de la prueba psicológica',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getPreguntasDISCHandler,
     rendirPruebaDISCHandler,
     getResultadosDISCHandler,
     evaluateResultadosDISCHandler,
     createPatronDISCHandler,
+    updateRespuestasDISCHandler
 };
