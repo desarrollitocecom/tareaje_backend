@@ -1,8 +1,17 @@
 const {
     getPostulante,
     getPostulanteById,
+    getPostulantesActual,
+    getBlackListActual,
+    getPsicologiaActual,
+    getPsicologiaRevisionActual,
+    getFisicaActual,
+    asistenciaFisicaActual,
+    evaluateFisicaActual,
+    getEntrevistaActual,
     getAllPostulantes,
-    getAllPostulantesBlackList,
+    getAllPostulantesPsicologia,
+    getAllPostulantesFisica,
     createPostulante,
     updatePostulante,
     deletePostulante
@@ -11,8 +20,13 @@ const {
 const { createHistorial } = require('../controllers/historialController');
 const { deleteCv } = require('../utils/filesFunctions');
 const { getAllDistritos, createDistrito } = require('../controllers/distritoController');
+const { getIdConvocatoria } = require('../controllers/convocatoriaController');
 const { validateBlackList } = require('../controllers/blackListController');
 const path = require('path');
+
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+// -------------------------------------------------  INFORMACIÓN DE UN POSTULANTE  ------------------------------------------------- //
+// ---------------------------------------------------------------------------------------------------------------------------------- //
 
 // Handler para obtener la información del postulante :
 const getPostulanteHandler = async (req, res) => {
@@ -47,18 +61,21 @@ const getPostulanteHandler = async (req, res) => {
     }
 };
 
-// Handler para obtener todos los postulantes :
-const getAllPostulantesHandler = async (req, res) => {
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+// -----------------------------------------  MÓDULOS DE POSTULANTES - CONVOCATORIA ACTUAL  ----------------------------------------- //
+// ---------------------------------------------------------------------------------------------------------------------------------- //
 
-    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = req.query;
-    const filters = { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax };
+// < 01 > - Handler para obtener todos los postulantes de la convocatoria actual con paginación, búsqueda y filtros :
+const getPostulantesActualHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni } = req.query;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni };
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-
     if (errores.length > 0) return res.status(400).json({
         message: 'Se encontraron los siguientes errores...',
         data: errores,
@@ -66,14 +83,26 @@ const getAllPostulantesHandler = async (req, res) => {
 
     const numPage = parseInt(page);
     const numLimit = parseInt(limit);
+    
+    const ahora = new Date();
+    const peruOffset = -5 * 60; // Offset de Perú en minutos
+    const localOffset = ahora.getTimezoneOffset(); 
+    const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+    const fecha = dia.toISOString().split('T')[0];
 
     try {
-        const response = await getAllPostulantes(numPage, numLimit, filters);
+        const id_convocatoria = await getIdConvocatoria(fecha);
+        if (!id_convocatoria) return res.status(200).json({
+            message: 'Convocatoria inactiva...',
+            data: []
+        });
+
+        const response = await getPostulantesActual(numPage, numLimit, filters, id_convocatoria);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) return res.status(200).json({
             message: 'Página fuera de rango...',
-            data:{
+            data: {
                 data: [],
                 currentPage: numPage,
                 pageCount: response.data.length,
@@ -94,25 +123,24 @@ const getAllPostulantesHandler = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
-            message: 'Error interno al obtener todos los postulantes',
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes de la convocatoria actual',
             error: error.message
         });
     }
 };
 
-// Handler para obtener todos los postulantes :
-const getAllPostulantesBlackListHandler = async (req, res) => {
+// < 02 > - Handler para obtener todos los postulantes de la Black List de la convocatoria actual con paginación, búsqueda y filtros :
+const getBlackListActualHandler = async (req, res) => {
 
-    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax } = req.query;
-    const filters = { search, subgerencia, cargo, regimen, grado, sexo, convocatoria, dni, edadMin, edadMax, hijosMin, hijosMax };
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni } = req.query;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni };
     const errores = [];
 
     if (isNaN(page)) errores.push("El page debe ser un numero");
     if (page < 0) errores.push("El page debe ser mayor a 0 ");
     if (isNaN(limit)) errores.push("El limit debe ser un numero");
     if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
-
     if (errores.length > 0) return res.status(400).json({
         message: 'Se encontraron los siguientes errores...',
         data: errores,
@@ -120,14 +148,26 @@ const getAllPostulantesBlackListHandler = async (req, res) => {
 
     const numPage = parseInt(page);
     const numLimit = parseInt(limit);
+    
+    const ahora = new Date();
+    const peruOffset = -5 * 60; // Offset de Perú en minutos
+    const localOffset = ahora.getTimezoneOffset(); 
+    const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+    const fecha = dia.toISOString().split('T')[0];
 
     try {
-        const response = await getAllPostulantesBlackList(numPage, numLimit, filters);
+        const id_convocatoria = await getIdConvocatoria(fecha);
+        if (!id_convocatoria) return res.status(200).json({
+            message: 'Convocatoria inactiva...',
+            data: []
+        });
+
+        const response = await getBlackListActual(numPage, numLimit, filters, id_convocatoria);
         const totalPages = Math.ceil(response.totalCount / numLimit);
 
         if (numPage > totalPages) return res.status(200).json({
             message: 'Página fuera de rango...',
-            data:{
+            data: {
                 data: [],
                 currentPage: numPage,
                 pageCount: response.data.length,
@@ -148,12 +188,515 @@ const getAllPostulantesBlackListHandler = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
-            message: 'Error interno al obtener todos los postulantes de la Black List',
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes de la Black List de la convocatoria actual',
             error: error.message
         });
     }
 };
+
+// < 03 > - Handler para obtener todos los postulantes que puedan rendir la prueba psicológica con paginación, búsqueda y filtros :
+const getPsicologiaActualHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni } = req.query;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni };
+    const errores = [];
+
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+    
+    const ahora = new Date();
+    const peruOffset = -5 * 60; // Offset de Perú en minutos
+    const localOffset = ahora.getTimezoneOffset(); 
+    const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+    const fecha = dia.toISOString().split('T')[0];
+
+    try {
+        const id_convocatoria = await getIdConvocatoria(fecha);
+        if (!id_convocatoria) return res.status(200).json({
+            message: 'Convocatoria inactiva...',
+            data: []
+        });
+
+        const response = await getPsicologiaActual(numPage, numLimit, filters, id_convocatoria);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes que pueden rendir la prueba psicológica obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes que pueden rendir la prueba psicológica',
+            error: error.message
+        });
+    }
+};
+
+// < 04 > - Handler para obtener todos los postulantes que hayan rendido la prueba psicológica para su posterior revisión :
+const getPsicologiaRevisionActualHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni } = req.query;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni };
+    const errores = [];
+
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+    
+    const ahora = new Date();
+    const peruOffset = -5 * 60; // Offset de Perú en minutos
+    const localOffset = ahora.getTimezoneOffset(); 
+    const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+    const fecha = dia.toISOString().split('T')[0];
+
+    try {
+        const id_convocatoria = await getIdConvocatoria(fecha);
+        if (!id_convocatoria) return res.status(200).json({
+            message: 'Convocatoria inactiva...',
+            data: []
+        });
+
+        const response = await getPsicologiaRevisionActual(numPage, numLimit, filters, id_convocatoria);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes que hayan rendido la prueba psicológica obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes que hayan rendido la prueba psicológica',
+            error: error.message
+        });
+    }
+};
+
+// < 05 > - Handler para obtener todos los postulantes que puedan rendir la prueba física con paginación, búsqueda y filtros :
+const getFisicaActualHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni } = req.query;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni };
+    const errores = [];
+
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+    
+    const ahora = new Date();
+    const peruOffset = -5 * 60; // Offset de Perú en minutos
+    const localOffset = ahora.getTimezoneOffset(); 
+    const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+    const fecha = dia.toISOString().split('T')[0];
+
+    try {
+        const id_convocatoria = await getIdConvocatoria(fecha);
+        if (!id_convocatoria) return res.status(200).json({
+            message: 'Convocatoria inactiva...',
+            data: []
+        });
+
+        const response = await getFisicaActual(numPage, numLimit, filters, id_convocatoria);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes que puedan rendir la prueba física obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes que puedan rendir la prueba física',
+            error: error.message
+        });
+    }
+};
+
+// < 06 > - Handler para tomar asistencia previo a la prueba física :
+const asistenciaFisicaActualHandler = async (req, res) => {
+
+    const { id, estado } = req.body;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (typeof estado !== 'boolean') errores.push('El estado debe ser un valor booleano');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    try {
+        const response = await asistenciaFisicaActual(id, estado);
+        if (!response) return res.status(404).json({
+            message: 'Postulante no encontrado',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Asistencia exitosa...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al tomar asistencia previo a la prueba física',
+            error: error.message
+        });
+    }
+};
+
+// < 07 > - Handler para evaluar si la persona está apta o no apta luego de la prueba física :
+const evaluateFisicaActualHandler = async (req, res) => {
+    
+    const { id, estado } = req.body;
+    const errores = [];
+
+    if (!id) errores.push('El parámetro ID es obligatorio');
+    if (isNaN(id)) errores.push('El ID debe ser un entero');
+    if (typeof estado !== 'boolean') errores.push('El estado debe ser un valor booleano');
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    try {
+        const response = await evaluateFisicaActual(id, estado);
+        if (!response) return res.status(404).json({
+            message: 'Postulante no encontrado',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Evaluación exitosa...',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al evaluar al postulante luego de la prueba física',
+            error: error.message
+        });
+    }
+};
+
+// < 08 > - Handler para obtener todos los postulantes que puedan rendir la entrevista con paginación, búsqueda y filtros :
+const getEntrevistaActualHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni } = req.query;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni };
+    const errores = [];
+
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+    
+    const ahora = new Date();
+    const peruOffset = -5 * 60; // Offset de Perú en minutos
+    const localOffset = ahora.getTimezoneOffset(); 
+    const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+    const fecha = dia.toISOString().split('T')[0];
+
+    try {
+        const id_convocatoria = await getIdConvocatoria(fecha);
+        if (!id_convocatoria) return res.status(200).json({
+            message: 'Convocatoria inactiva...',
+            data: []
+        });
+
+        const response = await getEntrevistaActual(numPage, numLimit, filters, id_convocatoria);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes que pueden rendir la entrevista obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes que puedan rendir la entrevista',
+            error: error.message
+        });
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+// -----------------------------------------------  MÓDULOS DE POSTULANTES - GENERAL  ----------------------------------------------- //
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+
+// < 01 > - Handler para obtener todos los postulantes de una convocatoria con paginación, búsqueda y filtros :
+const getAllPostulantesHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni, blacklist, state } = req.query;
+    const { id_convocatoria } = req.body;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni, blacklist, state };
+    const errores = [];
+
+    if (!id_convocatoria) errores.push('El parámetro ID de convocatoria es obligatorio');
+    if (isNaN(id_convocatoria)) errores.push('El ID de convocatoria debe ser un entero');
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+
+    try {
+        const response = await getAllPostulantes(numPage, numLimit, filters, id_convocatoria);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes de la convocatoria seleccionada',
+            error: error.message
+        });
+    }
+};
+
+// < 02 > - Handler para obtener todos los postulantes que tenían la posibilidad de rendir la prueba psicológica con paginación, búsqueda y filtros :
+const getAllPostulantesPsicologiaHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni, prueba, state } = req.query;
+    const { id_convocatoria } = req.body;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni, prueba, state };
+    const errores = [];
+
+    if (!id_convocatoria) errores.push('El parámetro ID de convocatoria es obligatorio');
+    if (isNaN(id_convocatoria)) errores.push('El ID de convocatoria debe ser un entero');
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+
+    try {
+        const response = await getAllPostulantesPsicologia(numPage, numLimit, filters, id_convocatoria);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes que podían dar la prueba psicológica obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes que podían dar la prueba psicológica de la convocatoria seleccionada',
+            error: error.message
+        });
+    }
+};
+// < 01 > - Handler para obtener todos los postulantes que tenían la posibilidad de rendir la prueba física con paginación, búsqueda y filtros :
+const getAllPostulantesFisicaHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni, prueba, state } = req.query;
+    const { id_convocatoria } = req.body;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni, prueba, state };
+    const errores = [];
+
+    if (!id_convocatoria) errores.push('El parámetro ID de convocatoria es obligatorio');
+    if (isNaN(id_convocatoria)) errores.push('El ID de convocatoria debe ser un entero');
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+
+    try {
+        const response = await getAllPostulantesFisica(numPage, numLimit, filters, id_convocatoria);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes que podían dar la prueba física obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes que podían dar la prueba física de la convocatoria seleccionada',
+            error: error.message
+        });
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+// ------------------------------------- CREACIÓN, ACTUALIZACIÓN Y ELIMINACIÓN DE UN POSTULANTE  ------------------------------------ //
+// ---------------------------------------------------------------------------------------------------------------------------------- //
 
 // Handler para crear la información inicial de un postulante :
 const createPostulanteHandler = async (req, res) => {
@@ -411,8 +954,17 @@ const deletePostulanteHandler = async (req, res) => {
 
 module.exports = {
     getPostulanteHandler,
+    getPostulantesActualHandler,
+    getBlackListActualHandler,
+    getPsicologiaActualHandler,
+    getPsicologiaRevisionActualHandler,
+    getFisicaActualHandler,
+    asistenciaFisicaActualHandler,
+    evaluateFisicaActualHandler,
+    getEntrevistaActualHandler,
     getAllPostulantesHandler,
-    getAllPostulantesBlackListHandler,
+    getAllPostulantesPsicologiaHandler,
+    getAllPostulantesFisicaHandler,
     createPostulanteHandler,
     updatePostulanteHandler,
     deletePostulanteHandler
