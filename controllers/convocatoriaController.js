@@ -1,4 +1,5 @@
 const { Convocatoria } = require('../db_connection');
+const { Op } = require('sequelize');
 
 // Obtener un convocatoria específico por ID :
 const getConvocatoria = async (id) => {
@@ -51,6 +52,31 @@ const getAllConvocatorias = async (page = 1, limit = 20, filters = {}) => {
     } catch (error) {
         console.error({
             message: 'Error en el controlador al obtener todas las convocatorias',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// Obtener el ID de convocatoria para una fecha determinada :
+const getIdConvocatoria = async (fecha) => {
+    
+    try {
+        const response = await Convocatoria.findOne({
+            where: {
+                [Op.and]: [
+                    { f_inicio: { [Op.lte]: fecha } },
+                    { f_fin: { [Op.gte]: fecha } }
+                ]
+            },
+            raw: true
+        });
+        if (!response) return null;
+        return response.id;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener el ID de convocatoria para una fecha',
             error: error.message
         });
         return false;
@@ -112,6 +138,7 @@ const deleteConvocatoria = async (id) => {
 module.exports = {
     getConvocatoria,
     getAllConvocatorias,
+    getIdConvocatoria,
     createConvocatoria,
     updateConvocatoria,
     deleteConvocatoria
