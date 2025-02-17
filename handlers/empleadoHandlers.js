@@ -614,21 +614,21 @@ const updateEmpleadoHandler = async (req, res) => {
     const config_observaciones = (observaciones) ? observaciones : null;
     const config_carrera = (carrera) ? carrera : null;
 
-    if (!req.file && foto === 'Sin foto') return res.status(400).json({
-        message: 'Es necesario subir la foto ya que no figura en el sistema',
-        data: []
-    });
+    // if (!req.file && foto === 'Sin foto') return res.status(400).json({
+    //     message: 'Es necesario subir la foto ya que no figura en el sistema',
+    //     data: []
+    // });
 
     // Verificar si el empleado está registrado en Axxon :
     const dataAxxon = await readPerson();
     const match = dataAxxon.find(dato => dni === dato.dni);
 
-    if (!req.file && !match) {
-        return res.status(400).json({
-            message: 'Es necesario subir nuevamente la foto para poder lograr el reconocimiento facial',
-            data: []
-        });
-    }
+    // if (!req.file && !match) {
+    //     return res.status(400).json({
+    //         message: 'Es necesario subir nuevamente la foto para poder lograr el reconocimiento facial',
+    //         data: []
+    //     });
+    // }
 
     if (req.file && match) {
         await deletePhoto(req.file.filename);

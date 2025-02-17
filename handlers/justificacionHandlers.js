@@ -101,11 +101,11 @@ const createJustificacionHandler = async (req, res) => {
     const { descripcion, tipo, fecha, id_empleado } = req.body;
     const token = req.user;
     const errores = [];
-    if (!descripcion) errores.push('La descripción es un campo obligatorio');
+    //if (!descripcion) errores.push('La descripción es un campo obligatorio');
     if (!tipo) errores.push('El tipo es un campo obligatorio');
     if (!fecha) errores.push('La fecha es un campo obligatorio');
     if (!id_empleado) errores.push('El ID del empleado es un campo obligatorio');
-    if (typeof descripcion !== 'string') errores.push('La descripción debe ser una cadena de texto');
+    //if (typeof descripcion !== 'string') errores.push('La descripción debe ser una cadena de texto');
     if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(tipo)) errores.push('El tipo debe ser [A,F,DO,DL,DC,LF,N,DM,LSG,LCG,SSG,V,R,DF]');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('EL formato de la fecha es incorrecto, debe ser YYYY-MM-HH');
     if (isNaN(id_empleado)) errores.push('El ID del empleado debe ser un entero');
@@ -142,7 +142,8 @@ const createJustificacionHandler = async (req, res) => {
         // Crear la justificación para ese día :
         const ids = [];
         ids.push(asistencia.info[0].id);
-        const response = await createJustificacion(documentos, descripcion, tipo, fecha, fecha, ids, id_empleado, token);
+        const descripcion_a = (descripcion) ? descripcion : null
+        const response = await createJustificacion(documentos, descripcion_a, tipo, fecha, fecha, ids, id_empleado, token);
 
         if (!response) {
             if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
