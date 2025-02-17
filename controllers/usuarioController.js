@@ -190,7 +190,7 @@ const getUserById = async (token) => {
             attributes: ['id', 'usuario', 'correo', 'state', 'id_rol', 'id_empleado'],
             include: [
                 { model: Rol, as: 'rol', attributes: ['nombre'] },
-                { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos','foto'] }
+                { model: Empleado, as: 'empleado', attributes: ['nombres', 'apellidos','foto', 'f_nacimiento'] }
             ]
         });
         return user || null;
