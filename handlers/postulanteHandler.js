@@ -7,6 +7,7 @@ const {
     getPsicologiaRevisionActual,
     getFisicaActual,
     asistenciaFisicaActual,
+    getFisicaRevisionActual,
     evaluateFisicaActual,
     getEntrevistaActual,
     getAllPostulantes,
@@ -393,27 +394,29 @@ const getFisicaActualHandler = async (req, res) => {
 // < 06 > - Handler para tomar asistencia previo a la prueba física :
 const asistenciaFisicaActualHandler = async (req, res) => {
 
-    const { id, estado } = req.body;
+    const { asistencias } = req.body;
     const errores = [];
 
-    if (!id) errores.push('El parámetro ID es obligatorio');
-    if (isNaN(id)) errores.push('El ID debe ser un entero');
-    if (typeof estado !== 'boolean') errores.push('El estado debe ser un valor booleano');
+    if (!Array.isArray(asistencias) || asistencias.length === 0) errores.push('El campo asistencias debe ser un array con al menos un elemento.');
     if (errores.length > 0) return res.status(400).json({
         message: 'Se encontraron los siguientes errores...',
         data: errores,
     });
 
     try {
-        const response = await asistenciaFisicaActual(id, estado);
-        if (!response) return res.status(404).json({
-            message: 'Postulante no encontrado',
-            data: []
+        for (const asist of asistencias) {
+            const response = await asistenciaFisicaActual(asist.id, asist.estado);
+            if (!response) errores.push(asist.id);
+        }
+
+        if (errores.length > 0) return res.status(400).json({
+            message: 'No se pudo crear la asistencia para los ID',
+            data: errores
         });
 
         return res.status(200).json({
-            message: 'Asistencia exitosa...',
-            data: response
+            message: 'Asistencias creadas exitosamente...',
+            status: true
         });
 
     } catch (error) {
@@ -424,41 +427,108 @@ const asistenciaFisicaActualHandler = async (req, res) => {
     }
 };
 
-// < 07 > - Handler para evaluar si la persona está apta o no apta luego de la prueba física :
-const evaluateFisicaActualHandler = async (req, res) => {
-    
-    const { id, estado } = req.body;
+// < 07 > - Handler para obtener todos los postulantes que hayan asistido la prueba física para su posterior aceptación :
+const getFisicaRevisionActualHandler = async (req, res) => {
+
+    const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni } = req.query;
+    const filters = { search, subgerencia, cargo, regimen, grado, sexo, dni };
     const errores = [];
 
-    if (!id) errores.push('El parámetro ID es obligatorio');
-    if (isNaN(id)) errores.push('El ID debe ser un entero');
-    if (typeof estado !== 'boolean') errores.push('El estado debe ser un valor booleano');
+    if (isNaN(page)) errores.push("El page debe ser un numero");
+    if (page < 0) errores.push("El page debe ser mayor a 0 ");
+    if (isNaN(limit)) errores.push("El limit debe ser un numero");
+    if (limit <= 0) errores.push("El limit debe ser mayor a 0 ");
+    if (errores.length > 0) return res.status(400).json({
+        message: 'Se encontraron los siguientes errores...',
+        data: errores,
+    });
+
+    const numPage = parseInt(page);
+    const numLimit = parseInt(limit);
+    
+    const ahora = new Date();
+    const peruOffset = -5 * 60; // Offset de Perú en minutos
+    const localOffset = ahora.getTimezoneOffset(); 
+    const dia = new Date(ahora.getTime() + (peruOffset - localOffset) * 60000);
+    const fecha = dia.toISOString().split('T')[0];
+
+    try {
+        const id_convocatoria = await getIdConvocatoria(fecha);
+        if (!id_convocatoria) return res.status(200).json({
+            message: 'Convocatoria inactiva...',
+            data: []
+        });
+
+        const response = await getFisicaRevisionActual(numPage, numLimit, filters, id_convocatoria);
+        const totalPages = Math.ceil(response.totalCount / numLimit);
+
+        if (numPage > totalPages) return res.status(200).json({
+            message: 'Página fuera de rango...',
+            data: {
+                data: [],
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+        return res.status(200).json({
+            message: 'Postulantes que hayan asistido a la prueba física obtenidos exitosamente...',
+            data: {
+                data: response.data,
+                currentPage: numPage,
+                pageCount: response.data.length,
+                totalCount: response.totalCount,
+                totalPages: totalPages,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtener todos los postulantes que hayan asistido a la prueba física',
+            error: error.message
+        });
+    }
+};
+
+// < 08 > - Handler para evaluar si la persona está apta o no apta luego de la prueba física :
+const evaluateFisicaActualHandler = async (req, res) => {
+    
+    const { evaluaciones } = req.body;
+    const errores = [];
+
+    if (!Array.isArray(evaluaciones) || evaluaciones.length === 0) errores.push('El campo asistencias debe ser un array con al menos un elemento.');
     if (errores.length > 0) return res.status(400).json({
         message: 'Se encontraron los siguientes errores...',
         data: errores,
     });
 
     try {
-        const response = await evaluateFisicaActual(id, estado);
-        if (!response) return res.status(404).json({
-            message: 'Postulante no encontrado',
-            data: []
+        for (const evac of evaluaciones) {
+            const response = await evaluateFisicaActual(evac.id, evac.estado);
+            if (!response) errores.push(evac.id);
+        }
+
+        if (errores.length > 0) return res.status(400).json({
+            message: 'No se pudo evaluar para los ID',
+            data: errores
         });
 
         return res.status(200).json({
-            message: 'Evaluación exitosa...',
-            data: response
+            message: 'Evaluaciones realizadas exitosamente...',
+            status: true
         });
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Error interno al evaluar al postulante luego de la prueba física',
+            message: 'Error interno al evaluar a los postulantes de la prueba física',
             error: error.message
         });
     }
 };
 
-// < 08 > - Handler para obtener todos los postulantes que puedan rendir la entrevista con paginación, búsqueda y filtros :
+// < 09 > - Handler para obtener todos los postulantes que puedan rendir la entrevista con paginación, búsqueda y filtros :
 const getEntrevistaActualHandler = async (req, res) => {
 
     const { page = 1, limit = 20, search, subgerencia, cargo, regimen, grado, sexo, dni } = req.query;
@@ -960,6 +1030,7 @@ module.exports = {
     getPsicologiaRevisionActualHandler,
     getFisicaActualHandler,
     asistenciaFisicaActualHandler,
+    getFisicaRevisionActualHandler,
     evaluateFisicaActualHandler,
     getEntrevistaActualHandler,
     getAllPostulantesHandler,
