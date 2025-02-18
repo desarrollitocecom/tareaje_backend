@@ -143,7 +143,7 @@ const createJustificacionHandler = async (req, res) => {
         const ids = [];
         ids.push(asistencia.info[0].id);
         const descripcion_a = (descripcion) ? descripcion : null
-        const response = await createJustificacion(documentos, descripcion_a, tipo, fecha, fecha, ids, id_empleado, token);
+        const response = await createJustificacion(documentos, descripcion_a, tipo, fecha, fecha, ids, id_empleado, estado);
 
         if (!response) {
             if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
