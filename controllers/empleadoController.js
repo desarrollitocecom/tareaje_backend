@@ -850,7 +850,7 @@ const findEmpleado = async (ids_subgerencia, id_turno, ids_area) => {
 
     try {
         const response = await Empleado.findAll({
-            attributes: ['id', 'dni', 'id_area'],
+            attributes: ['id', 'dni', 'id_area', 'id_lugar_trabajo'],
             where: {
                 state: true,
                 id_subgerencia: { [Op.in]: ids_subgerencia },

@@ -88,10 +88,10 @@ const validateJustificacion = async (id_empleado, f_inicio) => {
 };
 
 // Crear una justificacion :
-const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado) => {
+const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado, estado_inicial = null) => {
 
     try {
-        const response = await Justificacion.create({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, id_empleado });
+        const response = await Justificacion.create({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, id_empleado, estado_inicial });
         if (!response) return null;
 
         // Asociar la justificación con las asistencias en la tabla intermedia :
@@ -127,11 +127,28 @@ const updateJustificacion = async (id, documentosPaths, descripcion, tipo, f_ini
     }
 };
 
+// Eliminar una justificación :
+const deleteJustificacion = async (id) => {
+    
+    try {
+        const response = await response.findByPk(id);
+        if (!response) return null;
+        response.state = false;
+        await response.save();
+        return response || null;
+
+    } catch (error) {
+        console.error('Error al canbiar de estado al eliminar la justificación');
+        return false;
+    }
+};
+
 module.exports = {
     getJustificacion,
     getJustificacionById,
     getAllJustificaciones,
     validateJustificacion,
     createJustificacion,
-    updateJustificacion
+    updateJustificacion,
+    deleteJustificacion
 };

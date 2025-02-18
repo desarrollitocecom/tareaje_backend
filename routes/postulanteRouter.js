@@ -9,6 +9,7 @@ const {
     getPsicologiaRevisionActualHandler,
     getFisicaActualHandler,
     asistenciaFisicaActualHandler,
+    getFisicaRevisionActualHandler,
     evaluateFisicaActualHandler,
     getEntrevistaActualHandler,
     getAllPostulantesHandler,
@@ -29,6 +30,7 @@ router.get('/psico/', permisoAutorizacion(["all_system_access", "read_postulante
 router.get('/psicorev/', permisoAutorizacion(["all_system_access", "read_postulante"]), getPsicologiaRevisionActualHandler);
 router.get('/fisica/', permisoAutorizacion(["all_system_access", "read_postulante"]), getFisicaActualHandler);
 router.post('/assist/', permisoAutorizacion(["all_system_access", "read_postulante"]), asistenciaFisicaActualHandler);
+router.get('/fisicarev/', permisoAutorizacion(["all_system_access", "read_postulante"]), getFisicaRevisionActualHandler);
 router.post('/evaluate/', permisoAutorizacion(["all_system_access", "read_postulante"]), evaluateFisicaActualHandler);
 router.get('/pass/', permisoAutorizacion(["all_system_access", "read_postulante"]), getEntrevistaActualHandler);
 
