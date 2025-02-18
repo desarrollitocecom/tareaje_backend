@@ -373,13 +373,76 @@ const asistenciaFisicaActual = async (id, estado) => {
     }
 };
 
-// < 07 > - Evaluar si la persona está apta o no apta luego de la prueba física :
+// < 07 > - Obtener todos los postulantes que hayan asistido a la prueba física para su posterior aceptación con paginación, búsqueda y filtros :
+const getFisicaRevisionActual = async (page = 1, limit = 20, filters = {}, id_convocatoria) => {
+
+    const { search, subgerencia, cargo, regimen, grado, sexo, dni } = filters;
+    const offset = page == 0 ? null : (page - 1) * limit;
+    limit = page == 0 ? null : limit;
+
+    try {
+        // Construcción dinámica de condiciones :
+        const whereCondition = {
+            id_convocatoria: id_convocatoria,
+            state_blacklist: false,
+            prueba_psicologica: true,
+            state_psicologica: true,
+            prueba_fisica: true,
+            ...(search && {
+                [Op.and]: search.split(' ').map((term) => ({
+                    [Op.or]: [
+                        { nombres: { [Op.iLike]: `%${term}%` } },
+                        { apellidos: { [Op.iLike]: `%${term}%` } },
+                    ],
+                })),
+            }),
+            ...(dni && { dni: { [Op.iLike]: `%${dni}%` } }),
+            ...(subgerencia && { id_subgerencia: subgerencia }),
+            ...(cargo && { id_cargo: cargo }),
+            ...(regimen && { id_regimen_laboral: regimen }),
+            ...(grado && { id_grado_estudios: grado }),
+            ...(sexo && { id_sexo: sexo })
+        };
+
+        const includeConditions = [
+            { model: Distrito, as: 'distrito', attributes: ['nombre'] },
+            { model: Entidad, as: 'entidad', attributes: ['nombre'] },
+            { model: Cargo, as: 'cargo', attributes: ['nombre'] },
+            { model: Sexo, as: 'sexo', attributes: ['nombre'] },
+            { model: GradoEstudios, as: 'gradoEstudios', attributes: ['nombre'] },
+            { model: Subgerencia, as: 'subgerencia', attributes: ['nombre'] },
+            { model: Convocatoria, as: 'convocatoria', attributes: ['mes', 'year', 'numero'] }
+        ];
+
+        const response = await Postulante.findAndCountAll({
+            where: whereCondition,
+            include: includeConditions,
+            limit,
+            offset,
+            order: [['apellidos', 'ASC']]
+        });
+
+        return {
+            totalCount: response.count,
+            data: response.rows
+        } || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener todos los postulantes que hayan asistido a la prueba física',
+            data: error
+        });
+        return false;
+    }
+};
+
+// < 08 > - Evaluar si la persona está apta o no apta luego de la prueba física :
 const evaluateFisicaActual = async (id, estado) => {
     
     try {
         const response = await Postulante.findByPk(id);
         if (!response) return null;
-        response.state_psicologica = estado;
+        response.state_fisica = estado;
         response.save();
         return response;
 
@@ -392,7 +455,7 @@ const evaluateFisicaActual = async (id, estado) => {
     }
 };
 
-// < 08 > - Obtener todos los postulantes que puedan rendir la entrevista con paginación, búsqueda y filtros :
+// < 09 > - Obtener todos los postulantes que puedan rendir la entrevista con paginación, búsqueda y filtros :
 const getEntrevistaActual = async (page = 1, limit = 20, filters = {}, id_convocatoria) => {
 
     const { search, subgerencia, cargo, regimen, grado, sexo, dni } = filters;
@@ -450,6 +513,46 @@ const getEntrevistaActual = async (page = 1, limit = 20, filters = {}, id_convoc
     } catch (error) {
         console.error({
             message: 'Error en el controlador al obtener todos los postulantes',
+            data: error
+        });
+        return false;
+    }
+};
+
+// < 10 > - Determinar si el postulante está apto para iniciar a laborar :
+const acceptPostulanteActual = async (id, estado) => {
+    
+    try {
+        const response = await Postulante.findByPk(id);
+        if (!response) return null;
+        response.state_accept = estado;
+        response.save();
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al determinar si el postulante está apto',
+            data: error
+        });
+        return false;
+    }
+};
+
+// < 11 > - Actualizar la información del postulante aceptado :
+const registerPostulante = async (id, ) => {
+    
+    try {
+        const response = await Postulante.findByPk(id);
+        if (response) await response.update({
+            nombres, apellidos, dni, ruc, f_nacimiento, talla, hijos, correo, domicilio, celular,
+            carrera, cv, observaciones, id_distrito, id_cargo, id_subgerencia, id_entidad,
+            cuenta, cci, clave_sol, clave_cul
+        });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al evaluar al postulante luego de la prueba física',
             data: error
         });
         return false;
@@ -648,6 +751,13 @@ const getAllPostulantesFisica = async (page = 1, limit = 20, filters = {}, id_co
 };
 
 // ---------------------------------------------------------------------------------------------------------------------------------- //
+// ---------------------------------- MOSTRAR TODOS LOS POSTULANTES DE LAS DISTINTAS CONVOCATORIAS  --------------------------------- //
+// ---------------------------------------------------------------------------------------------------------------------------------- //
+
+// Obtener a todos los postulantes con sus convocatorias correspondientes :
+
+
+// ---------------------------------------------------------------------------------------------------------------------------------- //
 // ------------------------------------- CREACIÓN, ACTUALIZACIÓN Y ELIMINACIÓN DE UN POSTULANTE  ------------------------------------ //
 // ---------------------------------------------------------------------------------------------------------------------------------- //
 
@@ -729,8 +839,11 @@ module.exports = {
     getPsicologiaRevisionActual,
     getFisicaActual,
     asistenciaFisicaActual,
+    getFisicaRevisionActual,
     evaluateFisicaActual,
     getEntrevistaActual,
+    acceptPostulanteActual,
+    registerPostulante,
     getAllPostulantes,
     getAllPostulantesPsicologia,
     getAllPostulantesFisica,

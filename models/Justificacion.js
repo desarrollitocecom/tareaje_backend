@@ -12,7 +12,7 @@ module.exports = (sequelize) => {
             allowNull: true
         },
         tipo: {
-            type: DataTypes.ENUM('A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'),
+            type: DataTypes.ENUM('A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF','T'),
             allowNull: false
         },
         descripcion: {
@@ -37,6 +37,10 @@ module.exports = (sequelize) => {
             allowNull: false,
             references: { model:'Empleados', key: 'id' }
         },
+        estado_inicial: {
+            type: DataTypes.ENUM('A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF','T'),
+            allowNull: true
+        }
     }, {
         tableName: 'Justificaciones',
         timestamps: true
