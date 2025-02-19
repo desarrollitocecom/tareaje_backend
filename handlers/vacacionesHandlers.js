@@ -199,6 +199,7 @@ const updateVacacionHandler = async (req,res) => {
             const estado = (result) ? result.estado : null;
             before.push({ fecha, estado });
             if (!result) await createAsistencia(fecha, '00:00:00', 'V', id_empleado, 'Sin Foto');
+            else if (['DL','DO','DC'].includes(estado)) await updateAsistencia(result.id, fecha, result.hora, estado, id_empleado, result.photo_id, result.evidencia);
             else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id, result.evidencia);
             date.setDate(date.getDate() + 1);
         }
