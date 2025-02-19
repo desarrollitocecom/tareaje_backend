@@ -114,11 +114,11 @@ const createJustificacion = async (documentosPaths, descripcion, tipo, f_inicio,
 };
 
 // Actualizar una justificación:
-const updateJustificacion = async (id, documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado) => {
+const updateJustificacion = async (id, descripcion) => {
 
     try {
         const response = await Justificacion.findByPk(id);
-        if (response) await response.update({ documentos: documentosPaths, descripcion, tipo, f_inicio, f_fin, ids_asistencia, id_empleado });
+        if (response) await response.update({ descripcion });
         return response || null;
 
     } catch (error) {
