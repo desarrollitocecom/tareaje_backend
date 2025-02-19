@@ -20,20 +20,18 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: true
         },
+        before: {
+            type: DataTypes.JSONB,
+            allowNull: true
+        }
     }, {
         tableName: 'Vacaciones',
         timestamps: true
     });
 
     Vacacion.associate = (db) => {
-        Vacacion.belongsTo(db.Empleado, {
-            foreignKey: 'id_empleado',
-            as: 'empleado',
-        });
-        
-
+        Vacacion.belongsTo(db.Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
     };
     
-
     return Vacacion;
 };
