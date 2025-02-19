@@ -9,6 +9,8 @@ const {
     evaluateResultadosDISC
 } = require('../controllers/pruebasController');
 
+const { asistenciaPsicologiaActual, evaluatePsicologiaActual } = require('../controllers/postulanteController');
+
 // Handler para obtener todas las preguntas de la prueba psicológica :
 const getPreguntasDISCHandler = async (req, res) => {
     
@@ -73,6 +75,12 @@ const rendirPruebaDISCHandler = async (req, res) => {
             success: false
         });
 
+        const assist = await asistenciaPsicologiaActual(id);
+        if (!assist) return res.status(400).json({
+            message: 'Error interno 04 al rendir la prueba psicológica',
+            success: false
+        });
+
         return res.status(200).json({
             message: 'Prueba psicológica rendida exitosamente...',
             success: true
@@ -134,7 +142,7 @@ const evaluateResultadosDISCHandler = async (req, res) => {
     });
 
     try {
-        const response = await evaluateResultadosDISC(id, estado);
+        const response = await evaluatePsicologiaActual(id, estado);
         if (!response) return res.status(404).json({
             message: 'Resultados finales del postulante no encontrados',
             data: []
@@ -142,7 +150,7 @@ const evaluateResultadosDISCHandler = async (req, res) => {
 
         return res.status(200).json({
             message: 'Evaluación exitosa...',
-            data: response
+            status: true
         });
 
     } catch (error) {
