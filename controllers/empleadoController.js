@@ -845,6 +845,26 @@ const getEmpleadoIdByDni = async (dni) => {
     }
 };
 
+// Obtener el turno del empleado por medio del DNI del empleado :
+const getTurnoByDni = async (dni) => {
+    
+    try {
+        const response = await Empleado.findOne({
+            where: { dni, blacklist: false, state: true },
+            attributes: ['id_turno'],
+            include: [{ model: Turno, as: 'turno', attributes: ['nombre'] }]
+        });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener el turno del empleado por DNI',
+            data: error
+        });
+        return false;
+    }
+};
+
 // Obtención del empleado (id, dni, id_funcion, id_turno) para el algoritmo de asistencia :
 const findEmpleado = async (ids_subgerencia, id_turno, ids_area) => {
 
@@ -978,6 +998,7 @@ module.exports = {
     getEmpleadoPago,
     getEmpleadoByDni,
     getEmpleadoIdByDni,
+    getTurnoByDni,
     findEmpleado,
     rotativoEmpleado,
     createEmpleado,

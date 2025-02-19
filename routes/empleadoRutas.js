@@ -8,6 +8,7 @@ const {
     getEmpleadoHandler,
     getEmpleadoPagoHandler,
     getEmpleadoByDniHandler,
+    getTurnoByDniHandler,
     createEmpleadoHandler,
     createEmpleadoPagoHandler,
     createEmpleadoOnlyInfoHandler,
@@ -29,6 +30,7 @@ rutas.get('/pagos/', permisoAutorizacion(["all_system_access", "read_empleadoPag
 rutas.get('/:id',permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoHandler);
 rutas.get('/pagos/:id',permisoAutorizacion(["all_system_access", "read_empleadoPagos"]), getEmpleadoPagoHandler);
 rutas.get('/dni/:dni', permisoAutorizacion(["all_system_access", "read_empleado"]), getEmpleadoByDniHandler);
+rutas.get('/turno/:dni', permisoAutorizacion(["all_system_access", "read_empleadoturno"]), getTurnoByDniHandler);
 rutas.post('/', permisoAutorizacion(["all_system_access", "create_empleado"]), saveImage, multerError, createEmpleadoHandler);
 rutas.post('/only/create/', permisoAutorizacion(["all_system_access", "create_empleado"]), createEmpleadoOnlyInfoHandler);
 rutas.post('/pagos/', permisoAutorizacion(["all_system_access", "create_empleadoPagos"]), uploadImageAndPdf, multerError, createEmpleadoPagoHandler)
