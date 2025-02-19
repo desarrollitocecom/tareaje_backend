@@ -93,10 +93,10 @@ const getVacacionDiaria = async (fecha) => {
 };
 
 // Crear una vacación :
-const createVacacion = async (f_inicio, f_fin, id_empleado) => {
+const createVacacion = async (f_inicio, f_fin, id_empleado, before) => {
 
     try {
-        const response = await Vacacion.create({ f_inicio, f_fin, id_empleado });
+        const response = await Vacacion.create({ f_inicio, f_fin, id_empleado, before });
         return response || null;
 
     } catch (error) {
@@ -109,11 +109,11 @@ const createVacacion = async (f_inicio, f_fin, id_empleado) => {
 };
 
 // Actualizar una vacación :
-const updateVacacion = async (id, f_inicio, f_fin, id_empleado) => {
+const updateVacacion = async (id, f_inicio, f_fin, id_empleado, before) => {
 
     try {
         const response = await Vacacion.findByPk(id);
-        if (response) await response.update({ f_inicio, f_fin, id_empleado });
+        if (response) await response.update({ f_inicio, f_fin, id_empleado, before });
         return response || null;
 
     } catch (error) {

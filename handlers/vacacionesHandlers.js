@@ -121,21 +121,25 @@ const createVacacionHandler = async (req, res) => {
     });
   
     try {
-        const response = await createVacacion(f_inicio, f_fin, id_empleado);
-        if (!response) return res.status(200).json({
-            message: 'No se pudo crear la vacación',
-            data: []
-        });
-
+        const before = [];
         const date = new Date(f_inicio);
         const fin = new Date(f_fin);
         while (date <= fin) {
             const fecha =  date.toISOString().split('T')[0];
             const result = await validateAsistencia(fecha, id_empleado);
+            const estado = (result) ? result.estado : null;
+            before.push({ fecha, estado });
             if (!result) await createAsistencia(fecha, '00:00:00', 'V', id_empleado, 'Sin Foto');
+            else if (['DL','DO','DC'].includes(estado)) await updateAsistencia(result.id, fecha, result.hora, estado, id_empleado, result.photo_id, result.evidencia);
             else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id, result.evidencia);
             date.setDate(date.getDate() + 1);
         }
+
+        const response = await createVacacion(f_inicio, f_fin, id_empleado, before);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo crear la vacación',
+            data: []
+        });
 
         const historial = await createHistorial('create', 'Vacacion', null, response, token);
         if (!historial) console.warn('No se agregó la creación de la vacación al historial');
@@ -179,32 +183,31 @@ const updateVacacionHandler = async (req,res) => {
             message: 'Vacación no encontrada',
             data: []
         });
-
-        const response = await updateVacacion(id ,f_inicio, f_fin, id_empleado);
-        if (!response) return res.status(200).json({
-            message: 'No se pudo actualizar la vacación...',
-            data: []
-        });
-
-        const date_previo = new Date(previo.f_inicio);
-        const fin_previo = new Date(previo.f_fin);
-        while (date_previo <= fin_previo) {
-            const fecha =  date_previo.toISOString().split('T')[0];
-            const result = await validateAsistencia(fecha, id_empleado);
-            if (result) updateAsistencia(result.id, fecha, result.hora, null, id_empleado, result.photo_id, result.evidencia);
-            else console.warn('No se pudo actualizar la vacación nula a la Asistencia')
-            date_previo.setDate(date_previo.getDate() + 1);
+        
+        for (const bf of previo.before) {
+            const result = await validateAsistencia(bf.fecha, previo.id_empleado);
+            if (result) await updateAsistencia(result.id, bf.fecha, result.hora, bf.estado, previo.id_empleado, result.photo_id, result.evidencia);
+            else console.warn('No se pudo eliminar la vacación a la Asistencia');
         }
 
+        const before = [];
         const date = new Date(f_inicio);
         const fin = new Date(f_fin);
         while (date <= fin) {
             const fecha =  date.toISOString().split('T')[0];
             const result = await validateAsistencia(fecha, id_empleado);
+            const estado = (result) ? result.estado : null;
+            before.push({ fecha, estado });
             if (!result) await createAsistencia(fecha, '00:00:00', 'V', id_empleado, 'Sin Foto');
             else await updateAsistencia(result.id, fecha, result.hora, 'V', id_empleado, result.photo_id, result.evidencia);
             date.setDate(date.getDate() + 1);
         }
+        
+        const response = await updateVacacion(id ,f_inicio, f_fin, id_empleado, before);
+        if (!response) return res.status(200).json({
+            message: 'No se pudo actualizar la vacación...',
+            data: []
+        });
 
         const historial = await createHistorial('update', 'Vacacion', previo, response, token);
         if (!historial) console.warn('No se agregó la actualización de la vacación al historial');
@@ -239,18 +242,14 @@ const deleteVacacionesHandler = async (req, res) => {
     try {
         const response = await deleteVacacion(id);
         if (!response) return res.status(200).json({
-            message: 'Descanso no encontrado',
+            message: 'Vacacion no encontrado',
             data: []
         });
 
-        const date = new Date(response.f_inicio);
-        const fin = new Date(response.f_fin);
-        while (date <= fin) {
-            const fecha =  date.toISOString().split('T')[0];
-            const result = await validateAsistencia(fecha, response.id_empleado);
-            if (result) await updateAsistencia(result.id, fecha, result.hora, null, response.id_empleado, result.photo_id, result.evidencia);
-            else console.warn('No se pudo eliminar la vacación a la Asistencia')
-            date.setDate(date.getDate() + 1);
+        for (const bf of response.before) {
+            const result = await validateAsistencia(bf.fecha, response.id_empleado);
+            if (result) await updateAsistencia(result.id, bf.fecha, result.hora, bf.estado, response.id_empleado, result.photo_id, result.evidencia);
+            else console.warn('No se pudo eliminar la vacación a la Asistencia');
         }
 
         const historial = await createHistorial('delete', 'Vacacion', response, null, token);
