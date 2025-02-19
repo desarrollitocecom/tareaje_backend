@@ -9,6 +9,12 @@ const validarProximosCumpleanos = [
         throw new Error("El parámetro 'desde' debe ser una fecha válida en formato 'YYYY-MM-DD'");
       }
       return true;
+    })
+    .custom((value, { req }) => {
+      if (value && !req.query.hasta) {
+        throw new Error("Si se proporciona 'desde', se debe proporcionar 'hasta'");
+      }
+      return true;
     }),
 
   query("hasta")
@@ -19,16 +25,18 @@ const validarProximosCumpleanos = [
         throw new Error("El parámetro 'hasta' debe ser una fecha válida en formato 'YYYY-MM-DD'");
       }
       return true;
-    }),
-
-  query("hasta")
-    .optional()
+    })
+    .custom((value, { req }) => {
+      if (value && !req.query.desde) {
+        throw new Error("Si se proporciona 'hasta', se debe proporcionar 'desde'");
+      }
+      return true;
+    })
     .custom((value, { req }) => {
       const desde = req.query.desde;
       if (desde) {
         const fechaDesde = new Date(desde);
         const fechaHasta = new Date(value);
-
         if (fechaDesde > fechaHasta) {
           throw new Error("El parámetro 'desde' no puede ser posterior a 'hasta'");
         }
