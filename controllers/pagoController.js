@@ -68,9 +68,26 @@ const updatePago = async (carasDni, cci, certiAdulto, claveSol, suspension, id_e
     }
 };
 
+// Actualizar algunos campos de pagos :
+const updateInfoPago = async (cci, certiAdulto, claveSol, id_empleado) => {
+    
+    try {
+        const response = await Pago.findOne({
+            where: { id_empleado: id_empleado }
+        });
+        if (response) await response.update({ cci, certiAdulto, claveSol});
+        return response || null;
+
+    } catch (error) {
+        console.error('Error al actualizar el pago:', error.message);
+        return false;
+    }
+};
+
 module.exports = {
     getPago,
     getAllPagos,
     createPago,
-    updatePago
+    updatePago,
+    updateInfoPago
 };

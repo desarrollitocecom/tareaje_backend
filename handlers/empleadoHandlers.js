@@ -18,6 +18,8 @@ const {
     updateEmpleadoInfo
 } = require('../controllers/empleadoController');
 
+const { updateInfoPago } = require('../controllers/pagoController');
+
 const { createHistorial } = require('../controllers/historialController');
 const { createPerson } = require('../controllers/axxonController');
 const { deletePhoto, deletePdfDNI } = require('../utils/filesFunctions');
@@ -1023,6 +1025,32 @@ const updateEmpleadoOnlyInfoHandler = async (req, res) => {
     }
 };
 
+// Handler para actualizar solo los campos de pagos :
+const updateEmpleadoInfoPagoHandler = async (req, res) => {
+    
+    const { id } = req.params;
+    const { cci, claveSol, certiAdulto } = req.body;
+
+    try {
+        const response = await updateInfoPago(cci, certiAdulto, claveSol, id);
+        if (!response) return res.status(400).json({
+            message: 'No se pudo actualizar los pagos',
+            data: []
+        });
+
+        return res.status(200).json({
+            message: 'Pago actualizado exitosamente',
+            data: response
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al actualizar la información de pagos',
+            error: error.message
+        });
+    }
+};
+
 // Handler para cambiar el estado del empleado :
 const deleteEmpleadoHandler = async (req, res) => {
 
@@ -1070,7 +1098,7 @@ const deleteEmpleadoHandler = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             message: 'Error interno al eliminar al empleado',
             error: error.message
         });
@@ -1099,7 +1127,7 @@ const findEmpleadoHandler = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             message: 'Error interno al obtener al empleado por funciones y turno',
             error: error.message
         });
@@ -1162,6 +1190,7 @@ module.exports = {
     updateEmpleadoHandler,
     updateEmpleadoPagoHandler,
     updateEmpleadoOnlyInfoHandler,
+    updateEmpleadoInfoPagoHandler,
     deleteEmpleadoHandler,
     findEmpleadoHandler, 
     blackDeleteHandler,
