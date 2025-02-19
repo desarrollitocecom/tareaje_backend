@@ -231,7 +231,26 @@ const getPsicologiaActual = async (page = 1, limit = 20, filters = {}, id_convoc
     }
 };
 
-// < 04 > - Obtener todos los postulantes que hayan rendido la prueba de psicología para su posterior revisión :
+// < 04 > - Cambiar el estado de a prueba psicológica luego de haber rendido :
+const asistenciaPsicologiaActual = async (id) => {
+    
+    try {
+        const response = await Postulante.findByPk(id);
+        if (!response) return null;
+        response.prueba_psicologia = true;
+        response.save();
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al tomar asistencia previo a la prueba física',
+            data: error
+        });
+        return false;
+    }
+};
+
+// < 05 > - Obtener todos los postulantes que hayan rendido la prueba de psicología para su posterior revisión :
 const getPsicologiaRevisionActual = async (page = 1, limit = 20, filters = {}, id_convocatoria) => {
 
     const { search, subgerencia, cargo, regimen, grado, sexo, dni } = filters;
@@ -292,7 +311,26 @@ const getPsicologiaRevisionActual = async (page = 1, limit = 20, filters = {}, i
     }
 };
 
-// < 05 > - Obtener todos los postulantes que puedan rendir la prueba física con paginación, búsqueda y filtros :
+// < 06 > - Evaluar si la persona está apta o no apta luego de la prueba física :
+const evaluatePsicologiaActual = async (id, estado) => {
+    
+    try {
+        const response = await Postulante.findByPk(id);
+        if (!response) return null;
+        response.state_psicologia = estado;
+        response.save();
+        return response;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al evaluar al postulante luego de la prueba psicológicq',
+            data: error
+        });
+        return false;
+    }
+};
+
+// < 07 > - Obtener todos los postulantes que puedan rendir la prueba física con paginación, búsqueda y filtros :
 const getFisicaActual = async (page = 1, limit = 20, filters = {}, id_convocatoria) => {
 
     const { search, subgerencia, cargo, regimen, grado, sexo, dni } = filters;
@@ -354,7 +392,7 @@ const getFisicaActual = async (page = 1, limit = 20, filters = {}, id_convocator
     }
 };
 
-// < 06 > - Tomar asistencia previo a la prueba física :
+// < 08 > - Tomar asistencia previo a la prueba física :
 const asistenciaFisicaActual = async (id, estado) => {
     
     try {
@@ -373,7 +411,7 @@ const asistenciaFisicaActual = async (id, estado) => {
     }
 };
 
-// < 07 > - Obtener todos los postulantes que hayan asistido a la prueba física para su posterior aceptación con paginación, búsqueda y filtros :
+// < 09 > - Obtener todos los postulantes que hayan asistido a la prueba física para su posterior aceptación con paginación, búsqueda y filtros :
 const getFisicaRevisionActual = async (page = 1, limit = 20, filters = {}, id_convocatoria) => {
 
     const { search, subgerencia, cargo, regimen, grado, sexo, dni } = filters;
@@ -436,7 +474,7 @@ const getFisicaRevisionActual = async (page = 1, limit = 20, filters = {}, id_co
     }
 };
 
-// < 08 > - Evaluar si la persona está apta o no apta luego de la prueba física :
+// < 10 > - Evaluar si la persona está apta o no apta luego de la prueba física :
 const evaluateFisicaActual = async (id, estado) => {
     
     try {
@@ -455,7 +493,7 @@ const evaluateFisicaActual = async (id, estado) => {
     }
 };
 
-// < 09 > - Obtener todos los postulantes que puedan rendir la entrevista con paginación, búsqueda y filtros :
+// < 11 > - Obtener todos los postulantes que puedan rendir la entrevista con paginación, búsqueda y filtros :
 const getEntrevistaActual = async (page = 1, limit = 20, filters = {}, id_convocatoria) => {
 
     const { search, subgerencia, cargo, regimen, grado, sexo, dni } = filters;
@@ -519,7 +557,7 @@ const getEntrevistaActual = async (page = 1, limit = 20, filters = {}, id_convoc
     }
 };
 
-// < 10 > - Determinar si el postulante está apto para iniciar a laborar :
+// < 12 > - Determinar si el postulante está apto para iniciar a laborar :
 const acceptPostulanteActual = async (id, estado) => {
     
     try {
@@ -538,7 +576,7 @@ const acceptPostulanteActual = async (id, estado) => {
     }
 };
 
-// < 11 > - Actualizar la información del postulante aceptado :
+// < 13 > - Actualizar la información del postulante aceptado :
 const registerPostulante = async (id, ) => {
     
     try {
@@ -836,7 +874,9 @@ module.exports = {
     getPostulantesActual,
     getBlackListActual,
     getPsicologiaActual,
+    asistenciaPsicologiaActual,
     getPsicologiaRevisionActual,
+    evaluatePsicologiaActual,
     getFisicaActual,
     asistenciaFisicaActual,
     getFisicaRevisionActual,

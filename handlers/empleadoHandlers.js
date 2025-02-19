@@ -5,6 +5,7 @@ const {
     getEmpleado,
     getEmpleadoPago,
     getEmpleadoByDni,
+    getTurnoByDni,
     createEmpleado,
     updateEmpleado,
     updateEmpleadoPago,
@@ -248,6 +249,39 @@ const getEmpleadoByDniHandler = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: 'Error interno al obtener información básica del empleado por DNI',
+            error: error.message
+        });
+    }
+};
+
+// Handler para obtener el turno del empleado por medio del DNI :
+const getTurnoByDniHandler = async (req, res) => {
+    
+    const { dni } = req.params;
+    const errores = [];
+
+    if (!dni) errores.push('El DNI es un parámetro obligatorio');
+    if (!/^\d{8}$/.test(dni)) errores.push("El DNI debe tener exactamente 8 dígitos");
+    if (errores.length > 0) return res.status(400).json({
+        message: "Se encontraron los siguentes errores:",
+        data: errores
+    });
+
+    try {
+        const response = await getTurnoByDni(dni);
+        if (!response) return res.status(404).json({
+            message: "Empleado no identificado en la base de datos...",
+            data: []
+        });
+
+        return res.status(200).json({
+            message: "Empleado identificado en la base de datos...",
+            data: response
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Error interno al obtenerel turno del empleado por DNI',
             error: error.message
         });
     }
@@ -1121,6 +1155,7 @@ module.exports = {
     getEmpleadoHandler,
     getEmpleadoPagoHandler,
     getEmpleadoByDniHandler,
+    getTurnoByDniHandler,
     createEmpleadoHandler,
     createEmpleadoPagoHandler,
     createEmpleadoOnlyInfoHandler,
