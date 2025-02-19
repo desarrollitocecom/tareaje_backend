@@ -17,6 +17,7 @@ const createAsistencias = async (dia, hora, minute) => {
         // Obtener las tardanzas (Lugar de trabajo ==> CECOM):
         if (minute === 16) {
 
+            const protocols_tardanza = await getProtocols(dia, hora + 2);
             const horario_tardanza = await getHorariosHora(hora);
             if (!horario_tardanza || horario_tardanza.length === 0) return null;
             const { ids_subgerencia, id_turno, ids_area } = horario_tardanza;
@@ -27,8 +28,9 @@ const createAsistencias = async (dia, hora, minute) => {
             for (const empleado of empleados_cecom) {
                 
                 let tardanza;
-                const match = (protocols.length > 0) ? protocols.find(protocol => protocol.dni === empleado.dni) : false;
+                const match = (protocols_tardanza.length > 0) ? protocols_tardanza.find(protocol => protocol.dni === empleado.dni) : false;
                 const response = await validateAsistencia(dia, empleado.id);
+                console.log(response);
 
                 if (match) {
                     if (!response) tardanza = await createAsistencia(dia, match.hora, 'T', empleado.id, match.foto, true);

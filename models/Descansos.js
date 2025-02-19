@@ -29,6 +29,10 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: true
         },
+        before: {
+            type: DataTypes.ENUM('A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF','T'),
+            allowNull: true
+        }
     },{
         tableName: 'Descansos',
         timestamps: true
