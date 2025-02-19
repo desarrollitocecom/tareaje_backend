@@ -273,26 +273,26 @@ const createJustificacionRangoHandler = async (req, res) => {
 const updateJustificacionHandler = async (req, res) => {
 
     const { id } = req.params;
-    const { documentos, descripcion, tipo, f_inicio, f_fin, id_empleado } = req.body;
+    const { descripcion } = req.body;
     const token = req.user;
     const errores = [];
 
     if (!id) errores.push('El parámetro ID es obligatorio');
-    if (isNaN(id)) errores.push('El ID debe ser un entero');
-    if (!tipo) errores.push('El tipo es un campo obligatorio');
-    if (!f_inicio) errores.push('La fecha de inicio es un campo obligatorio');
-    if (!f_fin) errores.push('La fecha de fin es un campo obligatorio');
-    if (!id_empleado) errores.push('El ID del empleado es un campo obligatorio');
+    // if (isNaN(id)) errores.push('El ID debe ser un entero');
+    // if (!tipo) errores.push('El tipo es un campo obligatorio');
+    // if (!f_inicio) errores.push('La fecha de inicio es un campo obligatorio');
+    // if (!f_fin) errores.push('La fecha de fin es un campo obligatorio');
+    // if (!id_empleado) errores.push('El ID del empleado es un campo obligatorio');
 
-    if (typeof descripcion !== 'string') errores.push('La descripción debe ser una cadena de texto');
-    if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(tipo)) errores.push('El tipo debe ser [A,F,DO,DL,DC,LF,N,DM,LSG,LCG,SSG,V,R,DF]');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(f_inicio)) errores.push('EL formato de la fecha de inicio es incorrecto, debe ser YYYY-MM-HH');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(f_fin)) errores.push('EL formato de la fecha de fin es incorrecto, debe ser YYYY-MM-HH');
-    if (isNaN(id_empleado)) errores.push('El ID del empleado debe ser un entero');
+    // if (typeof descripcion !== 'string') errores.push('La descripción debe ser una cadena de texto');
+    // if (!['A','F','DO','DL','DC','LF', 'NA','DM','LSG','LCG','SSG','V','R','DF'].includes(tipo)) errores.push('El tipo debe ser [A,F,DO,DL,DC,LF,N,DM,LSG,LCG,SSG,V,R,DF]');
+    // if (!/^\d{4}-\d{2}-\d{2}$/.test(f_inicio)) errores.push('EL formato de la fecha de inicio es incorrecto, debe ser YYYY-MM-HH');
+    // if (!/^\d{4}-\d{2}-\d{2}$/.test(f_fin)) errores.push('EL formato de la fecha de fin es incorrecto, debe ser YYYY-MM-HH');
+    // if (isNaN(id_empleado)) errores.push('El ID del empleado debe ser un entero');
 
     // Formato de envío de errores de validaciones :
     if (errores.length > 0) {
-        if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
+        //if (req.files || req.files.length > 0) for (const file of req.files) await deleteFile(file.filename);
         return res.status(400).json({
             message: 'Se encontraron los siguientes errores...',
             data: errores
@@ -306,7 +306,7 @@ const updateJustificacionHandler = async (req, res) => {
             data: []
         });
 
-        const response = await updateJustificacion(id, documentos, descripcion, tipo, f_inicio, f_fin, ids, id_empleado);
+        const response = await updateJustificacion(id, descripcion);
         if (!response) return res.status(400).json({
             message: 'No se pudo actualizar la justificación...',
             data: []
