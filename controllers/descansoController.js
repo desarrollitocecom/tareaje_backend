@@ -196,16 +196,51 @@ const getDescansosDiario = async (fecha) => {
     }
 };
 
+// Obtener un descanso por ID de empleado, fecha y state false :
+const getDescansoState = async (id_empleado, fecha) => {
+    
+    try {
+        const response = await Descanso.findOne({
+            where: { fecha, id_empleado, state: false }
+        });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al obtener un descanso por ID de empleado, fecha y state false',
+            error: error.message
+        });
+        return false;
+    }
+};
+
 // Crear un descanso :
-const createDescanso = async (fecha, tipo, observacion, id_empleado) => {
+const createDescanso = async (fecha, tipo, observacion, id_empleado, before) => {
 
     try {
-        const response = await Descanso.create({ fecha, tipo, observacion, id_empleado });
+        const response = await Descanso.create({ fecha, tipo, observacion, id_empleado, before });
         return response || null;
 
     } catch (error) {
         console.error({
             message: 'Error en el controlador al crear un descanso',
+            error: error.message
+        });
+        return false;
+    }
+};
+
+// En caso exista un descanso con state false se actualiza ese descanso :
+const recreateDescanso = async (id, tipo, observacion, before) => {
+
+    try {
+        const response = await Descanso.findByPk(id);
+        if (response) await response.update({ tipo, observacion, before, state: true });
+        return response || null;
+
+    } catch (error) {
+        console.error({
+            message: 'Error en el controlador al recrear un descanso',
             error: error.message
         });
         return false;
@@ -254,7 +289,9 @@ module.exports = {
     getDescansoById,
     getDescansosRango,
     getDescansosDiario,
-    updateDescanso,
+    getDescansoState,
     createDescanso,
+    recreateDescanso,
+    updateDescanso,
     deleteDescanso
 };

@@ -3,7 +3,9 @@ const {
     getDescansoById,
     getAllDescansos,
     getDescansosRango,
+    getDescansoState,
     createDescanso,
+    recreateDescanso,
     updateDescanso,
     deleteDescanso
 } = require("../controllers/descansoController");
@@ -180,15 +182,22 @@ const createDescansoHandler = async (req, res) => {
     });
 
     try {
-        const response = await createDescanso(fecha, tipo, config_observacion, id_empleado);
+        const result = await validateAsistencia(fecha, id_empleado);
+        const before = (result) ? result.estado : null;
+
+        let response;
+        const descanso = await getDescansoState(id_empleado, fecha)
+
+        if (descanso) response = await recreateDescanso(descanso.id, tipo, config_observacion, before);
+        else response = await createDescanso(fecha, tipo, config_observacion, id_empleado, before);
+
         if (!response) return res.status(200).json({
             message: 'No se pudo crear el descanso',
             data: []
         });
 
-        const result = await validateAsistencia(fecha, id_empleado);
         if (!result) await createAsistencia(fecha, '00:00:00', tipo, id_empleado, 'Sin Foto');
-        else await updateAsistencia(result.id, fecha, result.hora, tipo, id_empleado, result.photo_id);
+        else await updateAsistencia(result.id, fecha, result.hora, tipo, id_empleado, result.photo_id, result.evidencia);
 
         const historial = await createHistorial('create', 'Descanso', null, response, token);
         if (!historial) console.warn('No se agregó la creación del descanso al historial');
@@ -244,7 +253,7 @@ const updateDescansoHandler = async (req, res) => {
 
         const result = await validateAsistencia(fecha, id_empleado);
         if (!result) await createAsistencia(fecha, '00:00:00', tipo, id_empleado, 'Sin Foto');
-        else await updateAsistencia(result.id, fecha, result.hora, tipo, id_empleado, result.photo_id);
+        else await updateAsistencia(result.id, fecha, result.hora, tipo, id_empleado, result.photo_id, result.evidencia);
 
         const historial = await createHistorial('update', 'Descanso', previo, response, token);
         if (!historial) console.warn('No se agregó la actualización del descanso al historial...');
@@ -287,7 +296,7 @@ const deleteDescansoHandler = async (req, res) => {
         if (!historial) console.warn('No se agregó la eliminación del descanso al historial');
 
         const result = await validateAsistencia(response.fecha, response.id_empleado);
-        if (result) await updateAsistencia(result.id, result.fecha, result.hora, null, result.id_empleado, result.photo_id);
+        if (result) await updateAsistencia(result.id, result.fecha, result.hora, response.before, result.id_empleado, result.photo_id, result.evidencia);
         else console.warn('No se pudo eliminar el descanso en Asistencia');
 
         return res.status(200).json({
