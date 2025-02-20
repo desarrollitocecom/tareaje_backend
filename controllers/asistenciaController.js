@@ -261,7 +261,7 @@ const validateAsistencia = async (fecha, id_empleado) => {
 };
 
 // Crear asistencia para el algoritmo (SIN HANDLER) :
-const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
+const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id, evidencia = false) => {
 
     const errores = [];
     if (!fecha) errores.push('Es necesario que exista el parámetro FECHA');
@@ -282,7 +282,7 @@ const createAsistencia = async (fecha, hora, estado, id_empleado, photo_id) => {
     }
 
     try {
-        const response = await Asistencia.create({ fecha, hora, estado, id_empleado, photo_id });
+        const response = await Asistencia.create({ fecha, hora, estado, id_empleado, photo_id, evidencia });
         if (!response) {
             console.warn('No se pudo crear la asistencia');
             return false;
