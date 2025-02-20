@@ -71,7 +71,7 @@ const getAllDescansos = async (page = 1, limit = 20) => {
 // Obtener descansos (todos los tipos) en un rango de fechas con filtros :
 const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}) => {
 
-    const { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, funcion } = filters;
+    const { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, funcion, area } = filters;
     const offset = page == 0 ? null : (page - 1) * limit;
     limit = page == 0 ? null : limit;
     const dias = [];
@@ -111,7 +111,8 @@ const getDescansosRango = async (page = 1, limit = 20, inicio, fin, filters = {}
             ...(regimen && { id_regimen_laboral: regimen }),
             ...(lugar && { id_lugar_trabajo: lugar }),
             ...(sexo && { id_sexo: sexo }),
-            ...(funcion && { id_funcion: funcion })
+            ...(funcion && { id_funcion: funcion }),
+            ...(area && { id_area: area }),
         };
 
         const empleados = await Empleado.findAndCountAll({

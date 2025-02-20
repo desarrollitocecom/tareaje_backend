@@ -107,8 +107,8 @@ const getAllDescansosHandler = async (req, res) => {
 const getDescansosRangoHandler = async (req, res) => {
 
     const { inicio, fin } = req.body;
-    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, funcion } = req.query;
-    const filters = { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, funcion };
+    const { page = 1, limit = 20, search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, funcion, area } = req.query;
+    const filters = { search, subgerencia, turno, cargo, regimen, lugar, sexo, dni, funcion, area };
     const errores = [];
 
     if (isNaN(page)) errores.push('El page debe ser un número entero...');
